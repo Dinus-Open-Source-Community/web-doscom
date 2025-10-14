@@ -9,11 +9,33 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
+// type Service interface {
+// 	Close() error
+// }
 
-func ConnectDB() {
+type service struct {
+	DB *gorm.DB
+}
+
+var (
+	database   = os.Getenv("DB_DATABASE")
+	username   = os.Getenv("DB_USER")
+	password   = os.Getenv("DB_PASSWORD")
+	host       = os.Getenv("DB_HOST")
+	port       = os.Getenv("DB_PORT")
+	timezone   = os.Getenv("DB_TIMEZONE")
+	dbInstance *service
+)
+
+func ConnectDB() *service {
+	// reuse connection
+	if dbInstance != nil {
+		return dbInstance
+	}
+
 	var err error
-	dsn := os.Getenv("DB")
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, timezone)
+	// dsn := os.Getenv("DB")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -21,7 +43,19 @@ func ConnectDB() {
 		log.Fatal("failed to connect db : ", err)
 	}
 
-	DB = db
-	fmt.Println("Success connect to db")
+	dbInstance = &service{
+		DB: db,
+	}
+
+	return dbInstance
 
 }
+
+// func (s *service) Close() error {
+// 	sqlDB, err := s.DB.DB()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	log.Printf("Disconnected from database: %s", database)
+// 	return sqlDB.Close()
+// }

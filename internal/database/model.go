@@ -1,8 +1,6 @@
 package database
 
-import (
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
 type Models struct {
 	Users UserModel
