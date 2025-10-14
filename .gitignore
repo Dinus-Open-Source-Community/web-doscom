@@ -1,0 +1,67 @@
+# ====================================
+# 🐹 Go build and module files
+# ====================================
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace & build cache
+/go.work
+/go.work.sum
+/.cache/
+*.log
+
+# ====================================
+# 🔑 Environment & sensitive files
+# ====================================
+.env
+.env.local
+.env.development
+.env.production
+
+# Jangan pernah upload credentials contoh pun boleh
+# tapi file .env.example biarkan saja di-track (biar tim tahu formatnya)
+!*.example
+
+# ====================================
+# 🧰 IDE / Editor folders
+# ====================================
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# ====================================
+# 📦 Dependencies cache (optional)
+# ====================================
+vendor/
+node_modules/
+
+# ====================================
+# 🖼️ Web build outputs
+# ====================================
+/web/dist/
+/web/node_modules/
+/web/build/
+/web/.cache/
+/web/.vite/
+
+# ====================================
+# 🗃️ Database files (kalau pakai SQLite atau migration tools)
+# ====================================
+*.db
+*.sqlite
+*.sqlite3
+/internal/database/tmp/
+cmd/migrate/migrations/tmp/
+
+# ====================================
+# 🧪 Test artifacts
+# ====================================
+coverage.out
