@@ -22,7 +22,7 @@ func main() {
 
 	dbURL := os.Getenv("DBURL")
 
-	m, err := migrate.New("file://./cmd/migrate/migrations", dbURL)
+	m, err := migrate.New("file://./migrations", dbURL)
 
 	if err != nil {
 		log.Fatal(err)
