@@ -7,8 +7,9 @@ import (
 )
 
 func LoadEnv() {
-	err := godotenv.Load()
+	// Try to load .env from BackEnd directory explicitly
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file from path: %v", err)
 	}
 }

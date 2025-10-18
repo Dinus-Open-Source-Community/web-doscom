@@ -20,7 +20,7 @@ func (app *Application) NewServer() error {
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.Port),
-		Handler:      app.routes(),
+		Handler:      app.Routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
