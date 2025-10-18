@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"web_doscom/internal/handler"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,29 +15,11 @@ func RegisterRoutes(r *gin.Engine) {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
 
-	// ROUTE TO CREATE USER
-
-	r.GET("/api/user/:id", func(c *gin.Context) {
-		id := c.Param("id")
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Get user",
-			"user": gin.H{
-				"id":   id,
-				"name": "Test User",
-			},
-		})
-	})
+	// ROUTE TO GET USER BY ID
+	r.GET("/api/user/:id", handler.GetUserHandler)
 
 	// ROUTE TO CREATE USER
-	r.POST("/api/user", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "User created successfully",
-			"user": gin.H{
-				"id":   1,
-				"name": "Test User",
-			},
-		})
-	})
+	r.POST("/api/user", handler.CreateUserHandler)
 }
 
 // Routes returns the Gin engine with all routes registered
