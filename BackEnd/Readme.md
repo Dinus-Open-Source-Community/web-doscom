@@ -1,58 +1,81 @@
-# Readme — Menjalankan Go app jika `go run ./cmd/api/main.go` gagal
 
-Dokumentasi singkat untuk menjalankan aplikasi Go di shell fish ketika perintah `go run ./cmd/api/main.go` tidak berhasil, dan solusi untuk error fish saat mencoba memuat .env:
+# Web Doscom Backend — Dokumentasi
 
-## Masalah umum
-- Error yang muncul:
-    ```
-    set: : invalid variable name. See `help identifiers`
-    ```
-    Penyebab: skrip yang membaca `.env` mencoba menjalankan `set -gx` dengan nama variabel kosong (mis. baris kosong atau komentar di `.env`). Fish tidak menerima nama variabel kosong.
+## Struktur Proyek
 
-## Cara cepat menjalankan aplikasi
-- Coba jalankan modul package langsung (jika menggunakan module mode):
-    ```
-    go run ./cmd/api
+- `cmd/api/main.go` — Entry point aplikasi Gin API
+- `internal/server/routes.go` — Semua definisi route API (ping, user, dst)
+- `internal/handler/` — Handler (jika ingin custom handler)
+- `internal/database/` — Koneksi dan model database (GORM)
+- `.env` — Konfigurasi environment (DB, PORT, dll)
+
+## Setup & Menjalankan
+
+1. **Clone repo & install dependency**
+    ```sh
+    git clone https://github.com/Dinus-Open-Source-Community/web-doscom.git
+    cd web-doscom/BackEnd
+    go mod tidy
     ```
 
-## Memuat .env dengan benar di fish
-Gunakan loop yang mengabaikan komentar/baris kosong dan memisahkannya dengan aman:
+2. **Buat file `.env`**
+    ```env
+    PORT=3001
+    DBURL=postgres://webdoscom:webdoscom123@localhost:5432/web_doscom?sslmode=disable
+    DB_TIMEZONE=public
+    # ...tambahkan variabel lain sesuai kebutuhan
+    ```
+
+3. **Jalankan aplikasi**
+    ```sh
+    go run ./cmd/api/main.go
+    # atau jika pakai fish shell dan ingin load .env manual:
+    # . load-env.fish; go run ./cmd/api/main.go
+    # cd to backend folder go run ./cmd.api/mai.go
+    ```
+
+## Endpoints API
+
+- **GET `/api/ping`**
+    - Cek server hidup
+    - Response: `{ "message": "pong" }`
+
+- **POST `/api/user`**
+    - Contoh create user (dummy, belum ke database)
+    - Response:
+      ```json
+      {
+        "message": "User created successfully",
+        "user": {
+          "id": 1,
+          "name": "Test User"
+        }
+      }
+      ```
+
+## Tips & Troubleshooting
+
+- Jika error `.env` tidak terbaca, pastikan `env.LoadEnv()` dipanggil sebelum koneksi DB.
+- Jika port sudah dipakai, ganti `PORT` di `.env` dan restart server.
+- Untuk error fish shell saat load .env, gunakan script `load-env.fish` seperti di bawah:
 
 ```fish
-# load-env.fish
-for line in (grep -v '^\s*#' .env | sed '/^\s*$/d')
-        set parts (string split -m1 "=" $line)
-        set key $parts[1]
-        # gabungkan sisa jadi value (untuk = di value)
-        set value (string join "=" $parts[2..-1])
-        set -gx $key $value
+for line in (grep -v '^s*#' .env | sed '/^s*$/d')
+    set parts (string split -m1 "=" $line)
+    set key $parts[1]
+    set value (string join "=" $parts[2..-1])
+    set -gx $key $value
 end
-
-# lalu jalankan aplikasi
-# source load-env.fish  # di fish: . load-env.fish
-go run ./cmd/api
 ```
 
-Penjelasan singkat:
-- `grep -v '^\s*#'` menghapus komentar.
-- `sed '/^\s*$/d'` menghapus baris kosong sehingga tidak ada nama variabel kosong.
-- `string split -m1 "="` memecah menjadi key dan sisa value (menghindari masalah jika `=` ada di value).
+- Untuk pengembangan, gunakan [direnv](https://direnv.net/) agar .env otomatis di-load.
 
-## Alternatif: muat .env dari Go
-Tambahkan library seperti `github.com/joho/godotenv` ke proyek agar aplikasi yang dijalankan (tanpa perlu export manual) membaca `.env` saat startup:
+## Kontribusi
 
-```go
-import "github.com/joho/godotenv"
+1. Fork & clone repo
+2. Buat branch baru
+3. Commit perubahan
+4. Push dan buat Pull Request
 
-func main() {
-        _ = godotenv.Load() // load .env secara otomatis
-        // ...
-}
-```
-
-## Tips tambahan
-- Untuk development, gunakan `direnv` atau `envchain`/`dotenv` tool agar tidak perlu script manual.
-- Pastikan modul Go (go.mod) berada di root proyek sehingga `go run ./cmd/api` bekerja.
-- Selalu periksa baris kosong dan komentar di `.env` saat memuat di fish.
-
-Jika ingin, bisa tambahkan file `load-env.fish` ke repo dan perintah run singkat di README. 
+---
+Maintainer: Dinus Open Source Community

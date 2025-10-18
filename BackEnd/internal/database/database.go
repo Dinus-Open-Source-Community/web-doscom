@@ -15,8 +15,6 @@ type service struct {
 
 var dbInstance *service
 
-
-
 func ConnectDB() *service {
 	dbURL := os.Getenv("DBURL")
 	fmt.Println("DBURL:", dbURL)
