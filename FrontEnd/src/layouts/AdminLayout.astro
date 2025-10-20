@@ -1,0 +1,32 @@
+---
+// import tailwind
+import "../styles/global.css";
+import Sidebar from "../components/Sidebar.astro";
+
+const { title } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Doscom | {title}</title>
+  </head>
+  <body>
+    <div class="flex">
+      <Sidebar />
+
+      <div class="flex min-h-screen w-full flex-col justify-between">
+        <main>
+          <slot />
+        </main>
+
+        <footer class="flex justify-center py-5">
+          <p>ini footer</p>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>
