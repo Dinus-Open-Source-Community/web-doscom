@@ -17,21 +17,21 @@ type service struct {
 	DB *gorm.DB
 }
 
-var (
-	database   = os.Getenv("DB_DATABASE")
-	username   = os.Getenv("DB_USER")
-	password   = os.Getenv("DB_PASSWORD")
-	host       = os.Getenv("DB_HOST")
-	port       = os.Getenv("DB_PORT")
-	timezone   = os.Getenv("DB_TIMEZONE")
-	dbInstance *service
-)
-
 func ConnectDB() *service {
+
+	var (
+		database   = os.Getenv("DB_DATABASE")
+		username   = os.Getenv("DB_USER")
+		password   = os.Getenv("DB_PASSWORD")
+		host       = os.Getenv("DB_HOST")
+		port       = os.Getenv("DB_PORT")
+		timezone   = os.Getenv("DB_TIMEZONE")
+		dbInstance *service
+	)
 	// reuse connection
-	if dbInstance != nil {
-		return dbInstance
-	}
+	// if dbInstance != nil {
+	// 	return dbInstance
+	// }
 
 	var err error
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, timezone)

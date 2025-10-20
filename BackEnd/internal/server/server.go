@@ -5,22 +5,15 @@ import (
 	"log"
 	"net/http"
 	"time"
-	"web_doscom/internal/database"
-
-	"gorm.io/gorm"
+	"web_doscom/internal/config"
+	"web_doscom/internal/routes"
 )
 
-type Application struct {
-	Port  int
-	DB    *gorm.DB
-	Model database.Models
-}
-
-func (app *Application) NewServer() error {
+func NewServer(app *config.Application) error {
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.Port),
-		Handler:      app.routes(),
+		Handler:      routes.Routes(app),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"web_doscom/internal/env"
+	env "web_doscom/internal/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -36,7 +36,7 @@ func main() {
 		}
 
 	case "down":
-		if err := m.Steps(-1); err != nil && err != migrate.ErrNoChange {
+		if err := m.Down(); err != nil && err != migrate.ErrNoChange {
 			log.Fatal(err)
 		}
 
