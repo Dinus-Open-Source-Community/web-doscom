@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -10,12 +11,14 @@ import (
 	"web_doscom/internal/server"
 )
 
+// Test user creation API handler
 func main() {
 	// load env
 	env.LoadEnv()
 
 	// connect database
 	db := database.ConnectDB()
+	fmt.Println("DBURL:", os.Getenv("DBURL"))
 
 	models := database.NewModel(db.DB)
 	portstr := os.Getenv("PORT")

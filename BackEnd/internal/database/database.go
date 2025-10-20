@@ -9,10 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// type Service interface {
-// 	Close() error
-// }
-
 type service struct {
 	DB *gorm.DB
 }
@@ -39,23 +35,20 @@ func ConnectDB() *service {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		// panic("failde to connect db : ")
 		log.Fatal("failed to connect db : ", err)
 	}
 
 	dbInstance = &service{
 		DB: db,
 	}
-
 	return dbInstance
-
 }
 
 // func (s *service) Close() error {
-// 	sqlDB, err := s.DB.DB()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	log.Printf("Disconnected from database: %s", database)
-// 	return sqlDB.Close()
+//  sqlDB, err := s.DB.DB()
+//  if err != nil {
+//      return err
+//  }
+//  log.Printf("Disconnected from database: %s", database)
+//  return sqlDB.Close()
 // }
