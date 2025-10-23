@@ -11,14 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func hashPassword(password string) string {
-	// hash the password
+func HashPassword(password string) (string, error) {
 	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
 		log.Printf("Error hashing password: %v", err)
-		return ""
+		return "", err
 	}
-	return hash
+	return hash, nil
 }
 
 func verifyPassword(password, hash string) bool {
@@ -58,8 +57,8 @@ func LoginHandler(app *config.Application) gin.HandlerFunc {
 			})
 			return
 		}
-		// veerify the password
-		if !verifyPassword(user.Password, input.Password) {
+		// verify the password
+		if !verifyPassword(input.Password, user.Password) {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid email or password",
 			})
@@ -67,7 +66,7 @@ func LoginHandler(app *config.Application) gin.HandlerFunc {
 		}
 
 		// generate token jwt
-		token, err := Create_token(user.Id, user.Email, user.Username)
+		token, err := Create_token(user.ID, user.Email, user.Username)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{

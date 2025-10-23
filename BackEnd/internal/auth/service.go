@@ -33,7 +33,7 @@ func Create_token(UserId int, email string, username string) (string, error) {
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenstring, err := token.SignedString(jwtSecret)
 
 	if err != nil {
