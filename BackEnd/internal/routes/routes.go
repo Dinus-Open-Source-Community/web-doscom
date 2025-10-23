@@ -15,7 +15,7 @@ func Routes(app *config.Application) http.Handler {
 	AuthRoutes(v1, app)
 
 	workHandler := handler.NewWorkHandler(app.DB)
-	RegisterWorkRoutesV2(v1, workHandler) // Daftarkan route work
+	RegisterWorkRoutesV2(v1, workHandler)
 
 	// Tambahkan route lain di sini
 	return g
