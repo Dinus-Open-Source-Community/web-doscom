@@ -18,3 +18,9 @@ type Work struct {
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
+
+func (m *WorkModel) InsertWork(work *Work) error {
+	work.CreatedAt = time.Now()
+	work.UpdatedAt = time.Now()
+	return m.DB.Create(work).Error
+}
