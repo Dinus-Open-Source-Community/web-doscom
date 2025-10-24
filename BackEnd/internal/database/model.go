@@ -7,11 +7,15 @@ import (
 )
 
 type Models struct {
-	Users model.UserModel
+	Users      model.UserModel
+	Works      model.WorkModel
+	Activities model.ActivityModel
 }
 
 func NewModel(db *gorm.DB) Models {
 	return Models{
-		Users: model.UserModel{DB: db},
+		Users:      model.UserModel{DB: db},
+		Works:      model.WorkModel{DB: db},
+		Activities: model.ActivityModel{DB: db},
 	}
 }

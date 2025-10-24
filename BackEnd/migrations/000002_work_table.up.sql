@@ -1,7 +1,7 @@
-CREATE TABLE IF NOT EXISTS projects (
+CREATE TABLE IF NOT EXISTS works (
     id SERIAL PRIMARY KEY,
     title VARCHAR(300) NOT NULL,
-    descriptive TEXT,
+    description TEXT,
     project_date TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
