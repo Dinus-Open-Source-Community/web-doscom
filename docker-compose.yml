@@ -7,20 +7,14 @@ services:
     container_name: doscom-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: doscom
-      POSTGRES_PASSWORD: doscom
-      POSTGRES_DB: doscomdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U doscom -d doscomdb"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
-  # Backend (Go)
   backend:
     build:
       context: ./BackEnd
@@ -28,24 +22,16 @@ services:
     container_name: doscom-backend
     restart: unless-stopped
     working_dir: /app
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: doscom
-      DB_PASS: doscom
-      DB_NAME: doscomdb
-      GO_ENV: development
-      PORT: 8080
+    env_file:
+      - ./BackEnd/.env  
     ports:
       - "8080:8080"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     volumes:
       - ./BackEnd:/app
     command: go run ./cmd/api/main.go
 
-  # Frontend (Astro)
   frontend:
     build:
       context: ./FrontEnd
@@ -62,6 +48,13 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
     command: npm run dev -- --host 0.0.0.0
+
+  adminer:
+    image: adminer
+    container_name: doscom-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
 
 volumes:
   db_data:
