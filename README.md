@@ -1,4 +1,4 @@
-Berikut contoh **README.md** lengkap dan rapi untuk proyekmu `web-doscom`, berisi langkah-langkah menjalankan frontend (Astro), backend (Go), dan database (PostgreSQL) menggunakan Docker Compose 👇
+
 
 ---
 
