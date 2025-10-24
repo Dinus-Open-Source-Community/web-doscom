@@ -12,10 +12,11 @@ type Claims struct {
 	UserId   int    `json:"user_id"`
 	Email    string `json:"email"`
 	Username string `json:"full_name"`
+	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func Create_token(UserId int, email string, username string) (string, error) {
+func Create_token(UserId int, email, username, role string) (string, error) {
 	env.LoadEnv()
 
 	var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
@@ -26,6 +27,7 @@ func Create_token(UserId int, email string, username string) (string, error) {
 		UserId:   UserId,
 		Email:    email,
 		Username: username,
+		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

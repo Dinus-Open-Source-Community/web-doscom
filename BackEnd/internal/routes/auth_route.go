@@ -11,5 +11,6 @@ import (
 func AuthRoutes(r *gin.RouterGroup, app *config.Application) {
 
 	r.POST("/login", auth.LoginHandler(app))
+	r.POST("/register", auth.RegisterUser(app))
 
 }

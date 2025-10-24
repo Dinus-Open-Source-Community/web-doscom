@@ -11,13 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HashPassword(password string) (string, error) {
+func HashPassword(password string) string {
 	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {
 		log.Printf("Error hashing password: %v", err)
-		return "", err
+		return ""
 	}
-	return hash, nil
+	return hash
 }
 
 func verifyPassword(password, hash string) bool {
@@ -53,20 +53,31 @@ func LoginHandler(app *config.Application) gin.HandlerFunc {
 		result := app.DB.First(&user, "email = ?", input.Email)
 		if result.Error != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid email or Password",
+				"error": "Invalid email ",
 			})
 			return
 		}
-		// verify the password
+		// veerify the password
 		if !verifyPassword(input.Password, user.Password) {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid email or password",
+				"error":    "Invalid  password",
+				"pw":       user.Password,
+				"pw input": input.Password,
 			})
 			return
 		}
 
+		// check the role
+		if user.Role != "Admin" && user.Role != "Super_Admin" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Acces denied, users have no acces",
+			})
+
+			return
+		}
+
 		// generate token jwt
-		token, err := Create_token(user.ID, user.Email, user.Username)
+		token, err := Create_token(user.Id, user.Email, user.Username, user.Role)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -81,5 +92,46 @@ func LoginHandler(app *config.Application) gin.HandlerFunc {
 			"message:": "login success bolo, nasi padang satu bungkus",
 			"token:":   token,
 		})
+	}
+}
+
+func RegisterUser(app *config.Application) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// get the request body
+		var input model.RegisterRequest
+		if c.Bind(&input) != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Failed to read req body",
+			})
+
+			return
+		}
+
+		// hash the password
+		passwordHash := HashPassword(input.Password)
+		log.Printf("Role value: '%s'", input.Role)
+
+		// mapping data user
+		user := model.User{
+			Username:  input.Username,
+			Email:     input.Email,
+			Password:  passwordHash,
+			Role:      input.Role,
+			Full_name: input.Fullname,
+		}
+
+		// insert to database
+		err := app.Model.Users.InsertUser(&user)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "failed to register user",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "user created Succesfully",
+		})
+
 	}
 }
