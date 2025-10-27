@@ -1,16 +1,10 @@
-Berikut contoh **README.md** lengkap dan rapi untuk proyekmu `web-doscom`, berisi langkah-langkah menjalankan frontend (Astro), backend (Go), dan database (PostgreSQL) menggunakan Docker Compose 👇
+
 
 ---
 
 # 🧩 Web Doscom Project
 
-Proyek ini merupakan aplikasi web **Doscom** yang terdiri dari tiga komponen utama:
 
-* **Frontend** — dibangun menggunakan [Astro.js](https://astro.build/) dan Node.js
-* **Backend** — ditulis menggunakan [Golang](https://go.dev/)
-* **Database** — menggunakan [PostgreSQL](https://www.postgresql.org/)
-
----
 
 ## 📁 Struktur Proyek
 
@@ -121,31 +115,9 @@ docker compose down -v
 
 ---
 
-## ⚙️ Variabel Lingkungan (Environment Variables)
-
-| Variabel              | Service  | Nilai Default | Keterangan                 |
-| --------------------- | -------- | ------------- | -------------------------- |
-| `POSTGRES_USER`       | db       | doscom        | Username database          |
-| `POSTGRES_PASSWORD`   | db       | doscom        | Password database          |
-| `POSTGRES_DB`         | db       | doscomdb      | Nama database              |
-| `DB_HOST`             | backend  | db            | Host PostgreSQL            |
-| `DB_PORT`             | backend  | 5432          | Port PostgreSQL            |
-| `DB_USER`             | backend  | doscom        | Username PostgreSQL        |
-| `DB_PASS`             | backend  | doscom        | Password PostgreSQL        |
-| `DB_NAME`             | backend  | doscomdb      | Nama database              |
-| `PORT`                | backend  | 8080          | Port aplikasi backend      |
-| `CHOKIDAR_USEPOLLING` | frontend | true          | Untuk hot reload di Docker |
 
 ---
 
-## 🧹 Tips Pengembangan
-
-* Gunakan `docker compose logs -f` untuk debugging cepat.
-* Perubahan pada file frontend/backend akan otomatis direload karena volume mount (`./FrontEnd:/usr/src/app` dan `./BackEnd:/app`).
-* Jika dependency berubah (misal `go.mod` atau `package.json` diubah), rebuild image:
-
-  ```bash
-  docker compose build
   ```
 
 ---
