@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	_ "web_doscom/docs"
 	"web_doscom/internal/config"
 	env "web_doscom/internal/config"
 	"web_doscom/internal/database"
@@ -12,6 +13,12 @@ import (
 )
 
 // Test user creation API handler
+// @title Web Doscom API
+// @version 1.0
+// @description API Documentation Web Doscom
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	// load env
 	env.LoadEnv()
