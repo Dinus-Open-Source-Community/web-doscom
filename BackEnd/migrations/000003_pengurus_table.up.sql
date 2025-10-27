@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS pengurus (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES user(id), -- to link with user table on admin role
+    user_id INT REFERENCES users(id), -- to link with user table on admin role
     id_asset INT REFERENCES gallery(id), -- to link with asset table for profile pictures
     divisi VARCHAR(50) CHECK (divisi IN ('bph', 'pemro', 'jaringan', 'medcrev', 'data')),
     name VARCHAR(150) NOT NULL,
