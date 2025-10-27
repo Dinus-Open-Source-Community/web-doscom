@@ -2,14 +2,14 @@ package routes
 
 import (
 	"web_doscom/internal/auth"
-	"web_doscom/internal/config"
 
 	"github.com/gin-gonic/gin"
 )
 
 // app *server.Application
-func AuthRoutes(r *gin.RouterGroup, app *config.Application) {
+func AuthRoutes(r *gin.RouterGroup, AuthHandler *auth.AuthHandler) {
 
-	r.POST("/login", auth.LoginHandler(app))
+	r.POST("/login", AuthHandler.LoginHandler)    // login route for admin and superadmin
+	r.POST("/register", AuthHandler.RegisterUser) // register route for admin and superadmin
 
 }
