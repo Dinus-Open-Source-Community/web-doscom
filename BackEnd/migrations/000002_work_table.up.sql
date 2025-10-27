@@ -6,3 +6,6 @@ CREATE TABLE IF NOT EXISTS works (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- join work activity blog user
+-- image_url

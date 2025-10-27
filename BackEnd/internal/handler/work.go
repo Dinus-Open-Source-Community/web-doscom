@@ -19,16 +19,20 @@ func NewWorkHandler(db *gorm.DB) *WorkHandler {
 }
 
 func (h *WorkHandler) Create(c *gin.Context) {
+
 	var work model.Work
 	if err := c.ShouldBindJSON(&work); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if err := h.DB.Create(&work).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 	c.JSON(http.StatusCreated, work)
+
 }
 
 func (h *WorkHandler) List(c *gin.Context) {

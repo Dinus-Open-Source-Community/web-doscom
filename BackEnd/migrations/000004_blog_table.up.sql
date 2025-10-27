@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS blog (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- author -> ambil dari session

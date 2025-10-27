@@ -7,3 +7,5 @@ CREATE TABLE IF NOT EXISTS pengurus (
     period VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- relasi ke table work

@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"log"
 	"os"
 	"time"
 	env "web_doscom/internal/config"
 
+	"github.com/alexedwards/argon2id"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -43,4 +45,23 @@ func Create_token(UserId int, email, username, role string) (string, error) {
 	}
 
 	return tokenstring, nil
+}
+
+func HashPassword(password string) string {
+	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		log.Printf("Error hashing password: %v", err)
+		return ""
+	}
+	return hash
+}
+
+func verifyPassword(password, hash string) bool {
+
+	match, err := argon2id.ComparePasswordAndHash(password, hash)
+	if err != nil {
+		log.Printf("Error verifying password: %v", err)
+		return false
+	}
+	return match
 }
