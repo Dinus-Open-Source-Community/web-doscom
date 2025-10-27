@@ -12,3 +12,5 @@ CREATE TABLE blog (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- author -> ambil dari session

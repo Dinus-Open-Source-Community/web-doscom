@@ -21,7 +21,6 @@ func ConnectDB() *service {
 		password   = os.Getenv("DB_PASSWORD")
 		host       = os.Getenv("DB_HOST")
 		port       = os.Getenv("DB_PORT")
-		timezone   = os.Getenv("DB_TIMEZONE")
 		dbInstance *service
 	)
 	// reuse connection
@@ -30,7 +29,7 @@ func ConnectDB() *service {
 	// }
 
 	var err error
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, timezone)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=public", username, password, host, port, database)
 	// dsn := os.Getenv("DB")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
