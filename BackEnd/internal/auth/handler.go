@@ -86,6 +86,18 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	})
 }
 
+// RegisterHandler godoc
+// @Summary      Admin register
+// @Description  register untuk user dengan role Admin atau Super_Admin
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        login  body  model.LoginRequest  true  "Login credentials"
+// @Success      200  {object}  map[string]string  "Login berhasil, kembalikan token JWT"
+// @Failure      400  {object}  map[string]string  "Request body invalid"
+// @Failure      401  {object}  map[string]string  "Email/password salah atau akses ditolak"
+// @Failure      500  {object}  map[string]string  "Error saat membuat token"
+// @Router       /api/v1/register [post]
 func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	// get the request body

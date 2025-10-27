@@ -99,6 +99,48 @@ paths:
       summary: Admin login
       tags:
       - Auth
+  /api/v1/register:
+    post:
+      consumes:
+      - application/json
+      description: register untuk user dengan role Admin atau Super_Admin
+      parameters:
+      - description: Login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login berhasil, kembalikan token JWT
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Request body invalid
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Email/password salah atau akses ditolak
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error saat membuat token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Admin register
+      tags:
+      - Auth
   /api/v1/users:
     get:
       description: Mendapatkan daftar semua user
