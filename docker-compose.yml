@@ -6,15 +6,20 @@ services:
     image: postgres:16-alpine
     container_name: doscom-db
     restart: unless-stopped
+    env_file:
+      - ./BackEnd/.env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - doscom-network
 
+  # Go Backend
   backend:
     build:
       context: ./BackEnd
@@ -23,15 +28,18 @@ services:
     restart: unless-stopped
     working_dir: /app
     env_file:
-      - ./BackEnd/.env  
+      - ./BackEnd/.env
     ports:
       - "8080:8080"
     depends_on:
       - db
     volumes:
       - ./BackEnd:/app
+    networks:
+      - doscom-network
     command: go run ./cmd/api/main.go
 
+  # Frontend (Vite/Next/React)
   frontend:
     build:
       context: ./FrontEnd
@@ -47,14 +55,25 @@ services:
       - /usr/src/app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+    networks:
+      - doscom-network
     command: npm run dev -- --host 0.0.0.0
 
+  # Adminer UI untuk PostgreSQL
   adminer:
     image: adminer
     container_name: doscom-adminer
     restart: unless-stopped
     ports:
       - "8081:8080"
+    depends_on:
+      - db
+    networks:
+      - doscom-network
+
+networks:
+  doscom-network:
+    driver: bridge
 
 volumes:
   db_data:
