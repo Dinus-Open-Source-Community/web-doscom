@@ -69,7 +69,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// generate token jwt
-	token, err := Create_token(user.Id, user.Email, user.Username, user.Role)
+	token, err := Create_token(user.ID, user.Email, user.Username, user.Role)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -90,11 +90,16 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	// get the request body
 	var input model.RegisterRequest
-	if c.Bind(&input) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read req body",
-		})
-
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body or missing fields"})
+		return
+	}
+	if input.Username == "" || input.Email == "" || input.Password == "" || input.Role == "" || input.Fullname == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields (username, email, password, role, fullname) are required"})
+		return
+	}
+	if len(input.Password) < 8 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 8 characters"})
 		return
 	}
 
@@ -112,16 +117,11 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 	}
 
 	// insert to database
-	err := h.Model.InsertUser(&user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to register user",
-		})
+	if err := h.Model.InsertUser(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to register user"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "user created Succesfully",
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "user created successfully"})
 
 }

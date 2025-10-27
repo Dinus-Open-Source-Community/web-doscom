@@ -266,6 +266,49 @@ paths:
       summary: Update user
       tags:
       - Users
+  /api/v1/users/superadmin:
+    post:
+      consumes:
+      - application/json
+      description: Membuat user dengan role superadmin (hanya untuk admin/superadmin)
+      parameters:
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create superadmin user
+      tags:
+      - Users
 securityDefinitions:
   ApiKeyAuth:
     in: header

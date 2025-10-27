@@ -73,6 +73,67 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 
 }
 
+// CreateSuperAdmin godoc
+// @Summary      Create superadmin user
+// @Description  Membuat user dengan role superadmin (hanya untuk admin/superadmin)
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        user  body  model.RegisterRequest  true  "User info"
+// @Success      201  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      409  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security ApiKeyAuth
+// @Router       /api/v1/users/superadmin [post]
+func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
+	var input model.RegisterRequest
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read req body"})
+		return
+	}
+	if input.Email == "" || input.Password == "" || input.Fullname == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name, email, and password are required"})
+		return
+	}
+	if len(input.Password) < 8 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password must be at least 8 characters"})
+		return
+	}
+
+	// Check email uniqueness
+	if _, err := m.Model.FindByEmail(input.Email); err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "email already registered"})
+		return
+	}
+
+	// Hash password
+	passwordHash := auth.HashPassword(input.Password)
+
+	user := &model.User{
+		Username: input.Fullname,
+		Email:    input.Email,
+		Password: passwordHash,
+		Role:     "superadmin",
+	}
+
+	if err := m.Model.InsertUser(user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Superadmin created successfully",
+		"user": gin.H{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+			"role":     user.Role,
+		},
+	})
+}
+
 // GetUserHandler untuk GET /api/user/:id
 // GetUser godoc
 // @Summary      Get user by ID
@@ -105,7 +166,7 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 	}
 
 	userConsum := model.UserResponse{
-		Id:        user.Id,
+		Id:        int(user.ID),
 		Username:  user.Username,
 		Email:     user.Email,
 		Role:      user.Role,
@@ -140,7 +201,7 @@ func (m *UserHandler) GetAllUser(c *gin.Context) {
 	var userresponse []model.UserResponse
 	for _, u := range users {
 		userresponse = append(userresponse, model.UserResponse{
-			Id:        u.Id,
+			Id:        int(u.ID),
 			Username:  u.Username,
 			Email:     u.Email,
 			Role:      u.Role,

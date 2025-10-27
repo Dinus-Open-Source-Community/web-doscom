@@ -12,14 +12,14 @@ type UserModel struct {
 }
 
 type User struct {
-	Id         int       `json:"id"`
-	Username   string    `json:"username"`
-	Email      string    `json:"email"`
-	Role       string    `json:"role"`
-	Password   string    `json:"password"`
-	Full_name  string    `json:"full_name"`
-	Created_at time.Time `json:"created_at"`
-	Updated_at time.Time `json:"updated_at"`
+	ID        int       `gorm:"primaryKey" json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `gorm:"uniqueIndex" json:"email"`
+	Full_name string    `json:"full_name"`
+	Password  string    `json:"-"` // stored hashed; omitted from JSON responses
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // dto for front end -> data that send to frontend
