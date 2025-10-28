@@ -7,9 +7,11 @@ import (
 )
 
 func RegisterActivitiesRoutesV1(rg *gin.RouterGroup, activitiesHandler *handler.ActivitiesHandler) {
-	rg.POST("/activities/create", activitiesHandler.Create)
-	rg.GET("/activities/list", activitiesHandler.List)
-	rg.GET("/activities/get/:id", activitiesHandler.Get)
-	rg.PUT("/activities/update/:id", activitiesHandler.Update)
-	rg.DELETE("/activities/delete/:id", activitiesHandler.Delete)
+	activities := rg.Group("/activities")
+	{
+		activities.POST("", activitiesHandler.CreateActivities)
+		activities.GET("/:id", activitiesHandler.GetActivities)
+		activities.PUT("/:id", activitiesHandler.UpdateActivities)
+		activities.DELETE("/:id", activitiesHandler.DeleteActivities)
+	}
 }

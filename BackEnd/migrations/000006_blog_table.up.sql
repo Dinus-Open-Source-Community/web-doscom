@@ -6,9 +6,9 @@ CREATE TABLE blog (
     content TEXT,
     published_at TIMESTAMP,
     is_published BOOLEAN DEFAULT FALSE,
-    work_id INT REFERENCES works(id),
-    activity_id INT REFERENCES activities(id),
-    pengurus_id INT REFERENCES pengurus(id),
+    id_work INT REFERENCES works(id),
+    id_activity INT REFERENCES activities(id),
+    id_pengurus INT REFERENCES pengurus(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -20,19 +20,24 @@ func NewBlogHandler(db *gorm.DB) *BlogHandler {
 }
 
 // Create Blog
+// Create Blog (validation only, no DB insert)
 func (h *BlogHandler) Create(c *gin.Context) {
 	var blog model.Blog
 	if err := c.ShouldBindJSON(&blog); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	blog.CreatedAt = time.Now()
-	blog.UpdatedAt = time.Now()
-	if err := h.DB.Create(&blog).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// Example: add custom validation if needed
+	if blog.Title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Title is required"})
 		return
 	}
-	c.JSON(http.StatusCreated, blog)
+	if blog.Content == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Content is required"})
+		return
+	}
+	// If all validation passed
+	c.JSON(http.StatusOK, gin.H{"message": "Blog input is valid", "blog": blog})
 }
 
 // List all Blogs

@@ -20,7 +20,7 @@ func Routes(app *config.Application) http.Handler {
 
 		authHandler := auth.NewUserauth(&app.Model.Users)
 		workHandler := handler.NewWorkHandler(app.DB)
-		activitiesHandler := handler.NewActivitiesHandler(app.DB)
+		activitiesHandler := handler.NewActivitiesHandler(&app.Model.Activities)
 		userHandler := handler.NewUserHandler(&app.Model.Users)
 
 		AuthRoutes(v1, authHandler)

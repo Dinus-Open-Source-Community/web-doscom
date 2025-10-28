@@ -3,63 +3,102 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"time"
-
 	"web_doscom/internal/database/model"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type ActivitiesHandler struct {
-	DB *gorm.DB
+	Model *model.ActivityModel
 }
 
-func NewActivitiesHandler(db *gorm.DB) *ActivitiesHandler {
-	return &ActivitiesHandler{DB: db}
+func NewActivitiesHandler(m *model.ActivityModel) *ActivitiesHandler {
+	return &ActivitiesHandler{Model: m}
 }
 
-func (h *ActivitiesHandler) Create(c *gin.Context) {
-	var act model.Activities
-	if err := c.ShouldBindJSON(&act); err != nil {
+// CreateActivities godoc
+// @Summary      Create new activities
+// @Description  Membuat activities baru
+// @Tags         Activities
+// @Accept       json
+// @Produce      json
+// @Param        activities  body  model.Activities  true  "Activities info"
+// @Success      201  {object}  model.Activities
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security ApiKeyAuth
+// @Router       /api/v1/activities [post]
+func (h *ActivitiesHandler) CreateActivities(c *gin.Context) {
+	var input model.Activities
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	// Optional: handle empty ActivitiesDate
-	if act.ActivitiesDate.IsZero() {
-		act.ActivitiesDate = time.Now()
-	}
-	if err := h.DB.Create(&act).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := h.Model.InsertActivity(&input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create activities"})
 		return
 	}
-	c.JSON(http.StatusCreated, act)
+	c.JSON(http.StatusCreated, gin.H{"message": "Activities created successfully", "activities": input})
 }
 
-func (h *ActivitiesHandler) List(c *gin.Context) {
-	var acts []model.Activities
-	if err := h.DB.Order("created_at DESC").Find(&acts).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, acts)
-}
-
-func (h *ActivitiesHandler) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+// GetActivities godoc
+// @Summary      Get activities by ID
+// @Description  Mendapatkan activities berdasarkan ID
+// @Tags         Activities
+// @Produce      json
+// @Param        id   path      int  true  "Activities ID"
+// @Success      200  {object}  model.Activities
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security ApiKeyAuth
+// @Router      /api/v1/activities/{id} [get]
+func (h *ActivitiesHandler) GetActivities(c *gin.Context) {
+	idParams := c.Param("id")
+	id, err := strconv.Atoi(idParams)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid activities id"})
 		return
 	}
-	var act model.Activities
-	if err := h.DB.First(&act, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "activities not found"})
+	act, err := h.Model.GetActivitiesById(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Activities Not Found"})
 		return
 	}
-	c.JSON(http.StatusOK, act)
+	c.JSON(http.StatusOK, gin.H{"message": "Get activities", "activities": act})
 }
 
-func (h *ActivitiesHandler) Update(c *gin.Context) {
+// GetAllActivities godoc
+// @Summary      Get all activities
+// @Description  Mendapatkan daftar semua activities
+// @Tags         Activities
+// @Produce      json
+// @Success      200  {array}   model.Activities
+// @Failure      500  {object}  map[string]string
+// @Security ApiKeyAuth
+// @Router       /api/v1/activities [get]
+func (h *ActivitiesHandler) GetAllActivities(c *gin.Context) {
+	acts, err := h.Model.GetAllActivities()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch activities data"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "List of activities", "activities": acts})
+}
+
+// UpdateActivities godoc
+// @Summary      Update activities
+// @Description  Mengupdate data activities berdasarkan ID
+// @Tags         Activities
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int             true  "Activities ID"
+// @Param        activities  body      model.Activities  true  "Activities info"
+// @Success      200   {object}  model.Activities
+// @Failure      400   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Security ApiKeyAuth
+// @Router       /api/v1/activities/{id} [put]
+func (h *ActivitiesHandler) UpdateActivities(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
@@ -70,30 +109,34 @@ func (h *ActivitiesHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var act model.Activities
-	if err := h.DB.First(&act, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "activities not found"})
+	act, err := h.Model.UpdateActivities(id, &input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update data activities"})
 		return
 	}
-	act.ActivitiesTitle = input.ActivitiesTitle
-	act.ActivitiesDesc = input.ActivitiesDesc
-	act.ActivitiesDate = input.ActivitiesDate
-	if err := h.DB.Save(&act).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, act)
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully update activities data", "activities": act})
 }
 
-func (h *ActivitiesHandler) Delete(c *gin.Context) {
+// DeleteActivities godoc
+// @Summary      Delete activities
+// @Description  Menghapus activities berdasarkan ID
+// @Tags         Activities
+// @Produce      json
+// @Param        id   path  int  true  "Activities ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security ApiKeyAuth
+// @Router       /api/v1/activities/{id} [delete]
+func (h *ActivitiesHandler) DeleteActivities(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	if err := h.DB.Delete(&model.Activities{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := h.Model.DeleteActivities(id); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "activities not found"})
 		return
 	}
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, gin.H{"message": "activities deleted"})
 }

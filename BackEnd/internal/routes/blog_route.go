@@ -7,9 +7,12 @@ import (
 )
 
 func RegisterBlogRoutes(rg *gin.RouterGroup, blogHandler *handler.BlogHandler) {
-	rg.POST("/blogs", blogHandler.Create)
-	rg.GET("/blogs", blogHandler.List)
-	rg.GET("/blogs/:id", blogHandler.Get)
-	rg.PUT("/blogs/:id", blogHandler.Update)
-	rg.DELETE("/blogs/:id", blogHandler.Delete)
+	blogRoutes := rg.Group("/blogs")
+	{
+		blogRoutes.POST("", blogHandler.Create)
+		blogRoutes.GET("/:id", blogHandler.Get)
+		blogRoutes.GET("", blogHandler.List)
+		blogRoutes.PUT("/:id", blogHandler.Update)
+		blogRoutes.DELETE("/:id", blogHandler.Delete)
+	}
 }
