@@ -117,7 +117,7 @@ func (m *PengurusModel) InsertPengurus(pengurus *Pengurus) error {
 	if count > 0 {
 		return fmt.Errorf("email sudah terdaftar di pengurus")
 	}
-	// Validasi role user jika perlu, contoh:
+	// Validasi role user
 	allowedRoles := map[string]bool{
 		"Admin": true, "kor_pemro": true, "kor_jaringan": true,
 		"kor_medcrev": true, "kor_data": true, "BPH": true,
