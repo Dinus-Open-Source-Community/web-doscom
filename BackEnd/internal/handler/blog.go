@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"web_doscom/internal/database/model"
 
@@ -20,19 +19,24 @@ func NewBlogHandler(db *gorm.DB) *BlogHandler {
 }
 
 // Create Blog
+// Create Blog (validation only, no DB insert)
 func (h *BlogHandler) Create(c *gin.Context) {
 	var blog model.Blog
 	if err := c.ShouldBindJSON(&blog); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	blog.CreatedAt = time.Now()
-	blog.UpdatedAt = time.Now()
-	if err := h.DB.Create(&blog).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// Example: add custom validation if needed
+	if blog.Title == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Title is required"})
 		return
 	}
-	c.JSON(http.StatusCreated, blog)
+	if blog.Content == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Content is required"})
+		return
+	}
+	// If all validation passed
+	c.JSON(http.StatusOK, gin.H{"message": "Blog input is valid", "blog": blog})
 }
 
 // List all Blogs
@@ -82,12 +86,27 @@ func (h *BlogHandler) Update(c *gin.Context) {
 	blog.Content = input.Content
 	blog.PublishedAt = input.PublishedAt
 	blog.IsPublished = input.IsPublished
-	blog.UpdatedAt = time.Now()
+	blog.Kategori = input.Kategori
+	blog.WorkID = input.WorkID
+	blog.PengurusID = input.PengurusID
 	if err := h.DB.Save(&blog).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, blog)
+}
+
+func (h *BlogHandler) UpdateKategori(c *gin.Context) {
+	// TODO: implement the logic for updating kategori
+	c.JSON(200, gin.H{"message": "UpdateKategori not implemented"})
+}
+func (h *BlogHandler) ListByKategori(c *gin.Context) {
+	kategori := c.Param("kategori")
+	// TODO: Implement logic to list blogs by kategori
+	c.JSON(200, gin.H{
+		"message":  "List blogs by kategori",
+		"kategori": kategori,
+	})
 }
 
 // Delete Blog

@@ -20,14 +20,12 @@ func Routes(app *config.Application) http.Handler {
 
 		authHandler := auth.NewUserauth(&app.Model.Users)
 		workHandler := handler.NewWorkHandler(app.DB)
-		activitiesHandler := handler.NewActivitiesHandler(app.DB)
 		userHandler := handler.NewUserHandler(&app.Model.Users)
 
 		AuthRoutes(v1, authHandler)
 
 		UserControllerRoute(v1, userHandler)
 		RegisterWorkRoutesV2(v1, workHandler)
-		RegisterActivitiesRoutesV1(v1, activitiesHandler)
 
 		// swagger
 		g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

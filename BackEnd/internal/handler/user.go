@@ -45,6 +45,14 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
+	if input.Password == "" || input.Fullname == "" || input.Email == "" || input.Username == "" || input.Role == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Missing fields, all fields are required",
+		})
+
+		return
+	}
+
 	// hash the password
 	passwordHash := auth.HashPassword(input.Password)
 	log.Printf("Role value: '%s'", input.Role)
