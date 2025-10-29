@@ -3,8 +3,20 @@ package model
 import (
 	"time"
 
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
+
 	"gorm.io/gorm"
 )
+
+var ValidKategori = map[string]bool{
+	"event":         true,
+	"seminar":       true,
+	"collaboration": true,
+	"education":     true,
+	"technology":    true,
+	"work":          true,
+}
 
 // BlogModel wraps DB for blog operations
 type BlogModel struct {
@@ -18,6 +30,7 @@ type Blog struct {
 	WorkID      int       `json:"id_work"`
 	ActivityID  int       `json:"id_activity"`
 	PengurusID  int       `json:"id_pengurus"`
+	Kategori    string    `json:"kategori"`
 	Title       string    `json:"title"`
 	Slug        string    `json:"slug" gorm:"unique"`
 	Content     string    `json:"content"`
@@ -33,6 +46,7 @@ type RegisterBlog struct {
 	GalleryID   int       `json:"id_asset" binding:"required"`
 	Slug        string    `json:"slug" binding:"required"`
 	Content     string    `json:"content" binding:"required"`
+	Kategori    string    `json:"kategori" binding:"required,kategori"`
 	PublishedAt time.Time `json:"published_at" binding:"required"`
 	IsPublished bool      `json:"is_published" binding:"required"`
 	WorkID      int       `json:"id_work" binding:"required"`
@@ -49,8 +63,18 @@ type BlogPatch struct {
 	WorkID      *int       `json:"id_work" binding:"omitempty"`
 	ActivityID  *int       `json:"id_activity" binding:"omitempty"`
 	PengurusID  *int       `json:"id_pengurus" binding:"omitempty"`
+	Kategori    *string    `json:"kategori" binding:"omitempty,kategori"`
 	PublishedAt *time.Time `json:"published_at" binding:"omitempty"`
 	IsPublished *bool      `json:"is_published" binding:"omitempty"`
+}
+
+func init() {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("kategori", func(fl validator.FieldLevel) bool {
+			val := fl.Field().String()
+			return ValidKategori[val]
+		})
+	}
 }
 
 // TableName sets the table name for Blog
@@ -107,6 +131,7 @@ func (m *BlogModel) UpdateBlog(id int, input BlogPatch) (*Blog, error) {
 	blog.WorkID = pathValue(input.WorkID, blog.WorkID)
 	blog.ActivityID = pathValue(input.ActivityID, blog.ActivityID)
 	blog.PengurusID = pathValue(input.PengurusID, blog.PengurusID)
+	blog.Kategori = pathValue(input.Kategori, blog.Kategori)
 	blog.PublishedAt = pathValue(input.PublishedAt, blog.PublishedAt)
 	blog.IsPublished = pathValue(input.IsPublished, blog.IsPublished)
 	blog.UpdatedAt = time.Now()
