@@ -128,5 +128,3 @@ Proyek ini dikembangkan untuk keperluan internal **Doscom (Dinus Open Source Com
 Hak cipta © 2025 Doscom Developers.
 
 ---
-
-Apakah kamu mau saya tambahkan contoh **endpoint API** backend (misalnya `/api/health` atau `/api/users`) di bagian dokumentasi bawahnya juga? Itu akan membantu kalau README-nya mau sekaligus jadi dokumentasi developer.
