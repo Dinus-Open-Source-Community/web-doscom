@@ -9,10 +9,7 @@ import (
 // app *server.Application
 func AuthRoutes(r *gin.RouterGroup, AuthHandler *auth.AuthHandler) {
 
-	r.POST("/login", AuthHandler.LoginHandler)    // login route for admin and superadmin
-	r.POST("/register", AuthHandler.RegisterUser) // register route for admin and superadmin
-
 	r.POST("/login", AuthHandler.LoginHandler) // login route for admin and superadmin
-	r.POST("/register", AuthHandler.RegisterUser)
+	// r.POST("/register", auth.AuthMiddleware(), AuthHandler.RegisterUser)
 
 }

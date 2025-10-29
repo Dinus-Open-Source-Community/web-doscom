@@ -3,6 +3,7 @@ package auth
 import (
 	"log"
 	"net/http"
+	"slices"
 
 	"web_doscom/internal/database/model"
 
@@ -60,11 +61,12 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// check the role
-	if user.Role != "Admin" && user.Role != "Super_Admin" {
+	allowedRoles := []string{"Super_Admin", "Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH", "pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"}
+
+	if !slices.Contains(allowedRoles, user.Role) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Acces denied, users have no acces",
 		})
-
 		return
 	}
 
@@ -86,18 +88,6 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	})
 }
 
-// RegisterHandler godoc
-// @Summary      Admin register
-// @Description  register untuk user dengan role Admin atau Super_Admin
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        login  body  model.LoginRequest  true  "Login credentials"
-// @Success      200  {object}  map[string]string  "Login berhasil, kembalikan token JWT"
-// @Failure      400  {object}  map[string]string  "Request body invalid"
-// @Failure      401  {object}  map[string]string  "Email/password salah atau akses ditolak"
-// @Failure      500  {object}  map[string]string  "Error saat membuat token"
-// @Router       /api/v1/register [post]
 func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	// get the request body

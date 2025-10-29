@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +38,7 @@ func ValidateAuth(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -73,6 +74,20 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Set("user_id", claims.UserId)
 		c.Set("email", claims.Email)
 		c.Set("username", claims.Username)
+		c.Set("role", claims.Role)
+
+		// cek role
+		// allowedRoles := []string{"Super_Admin", "Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH", "pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"}
+
+		if len(allowedRoles) > 0 {
+			if !slices.Contains(allowedRoles, claims.Role) {
+				c.JSON(http.StatusForbidden, gin.H{
+					"error": "forbidden",
+				})
+				c.Abort()
+				return
+			}
+		}
 
 		c.Next()
 	}
