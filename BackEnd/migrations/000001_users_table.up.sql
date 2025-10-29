@@ -9,4 +9,3 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- pemro, jarignan , data, medcrev, bph

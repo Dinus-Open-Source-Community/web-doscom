@@ -3,6 +3,7 @@ package auth
 import (
 	"log"
 	"net/http"
+	"slices"
 
 	"web_doscom/internal/database/model"
 
@@ -60,11 +61,12 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// check the role
-	if user.Role != "Admin" && user.Role != "Super_Admin" {
+	allowedRoles := []string{"Super_Admin", "Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH", "pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"}
+
+	if !slices.Contains(allowedRoles, user.Role) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Acces denied, users have no acces",
 		})
-
 		return
 	}
 
