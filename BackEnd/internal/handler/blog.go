@@ -88,7 +88,6 @@ func (h *BlogHandler) Update(c *gin.Context) {
 	blog.IsPublished = input.IsPublished
 	blog.Kategori = input.Kategori
 	blog.WorkID = input.WorkID
-	blog.ActivityID = input.ActivityID
 	blog.PengurusID = input.PengurusID
 	if err := h.DB.Save(&blog).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

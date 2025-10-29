@@ -16,6 +16,7 @@ var ValidKategori = map[string]bool{
 	"education":     true,
 	"technology":    true,
 	"work":          true,
+	"activity":      true,
 }
 
 // BlogModel wraps DB for blog operations
