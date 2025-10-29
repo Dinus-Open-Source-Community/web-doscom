@@ -28,38 +28,38 @@ type PengurusModel struct {
 
 // DTO untuk frontend
 type PengurusResponse struct {
-	ID       int    `json:"id"`
-	UserID   int    `json:"id_user"`
-	URLAsset string `json:"url_asset"`
-	Email    string `json:"email"`
-	Divisi   string `json:"divisi"`
-	Name     string `json:"name"`
-	Position string `json:"position"`
-	Sosmed   string `json:"sosmed"`
-	Period   string `json:"period"`
+	ID       int       `json:"id"`
+	UserID   int       `json:"id_user"`
+	URLAsset string    `json:"url_asset"`
+	Email    string    `json:"email"`
+	Divisi   string    `json:"divisi"`
+	Name     string    `json:"name"`
+	Position string    `json:"position"`
+	Sosmed   string    `json:"sosmed"`
+	Period   time.Time `json:"period"`
 }
 
 // Untuk create/register pengurus
 type RegisterPengurusRequest struct {
-	UserID   int    `json:"id_user" binding:"required"`
-	URLAsset string `json:"url_asset" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Divisi   string `json:"divisi" binding:"required,divisi"`
-	Name     string `json:"name" binding:"required" validate:"min=2,max=150"`
-	Position string `json:"position" binding:"required,position"`
-	Sosmed   string `json:"sosmed" binding:"omitempty,sosmed"`
-	Period   string `json:"period" binding:"required" validate:"max=50"`
+	UserID   int       `json:"id_user" binding:"required"`
+	URLAsset string    `json:"url_asset" binding:"required"`
+	Email    string    `json:"email" binding:"required,email"`
+	Divisi   string    `json:"divisi" binding:"required,divisi"`
+	Name     string    `json:"name" binding:"required" validate:"min=2,max=150"`
+	Position string    `json:"position" binding:"required,position"`
+	Sosmed   string    `json:"sosmed" binding:"omitempty,sosmed"`
+	Period   time.Time `json:"period" binding:"required" validate:"max=50"`
 }
 
 // Untuk update/patch pengurus
 type PengurusPatch struct {
-	URLAsset *string `json:"url_asset" binding:"omitempty"`
-	Email    *string `json:"email" binding:"omitempty,email"`
-	Divisi   *string `json:"divisi" binding:"omitempty,divisi"`
-	Name     *string `json:"name" binding:"omitempty" validate:"min=2,max=150"`
-	Position *string `json:"position" binding:"omitempty,position"`
-	Sosmed   *string `json:"sosmed" binding:"omitempty,sosmed"`
-	Period   *string `json:"period" binding:"omitempty" validate:"max=50"`
+	URLAsset *string    `json:"url_asset" binding:"omitempty"`
+	Email    *string    `json:"email" binding:"omitempty,email"`
+	Divisi   *string    `json:"divisi" binding:"omitempty,divisi"`
+	Name     *string    `json:"name" binding:"omitempty" validate:"min=2,max=150"`
+	Position *string    `json:"position" binding:"omitempty,position"`
+	Sosmed   *string    `json:"sosmed" binding:"omitempty,sosmed"`
+	Period   *time.Time `json:"period" binding:"omitempty" validate:"max=50"`
 }
 
 // Model GORM
@@ -72,7 +72,7 @@ type Pengurus struct {
 	Name      string    `json:"name"`
 	Position  string    `json:"position"`
 	Sosmed    string    `json:"sosmed"`
-	Period    string    `json:"period"`
+	Period    time.Time `json:"period"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
