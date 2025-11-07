@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"web_doscom/internal/auth"
 	"web_doscom/internal/database/model"
 
@@ -101,10 +102,12 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read req body"})
 		return
 	}
+
 	if input.Email == "" || input.Password == "" || input.Fullname == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "name, email, and password are required"})
 		return
 	}
+
 	if len(input.Password) < 8 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "password must be at least 8 characters"})
 		return
@@ -119,26 +122,24 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 	// Hash password
 	passwordHash := auth.HashPassword(input.Password)
 
-	user := &model.User{
-		Username: input.Fullname,
-		Email:    input.Email,
-		Password: passwordHash,
-		Role:     "superadmin",
+	user := model.User{
+		Username:  input.Fullname,
+		Email:     input.Email,
+		Password:  passwordHash,
+		Role:      "Super_Admin",
+		Full_name: input.Fullname,
 	}
 
-	if err := m.Model.InsertUser(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create user"})
+	if err := m.Model.InsertUser(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to create user",
+		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Superadmin created successfully",
-		"user": gin.H{
-			"id":       user.ID,
-			"username": user.Username,
-			"email":    user.Email,
-			"role":     user.Role,
-		},
+		"user":    user,
 	})
 }
 
@@ -198,8 +199,18 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Router       /api/v1/users [get]
 func (m *UserHandler) GetAllUser(c *gin.Context) {
+	role := c.GetString("role")
+
+	// condition to get all user by role
+	var userRole string
+	if strings.HasPrefix(role, "Super_Admin") {
+		userRole = "Super_Admin"
+	} else if strings.HasPrefix(role, "Kor_") {
+		divisi := strings.TrimPrefix(role, "Kor_")
+		userRole = strings.ToLower(divisi) + "_ang"
+	}
 	// get all user
-	users, err := m.Model.GetAllUser()
+	users, err := m.Model.GetAllUser(role, userRole)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to fetch users data",
@@ -256,10 +267,11 @@ func (m *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// update the data
-	updateuser, err := m.Model.UpdateUser(id, patchUser)
+	userUpdate := patchUser.ToMap()
+	updateuser, err := m.Model.UpdateUser(id, userUpdate)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to update data user",
+			"error": "Failed to update data user: " + err.Error(),
 		})
 		return
 	}

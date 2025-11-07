@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"log"
 	"net/http"
 	"slices"
+	"time"
 
 	"web_doscom/internal/database/model"
 
@@ -50,6 +50,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		})
 		return
 	}
+
 	// veerify the password
 	if !verifyPassword(input.Password, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -81,13 +82,42 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
+	// set cookie
+	SetCustomCookie(c, Cookies{
+		Name:     "AccessToken",
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(1 * time.Hour),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	// production response
 	// send back
+	// c.JSON(http.StatusOK, gin.H{
+	// "message:": "login success bolo, nasi padang satu bungkus",
+	// })
+
+	// development response
 	c.JSON(http.StatusOK, gin.H{
-		"message:": "login success bolo, nasi padang satu bungkus",
-		"token:":   token,
+		"message": "Login success, nasi padangnya sebungkus bolo",
+		"token":   token,
 	})
 }
 
+// RegisterUser godoc
+// @Summary      Register user
+// @Description  Mendaftarkan user baru
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        user  body  model.RegisterRequest  true  "User info"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Security ApiKeyAuth
+// @Router       /api/v1/register [post]
 func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	// get the request body
@@ -96,10 +126,12 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body or missing fields"})
 		return
 	}
+
 	if input.Username == "" || input.Email == "" || input.Password == "" || input.Role == "" || input.Fullname == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields (username, email, password, role, fullname) are required"})
 		return
 	}
+
 	if len(input.Password) < 8 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 8 characters"})
 		return
@@ -107,7 +139,6 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	// hash the password
 	passwordHash := HashPassword(input.Password)
-	log.Printf("Role value: '%s'", input.Role)
 
 	// mapping data user
 	user := model.User{
@@ -126,4 +157,34 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "user created successfully"})
 
+}
+
+// Logout godoc
+// @Summary      Logout user
+// @Description  Logout user
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        id   path  int  true  "User ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Security ApiKeyAuth
+// @Router       /api/v1/logout [post]
+func (h *AuthHandler) Logout(c *gin.Context) {
+
+	// delete cookie
+	SetCustomCookie(c, Cookies{
+		Name:     "AccessToken",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-time.Hour),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Logout Success, nasi padang satu bungkus",
+	})
 }
