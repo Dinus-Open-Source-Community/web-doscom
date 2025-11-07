@@ -5,6 +5,7 @@ import (
 	"web_doscom/internal/auth"
 	"web_doscom/internal/config"
 	"web_doscom/internal/handler"
+	routes "web_doscom/internal/routes/route"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -19,14 +20,13 @@ func Routes(app *config.Application) http.Handler {
 	{
 
 		authHandler := auth.NewUserauth(&app.Model.Users)
-		workHandler := handler.NewWorkHandler(app.DB)
+		workHandler := handler.NewWorkHandler(&app.Model.Works)
 		userHandler := handler.NewUserHandler(&app.Model.Users)
 
-		AuthRoutes(v1, authHandler)
-
-		UserControllerRoute(v1, userHandler)
-		RegisterWorkRoutesV2(v1, workHandler)
-
+		routes.AuthRoutes(v1, authHandler)
+		routes.UserControllerKoor(v1, userHandler)
+		routes.UserControllerRoute(v1, userHandler)
+		routes.RegisterWorkRoutes(v1, workHandler)
 		// swagger
 		g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}

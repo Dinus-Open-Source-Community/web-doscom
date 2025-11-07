@@ -99,46 +99,79 @@ paths:
       summary: Admin login
       tags:
       - Auth
-  /api/v1/register:
+  /api/v1/logout:
     post:
       consumes:
       - application/json
-      description: register untuk user dengan role Admin atau Super_Admin
+      description: Logout user
       parameters:
-      - description: Login credentials
-        in: body
-        name: login
+      - description: User ID
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/model.LoginRequest'
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Login berhasil, kembalikan token JWT
+          description: OK
           schema:
             additionalProperties:
               type: string
             type: object
         "400":
-          description: Request body invalid
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
-        "401":
-          description: Email/password salah atau akses ditolak
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Logout user
+      tags:
+      - Auth
+  /api/v1/register:
+    post:
+      consumes:
+      - application/json
+      description: Mendaftarkan user baru
+      parameters:
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Error saat membuat token
+          description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Admin register
+      security:
+      - ApiKeyAuth: []
+      summary: Register user
       tags:
       - Auth
   /api/v1/users:

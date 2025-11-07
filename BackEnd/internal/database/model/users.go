@@ -53,6 +53,25 @@ type UserPatch struct {
 	Fullname *string `json:"fullname"`
 }
 
+// method struct pada UserPatch
+func (u *UserPatch) ToMap() map[string]any {
+	result := make(map[string]any)
+
+	if u.Username != nil {
+		result["username"] = *u.Username
+	}
+
+	if u.Email != nil {
+		result["email"] = *u.Email
+	}
+
+	if u.Fullname != nil {
+		result["fullname"] = *u.Fullname
+	}
+
+	return result
+}
+
 // insert new user data
 func (m *UserModel) InsertUser(user *User) error {
 	result := m.DB.Create(user)
@@ -90,9 +109,19 @@ func (m *UserModel) GetUserById(id int) (*User, error) {
 }
 
 // get all user data
-func (m *UserModel) GetAllUser() ([]User, error) {
+func (m *UserModel) GetAllUser(role string, userRole string) ([]User, error) {
 	var users []User
-	if err := m.DB.Where("role != ?", "Super_Admin").Find(&users).Error; err != nil {
+
+	query := m.DB.Model(&User{})
+
+	switch role {
+	case "Super_Admin":
+		query = query.Where("role != ?", role)
+	default:
+		query = query.Where("role = ?", userRole)
+	}
+
+	if err := query.Find(&users).Error; err != nil {
 		return nil, err
 	}
 
@@ -100,25 +129,44 @@ func (m *UserModel) GetAllUser() ([]User, error) {
 }
 
 // update
-func (m *UserModel) UpdateUser(Id int, patch UserPatch) (*User, error) {
+func (m *UserModel) UpdateUser(Id int, patch map[string]any) (*User, error) {
 	var user User
 	// find user by id
 	if err := m.DB.First(&user, Id).Error; err != nil {
-		return nil, err // user tidak ditemukan
-	}
-
-	// compare the data
-	pathData := UserPatch{
-		Username: patch.Username,
-		Email:    patch.Email,
-		Fullname: patch.Fullname,
-	}
-
-	if err := m.DB.Model(&user).Updates(pathData).Error; err != nil {
 		return nil, err
 	}
 
-	// reload data -> memastikan data terbarui
+	// set allowed fields to update
+	allowedField := map[string]bool{
+		"username": true,
+		"email":    true,
+		"fullname": true,
+	}
+
+	// compare the data and filter the empty value
+	filteredUpdates := make(map[string]any)
+	for field, value := range patch {
+		if allowedField[field] && value != nil {
+			if str, ok := value.(string); ok {
+				if str != "" {
+					filteredUpdates[field] = value
+				}
+			} else {
+				filteredUpdates[field] = value
+			}
+		}
+	}
+
+	if len(filteredUpdates) == 0 {
+		return &user, nil
+	}
+
+	// update data
+	if err := m.DB.Model(&user).Updates(filteredUpdates).Error; err != nil {
+		return nil, err
+	}
+
+	// make sure the data is updated
 	if err := m.DB.First(&user, Id).Error; err != nil {
 		return nil, err
 	}
