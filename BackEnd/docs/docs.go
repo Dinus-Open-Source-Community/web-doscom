@@ -79,9 +79,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/register": {
+        "/api/v1/logout": {
             "post": {
-                "description": "register untuk user dengan role Admin atau Super_Admin",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Logout user",
                 "consumes": [
                     "application/json"
                 ],
@@ -91,21 +96,19 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Admin register",
+                "summary": "Logout user",
                 "parameters": [
                     {
-                        "description": "Login credentials",
-                        "name": "login",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.LoginRequest"
-                        }
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Login berhasil, kembalikan token JWT",
+                        "description": "OK",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -114,7 +117,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Request body invalid",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -122,8 +125,59 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "401": {
-                        "description": "Email/password salah atau akses ditolak",
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/register": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Mendaftarkan user baru",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register user",
+                "parameters": [
+                    {
+                        "description": "User info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -132,7 +186,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Error saat membuat token",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

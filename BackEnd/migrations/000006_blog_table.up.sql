@@ -6,7 +6,7 @@ CREATE TABLE blog (
     title VARCHAR(255) NOT NULL,
     slug VARCHAR(255) NOT NULL UNIQUE,
     content TEXT,
-    kategori ENUM('event','seminar','collaboration','education','technology','work','activity') NOT NULL,
+    kategori VARCHAR(100) CHECK ( kategori in ('event','seminar','collaboration','education','technology','work', 'activity')) NOT NULL,
     published_at TIMESTAMP,
     is_published BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

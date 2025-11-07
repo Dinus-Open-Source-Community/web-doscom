@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -40,33 +39,23 @@ func ValidateAuth(tokenString string) (*Claims, error) {
 
 func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+
+		// get cookie and token
+		tokenString, err := c.Cookie("AccessToken")
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error:": "Authorization is missing",
+				"error": "Cookie not found",
 			})
 			c.Abort()
 			return
 		}
 
-		// format
-		tokenParts := strings.Split(authHeader, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error:": "invalid token format",
-			})
-			c.Abort()
-			return
-		}
-
-		tokenstring := tokenParts[1]
 		// validasi token
-		claims, err := ValidateAuth(tokenstring)
+		claims, err := ValidateAuth(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error:": err.Error(),
 			})
-
 			c.Abort()
 			return
 		}

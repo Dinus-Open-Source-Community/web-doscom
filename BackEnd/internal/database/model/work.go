@@ -65,6 +65,7 @@ func (m *WorkModel) GetWorkById(id int) (*Work, error) {
 	}
 	return &work, nil
 }
+
 func (m *WorkModel) GetAllWorks() ([]Work, error) {
 	var works []Work
 	if err := m.DB.Order("created_at DESC").Find(&works).Error; err != nil {
@@ -72,24 +73,66 @@ func (m *WorkModel) GetAllWorks() ([]Work, error) {
 	}
 	return works, nil
 }
-func (m *WorkModel) UpdateWork(work *Work) error {
+
+func (m *WorkModel) UpdateWork(id int, patch map[string]any) (*Work, error) {
 	var existingWork Work
-	if err := m.DB.First(&existingWork, work.ID).Error; err != nil {
-		return err
+	if err := m.DB.First(&existingWork, id).Error; err != nil {
+		return nil, err
 	}
-	// Update fields
-	existingWork.GalleryID = work.GalleryID
-	existingWork.Title = work.Title
-	existingWork.Description = work.Description
-	existingWork.ProjectDate = work.ProjectDate
-	existingWork.TeamProject = work.TeamProject
-	existingWork.UpdatedAt = time.Now()
-	if err := m.DB.Save(&existingWork).Error; err != nil {
-		return err
+
+	// set allowed fields to update
+	allowedFields := map[string]bool{
+		"title":       true,
+		"description": true,
+		"StartDate":   true,
+		"EndDate":     true,
 	}
-	return nil
+
+	// compare the data and filter the empty value
+	filteredUpdates := make(map[string]any)
+	for field, value := range patch {
+		if allowedFields[field] && value != nil {
+			if str, ok := value.(string); ok {
+				if str != "" {
+					filteredUpdates[field] = value
+				}
+			} else {
+				filteredUpdates[field] = value
+			}
+		}
+	}
+
+	// check if there is any update
+	if len(filteredUpdates) == 0 {
+		return &existingWork, nil
+	}
+
+	// update
+	if err := m.DB.Model(&existingWork).Updates(filteredUpdates).Error; err != nil {
+		return nil, err
+	}
+
+	// reload data -> make sure the data is updated
+	if err := m.DB.First(&existingWork, id).Error; err != nil {
+		return nil, err
+	}
+
+	return &existingWork, nil
+
 }
 
 func (m *WorkModel) DeleteWork(id int) error {
-	return m.DB.Delete(&Work{}, id).Error
+	var work Work
+	if err := m.DB.First(&work, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return err
+		}
+		return err
+	}
+
+	if err := m.DB.Delete(&work).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
