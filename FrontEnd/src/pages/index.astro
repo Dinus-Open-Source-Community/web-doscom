@@ -1,9 +1,18 @@
 ---
 import PublicLayout from "../layouts/PublicLayout.astro";
+import Button from "../components/ui/Button.astro"
 ---
 
 <PublicLayout title="Home">
-  <section class="flex justify-center">
-    <p class="text-7xl">HALAMAN INDEX</p>
+  <section class="flex flex-col justify-center items-center w-full">
+    <div>
+      <img src="../../public/home.jpg" alt="Image-Doscom" class="w-screen h-screen object-center relative">
+      <div class="absolute inset-0 bg-black/40"/>
+      <h1 class="text-9xl absolute inset-0 top-62 left-58 text-white font-bold font-jakarta tracking-tighter">DINUS<br/>OPEN<br/>SOURCE<br/>COMMUNITY</h1>
+      <p class="text-white font-normal tra">Open Your Mind<br/>With open Source</p>
+      <Button variant="secondary" size="large" class="absolute">About</Button>
+    </div>
   </section>
 </PublicLayout>
+
+
