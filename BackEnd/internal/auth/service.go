@@ -1,13 +1,18 @@
 package auth
 
 import (
+	"errors"
 	"log"
+	"net/http"
 	"os"
 	"time"
 	env "web_doscom/internal/config"
 
 	"github.com/alexedwards/argon2id"
+	//"github.com/docker/docker/daemon/names"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	//"golang.org/x/tools/go/analysis/passes/stringintconv"
 )
 
 type Claims struct {
@@ -16,6 +21,16 @@ type Claims struct {
 	Username string `json:"full_name"`
 	Role     string `json:"role"`
 	jwt.RegisteredClaims
+}
+
+type Cookies struct {
+	Name     string
+	Value    string
+	Path     string
+	Expires  time.Time
+	Secure   bool
+	HttpOnly bool
+	SameSite http.SameSite
 }
 
 func Create_token(UserId int, email, username, role string) (string, error) {
@@ -64,4 +79,33 @@ func verifyPassword(password, hash string) bool {
 		return false
 	}
 	return match
+}
+
+func SetCustomCookie(c *gin.Context, cfg Cookies) {
+	cookie := &http.Cookie{
+		Name:     cfg.Name,
+		Value:    cfg.Value,
+		Path:     cfg.Path,
+		Expires:  cfg.Expires,
+		Secure:   cfg.Secure,
+		HttpOnly: cfg.HttpOnly,
+		SameSite: cfg.SameSite,
+	}
+
+	http.SetCookie(c.Writer, cookie)
+}
+
+func GetCookie(w http.ResponseWriter, r *http.Request) (string, error) {
+	cookie, err := r.Cookie("AccessToken")
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			http.Error(w, "cookie not found", http.StatusUnauthorized)
+		default:
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+		return "", err
+	}
+
+	return cookie.Value, nil
 }
