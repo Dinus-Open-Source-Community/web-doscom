@@ -8,14 +8,27 @@ import (
 )
 
 func RegisterPengurusRoutes(rg *gin.RouterGroup, pengurusHandler *handler.PengurusHandler) {
-	pengurus := rg.Group("/pengurus")
-	pengurus.Use(auth.AuthMiddleware("ANGGOTA", "KOOR", "BPH", "ADMIN"))
+	// public api
+	p := rg.Group("/pengurus")
+	// public api
 	{
-		pengurus.POST("/", pengurusHandler.CreatePengurus)
-		pengurus.GET("/:id", pengurusHandler.GetPengurus)
-		pengurus.PUT("/:id", pengurusHandler.UpdatePengurus)
-		pengurus.GET("/", pengurusHandler.GetAllPengurus)
-		pengurus.DELETE("/:id", pengurusHandler.DeletePengurus)
+		p.GET("/:id", pengurusHandler.GetPengurus)
+		p.GET("/", pengurusHandler.GetAllPengurus)
+	}
+
+	// private api -> need auth
+	pengurusAuth := p.Group("/")
+	pengurusAuth.Use(auth.AuthMiddleware("ANGGOTA", "KOOR", "BPH", "ADMIN"))
+	{
+		pengurusAuth.POST("/", pengurusHandler.CreatePengurus)
+		pengurusAuth.PUT("/:id", pengurusHandler.UpdatePengurus)
+	}
+
+	// private api -> koor khusus
+	koor := p.Group("/")
+	koor.Use(auth.AuthMiddleware("KOOR", "BPH", "ADMIN"))
+	{
+		pengurusAuth.DELETE("/:id", pengurusHandler.DeletePengurus)
 	}
 
 }

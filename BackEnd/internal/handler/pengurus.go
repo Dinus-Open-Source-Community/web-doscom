@@ -197,22 +197,22 @@ func (h *PengurusHandler) GetPengurus(c *gin.Context) {
 // @Router /api/v1/pengurus/ [get]
 func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 	// get role
-	role := c.MustGet("role").(string)
+	// role := c.MustGet("role").(string)
 	divisi := c.Query("divisi")
-	var isValid = map[string]bool{
-		"Super_Admin":  true,
-		"Kor_Pemro":    true,
-		"Kor_Jaringan": true,
-		"Kor_Medcrev":  true,
-		"Kor_Data":     true,
-		"BPH":          true,
-	}
-	if !isValid[role] {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "Heyy siapa kau, tidak boleh akses data ini",
-		})
-		return
-	}
+	// var isValid = map[string]bool{
+	// "Super_Admin":  true,
+	// "Kor_Pemro":    true,
+	// "Kor_Jaringan": true,
+	// "Kor_Medcrev":  true,
+	// "Kor_Data":     true,
+	// "BPH":          true,
+	// }
+	// if !isValid[role] {
+	// c.JSON(http.StatusForbidden, gin.H{
+	// "error": "Heyy siapa kau, tidak boleh akses data ini",
+	// })
+	// return
+	// }
 
 	pengurusList, err := h.Service.PengurusModel.GetAllPengurusByDivisi(divisi)
 	if err != nil {
@@ -226,7 +226,7 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 		respList = append(respList, model.PengurusResponse{
 			ID:       p.ID,
 			URLAsset: p.URLAsset,
-			Email:    p.Email,
+			Email:    "",
 			Divisi:   p.Divisi,
 			Name:     p.Name,
 			Position: p.Position,
