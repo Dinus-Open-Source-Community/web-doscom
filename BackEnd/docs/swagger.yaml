@@ -288,6 +288,49 @@ paths:
       tags:
       - Super_Admin
   /api/v1/gallery/:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil data gallery berdasarkan tipe tertentu
+      parameters:
+      - description: 'Gallery type (misal: event, pengurus, dokumentasi)'
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully fetch gallery data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized, role tidak valid
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to fetch gallery data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get Gallery By Type
+      tags:
+      - Gallery
     post:
       consumes:
       - multipart/form-data
@@ -340,6 +383,40 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Upload gallery (image only or mixed)
+      tags:
+      - Gallery
+  /api/v1/gallery/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete gallery data dan file nya berdasarkan ID
+      parameters:
+      - description: Gallery ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully delete Gallery
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Gallery not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete gallery by ID
       tags:
       - Gallery
   /api/v1/koor/:
