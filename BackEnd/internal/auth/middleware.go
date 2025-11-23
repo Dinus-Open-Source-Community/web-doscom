@@ -11,6 +11,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var RoleGroups = map[string][]string{
+	"KOOR":    {"Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH"},
+	"ADMIN":   {"Super_Admin"},
+	"BPH":     {"BPH"},
+	"ANGGOTA": {"pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"},
+}
+
 func ValidateAuth(tokenString string) (*Claims, error) {
 	claims := &Claims{}
 	// parse the token
@@ -65,11 +72,8 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
 
-		// cek role
-		// allowedRoles := []string{"Super_Admin", "Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH", "pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"}
-
 		if len(allowedRoles) > 0 {
-			if !slices.Contains(allowedRoles, claims.Role) {
+			if !isRoleAllowed(claims.Role, allowedRoles) {
 				c.JSON(http.StatusForbidden, gin.H{
 					"error": "forbidden",
 				})
@@ -80,4 +84,20 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+// helper function for check role
+func isRoleAllowed(User_role string, allowedRoles []string) bool {
+	for _, role := range allowedRoles {
+		if roles, exist := RoleGroups[role]; exist {
+			if slices.Contains(roles, User_role) {
+				return true
+			}
+		} else {
+			if User_role == role {
+				return true
+			}
+		}
+	}
+	return false
 }

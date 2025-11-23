@@ -11,70 +11,94 @@ import (
 
 // Validasi sesuai SQL
 var ValidDivisi = map[string]bool{
-	"bph": true, "pemro": true, "jaringan": true, "medcrev": true, "data": true,
+	"bph":      true,
+	"pemro":    true,
+	"jaringan": true,
+	"medcrev":  true,
+	"data":     true,
 }
+
 var ValidPosition = map[string]bool{
-	"ketum": true, "sdm": true, "pr": true, "pm": true, "pm_ang": true, "sekum": true, "bendum": true, "sek_ang": true, "ben_ang": true,
-	"kor_pemro": true, "kor_jaringan": true, "kor_medcrev": true, "kor_data": true,
-	"anggota": true, "pemro_ang": true, "jaringan_ang": true, "medcrev_ang": true, "data_ang": true, "BPH": true,
+	"ketum":        true,
+	"sdm":          true,
+	"pr":           true,
+	"pm":           true,
+	"pm_ang":       true,
+	"sekum":        true,
+	"bendum":       true,
+	"sek_ang":      true,
+	"ben_ang":      true,
+	"kor_pemro":    true,
+	"kor_jaringan": true,
+	"kor_medcrev":  true,
+	"kor_data":     true,
+	"anggota":      true,
+	"pemro_ang":    true,
+	"jaringan_ang": true,
+	"medcrev_ang":  true,
+	"data_ang":     true,
 }
+
+// "BPH":          true,
 var ValidSosmed = map[string]bool{
-	"instagram": true, "linkedin": true, "github": true,
+	"instagram": true,
+	"linkedin":  true,
+	"github":    true,
 }
 
 type PengurusModel struct {
 	DB *gorm.DB
 }
 
+// Model GORM
+type Pengurus struct {
+	ID        int       `gorm:"primaryKey" json:"id"`
+	UserID    int       `gorm:"column:id_user" json:"id_user"`
+	URLAsset  string    `gorm:"column:urlasset" json:"url_asset"`
+	Email     string    `gorm:"uniqueIndex" json:"email"`
+	Divisi    string    `gorm:"column:divisi" json:"divisi"`
+	Name      string    `json:"name"`
+	Position  string    `json:"position"`
+	Sosmed    string    `json:"sosmed"`
+	Period    string    `json:"period"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 // DTO untuk frontend
+// UserID   int       `json:"id_user"`
 type PengurusResponse struct {
-	ID       int       `json:"id"`
-	UserID   int       `json:"id_user"`
-	URLAsset string    `json:"url_asset"`
-	Email    string    `json:"email"`
-	Divisi   string    `json:"divisi"`
-	Name     string    `json:"name"`
-	Position string    `json:"position"`
-	Sosmed   string    `json:"sosmed"`
-	Period   time.Time `json:"period"`
+	ID       int    `json:"id"`
+	URLAsset string `json:"url_asset"`
+	Email    string `json:"email"`
+	Divisi   string `json:"divisi"`
+	Name     string `json:"name"`
+	Position string `json:"position"`
+	Sosmed   string `json:"sosmed"`
+	Period   string `json:"period"`
 }
 
 // Untuk create/register pengurus
 type RegisterPengurusRequest struct {
-	UserID   int       `json:"id_user" binding:"required"`
-	URLAsset string    `json:"url_asset" binding:"required"`
-	Email    string    `json:"email" binding:"required,email"`
-	Divisi   string    `json:"divisi" binding:"required,divisi"`
-	Name     string    `json:"name" binding:"required" validate:"min=2,max=150"`
-	Position string    `json:"position" binding:"required,position"`
-	Sosmed   string    `json:"sosmed" binding:"omitempty,sosmed"`
-	Period   time.Time `json:"period" binding:"required" validate:"max=50"`
+	UserID   int    `form:"id_user"`
+	URLAsset string `form:"url_asset"`
+	Email    string `form:"email"`
+	Divisi   string `form:"divisi" binding:"required,divisi"`
+	Name     string `form:"name" binding:"required" validate:"min=2,max=150"`
+	Position string `form:"position" binding:"required,position"`
+	Sosmed   string `form:"sosmed" binding:"omitempty,socialurl"`
+	Period   string `form:"period" binding:"required" validate:"max=50"`
 }
 
 // Untuk update/patch pengurus
 type PengurusPatch struct {
-	URLAsset *string    `json:"url_asset" binding:"omitempty"`
-	Email    *string    `json:"email" binding:"omitempty,email"`
-	Divisi   *string    `json:"divisi" binding:"omitempty,divisi"`
-	Name     *string    `json:"name" binding:"omitempty" validate:"min=2,max=150"`
-	Position *string    `json:"position" binding:"omitempty,position"`
-	Sosmed   *string    `json:"sosmed" binding:"omitempty,sosmed"`
-	Period   *time.Time `json:"period" binding:"omitempty" validate:"max=50"`
-}
-
-// Model GORM
-type Pengurus struct {
-	ID        int       `gorm:"primaryKey" json:"id"`
-	UserID    int       `json:"id_user"`
-	URLAsset  string    `json:"url_asset"`
-	Email     string    `gorm:"uniqueIndex" json:"email"`
-	Divisi    string    `json:"divisi"`
-	Name      string    `json:"name"`
-	Position  string    `json:"position"`
-	Sosmed    string    `json:"sosmed"`
-	Period    time.Time `json:"period"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	URLAsset *string `json:"url_asset" binding:"omitempty"`
+	Email    *string `json:"email" binding:"omitempty,email"`
+	Divisi   *string `json:"divisi" binding:"omitempty,divisi"`
+	Name     *string `json:"name" binding:"omitempty" validate:"min=2,max=150"`
+	Position *string `json:"position" binding:"omitempty,position"`
+	Sosmed   *string `json:"sosmed" binding:"omitempty,sosmed"`
+	Period   *string `json:"period" binding:"omitempty" validate:"max=50"`
 }
 
 // Custom validator
@@ -117,19 +141,13 @@ func (m *PengurusModel) InsertPengurus(pengurus *Pengurus) error {
 	if count > 0 {
 		return fmt.Errorf("email sudah terdaftar di pengurus")
 	}
-	// Validasi role user
-	allowedRoles := map[string]bool{
-		"Admin": true, "kor_pemro": true, "kor_jaringan": true,
-		"kor_medcrev": true, "kor_data": true, "BPH": true,
-	}
-	if !allowedRoles[user.Role] {
-		return fmt.Errorf("role user tidak boleh menjadi pengurus")
-	}
+
 	pengurus.CreatedAt = time.Now()
 	result := m.DB.Create(pengurus)
 	if result.Error != nil {
 		return result.Error
 	}
+
 	if result.RowsAffected == 0 {
 		return fmt.Errorf("no row inserted")
 	}
@@ -156,9 +174,13 @@ func (m *PengurusModel) GetPengurusById(id int) (*Pengurus, error) {
 }
 
 // Get all pengurus data
-func (m *PengurusModel) GetAllPengurus() ([]Pengurus, error) {
+func (m *PengurusModel) GetAllPengurusByDivisi(divisi string) ([]Pengurus, error) {
 	var pengurus []Pengurus
-	if err := m.DB.Find(&pengurus).Error; err != nil {
+	db := m.DB
+	if divisi != "" {
+		db = db.Where("divisi = ?", divisi)
+	}
+	if err := db.Find(&pengurus).Error; err != nil {
 		return nil, err
 	}
 	return pengurus, nil

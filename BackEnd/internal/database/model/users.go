@@ -33,10 +33,10 @@ type UserResponse struct {
 
 // untuk register/create user method
 type RegisterRequest struct {
-	Username string `json:"username" binding:"required"`
+	Username string `json:"username"`
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
-	Role     string `json:"role" binding:"required"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
 	Fullname string `json:"fullname" binding:"required"`
 }
 
@@ -53,6 +53,12 @@ type UserPatch struct {
 	Fullname *string `json:"fullname"`
 }
 
+type DefaultValue struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
+}
+
 // method struct pada UserPatch
 func (u *UserPatch) ToMap() map[string]any {
 	result := make(map[string]any)
@@ -66,7 +72,7 @@ func (u *UserPatch) ToMap() map[string]any {
 	}
 
 	if u.Fullname != nil {
-		result["fullname"] = *u.Fullname
+		result["full_name"] = *u.Fullname
 	}
 
 	return result
@@ -117,6 +123,8 @@ func (m *UserModel) GetAllUser(role string, userRole string) ([]User, error) {
 	switch role {
 	case "Super_Admin":
 		query = query.Where("role != ?", role)
+	case "BPH_ang":
+		query = query.Where("role = ?", userRole)
 	default:
 		query = query.Where("role = ?", userRole)
 	}
@@ -138,9 +146,9 @@ func (m *UserModel) UpdateUser(Id int, patch map[string]any) (*User, error) {
 
 	// set allowed fields to update
 	allowedField := map[string]bool{
-		"username": true,
-		"email":    true,
-		"fullname": true,
+		"username":  true,
+		"email":     true,
+		"full_name": true,
 	}
 
 	// compare the data and filter the empty value
@@ -156,6 +164,8 @@ func (m *UserModel) UpdateUser(Id int, patch map[string]any) (*User, error) {
 			}
 		}
 	}
+	// debug bwang
+	fmt.Println("Filtered updates:", filteredUpdates)
 
 	if len(filteredUpdates) == 0 {
 		return &user, nil
