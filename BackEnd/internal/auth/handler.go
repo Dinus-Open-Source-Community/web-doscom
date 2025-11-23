@@ -54,9 +54,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	// veerify the password
 	if !verifyPassword(input.Password, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error":    "Invalid  password",
-			"pw":       user.Password,
-			"pw input": input.Password,
+			"error": "Invalid  password",
 		})
 		return
 	}
@@ -106,18 +104,6 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	})
 }
 
-// RegisterUser godoc
-// @Summary      Register user
-// @Description  Mendaftarkan user baru
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        user  body  model.RegisterRequest  true  "User info"
-// @Success      200  {object}  map[string]string
-// @Failure      400  {object}  map[string]string
-// @Failure      500  {object}  map[string]string
-// @Security ApiKeyAuth
-// @Router       /api/v1/register [post]
 func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	// get the request body
@@ -165,7 +151,6 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
-// @Param        id   path  int  true  "User ID"
 // @Success      200  {object}  map[string]string
 // @Failure      400  {object}  map[string]string
 // @Failure      404  {object}  map[string]string

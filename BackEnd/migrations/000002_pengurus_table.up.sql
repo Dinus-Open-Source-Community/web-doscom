@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS pengurus (
     name VARCHAR(150) NOT NULL,
     position VARCHAR(100) CHECK (position IN ('ketum', 'sdm','pr','pm','pm_ang', 'sekum', 'bendum','sek_ang','ben_ang', 'kor_pemro','kor_jaringan','kor_medcrev','kor_data','anggota','pemro_ang','jaringan_ang','medcrev_ang','data_ang')),
     sosmed VARCHAR(50) CHECK ( sosmed in ('instagram','linkedin', 'github')),
-    period DATE,
+    period VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
