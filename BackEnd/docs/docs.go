@@ -424,7 +424,11 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+<<<<<<< HEAD
                         "description": "Gallery type (fun, proker, achievment, work, activity, blog, pengurus, etc)",
+=======
+                        "description": "Gallery type (misal: event, pengurus, dokumentasi)",
+>>>>>>> fd36652 (add some function, fix some function, malaasss)
                         "name": "type",
                         "in": "query",
                         "required": true

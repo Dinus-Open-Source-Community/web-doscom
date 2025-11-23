@@ -92,6 +92,7 @@ func (g *GalleryModel) GetGalleryByType(galleryType string, page, limit, offset 
 	return GalleryData, total, nil
 }
 
+<<<<<<< HEAD
 // get gallery by id
 func (g *GalleryModel) GetGalleryByID(id int) (*Gallery, error) {
 	var gallery Gallery
@@ -134,6 +135,8 @@ func (g *GalleryModel) UpdateGallery(id int, patch GalleryUpdate) (*Gallery, err
 	return &gallery, nil
 }
 
+=======
+>>>>>>> fd36652 (add some function, fix some function, malaasss)
 // delete gallery by id
 func (g *GalleryModel) DeleteGallery(id int) error {
 	var gallery Gallery

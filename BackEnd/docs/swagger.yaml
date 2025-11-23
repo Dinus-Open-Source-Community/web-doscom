@@ -369,8 +369,12 @@ paths:
       - application/json
       description: Mengambil data gallery berdasarkan tipe tertentu
       parameters:
+<<<<<<< HEAD
       - description: Gallery type (fun, proker, achievment, work, activity, blog,
           pengurus, etc)
+=======
+      - description: 'Gallery type (misal: event, pengurus, dokumentasi)'
+>>>>>>> fd36652 (add some function, fix some function, malaasss)
         in: query
         name: type
         required: true
