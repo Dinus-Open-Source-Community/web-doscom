@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"math"
 	"net/http"
+	"strconv"
 	"time"
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/service"
@@ -97,6 +99,97 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 		"data":    result,
 	})
 
+}
+
+// get gallery by type
+
+// GetGalleryByType godoc
+// @Summary Get Gallery By Type
+// @Description Mengambil data gallery berdasarkan tipe tertentu
+// @Tags Gallery
+// @Accept json
+// @Produce json
+// @Param type query string true "Gallery type (misal: event, pengurus, dokumentasi)"
+// @Param page query int false "Page number"
+// @Param limit query int false "Page limit"
+// @Success 200 {object} map[string]interface{} "Successfully fetch gallery data"
+// @Failure 401 {object} map[string]string "Unauthorized, role tidak valid"
+// @Failure 500 {object} map[string]string "Failed to fetch gallery data"
+// @Security ApiKeyAuth
+// @Router /api/v1/gallery/ [get]
+func (m *GalleryHandler) GetGalleryByType(c *gin.Context) {
+
+	// filtered by type
+	tipe := c.Query("type")
+
+	// pagination
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset := (page - 1) * limit
+	// get role
+	// role := c.MustGet("role").(string)
+
+	// if role != "Kor_Medcrev" {
+	// c.JSON(http.StatusUnauthorized, gin.H{
+	// "error": "Unauthorized, koe sopo wok",
+	// })
+	// return
+	// }
+
+	// get all gallery by type
+	GalleryList, count, err := m.GalleryService.GetAllGalleryByType(tipe, page, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch gallery data",
+		})
+		return
+	}
+
+	totalPages := int(math.Ceil(float64(count) / float64(limit)))
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully fetch gallery data",
+		"data":    GalleryList,
+		"metadata": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total_items": count,
+			"total_pages": totalPages,
+		},
+	})
+}
+
+// delete gallery by id
+// DeleteGallery godoc
+// @Summary Delete gallery by ID
+// @Description Delete gallery data dan file nya berdasarkan ID
+// @Tags Gallery
+// @Accept json
+// @Produce json
+// @Param id path int true "Gallery ID"
+// @Success 200 {object} map[string]interface{} "Successfully delete Gallery"
+// @Failure 400 {object} map[string]interface{} "Invalid ID"
+// @Failure 404 {object} map[string]interface{} "Gallery not found"
+// @Security BearerAuth
+// @Router /api/v1/gallery/{id} [delete]
+func (m *GalleryHandler) DeleteGallery(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid id",
+		})
+		return
+	}
+
+	if err := m.GalleryService.DeleteGallery(id); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Gallery not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully delete Gallery, bang nasi padang satu bungkus bang",
+	})
 }
 
 // insert photo profile

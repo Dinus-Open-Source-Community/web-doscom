@@ -63,3 +63,41 @@ func (g *GalleryModel) InsertGallery(gallery *Gallery) (*Gallery, error) {
 
 	return gallery, nil
 }
+
+// get gallery by type
+func (g *GalleryModel) GetGalleryByType(galleryType string, page, limit, offset int) ([]*Gallery, int64, error) {
+
+	var GalleryData []*Gallery
+	// take data per page
+	if err := g.DB.Where("gallery_type = ?", galleryType).
+		Offset(offset).
+		Limit(limit).
+		Find(&GalleryData).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var total int64
+	// hitung total data
+	g.DB.Model(&Gallery{}).
+		Where("gallery_type = ?", galleryType).
+		Count(&total)
+
+	return GalleryData, total, nil
+}
+
+// delete gallery by id
+func (g *GalleryModel) DeleteGallery(id int) error {
+	var gallery Gallery
+	if err := g.DB.First(&gallery, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return err
+		}
+		return err
+	}
+
+	if err := g.DB.Delete(&gallery).Error; err != nil {
+		return err
+	}
+
+	return nil
+}

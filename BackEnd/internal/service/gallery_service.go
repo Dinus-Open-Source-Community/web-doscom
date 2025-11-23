@@ -43,6 +43,35 @@ func (m *GalleryService) InsertGallery(gallery *model.Gallery) (*model.Gallery, 
 	return m.Model.InsertGallery(gallery)
 }
 
+// wrapper for get gallery by type
+func (m *GalleryService) GetAllGalleryByType(tipe string, limit, offset, page int) ([]*model.GalleryResponse, int64, error) {
+
+	var response []*model.GalleryResponse
+	galleries, count, err := m.Model.GetGalleryByType(tipe, page, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	for _, data := range galleries {
+		response = append(response, &model.GalleryResponse{
+			ID:          data.ID,
+			GalleryName: data.GalleryName,
+			GalleryType: data.GalleryType,
+			Description: data.Description,
+			EventDate:   data.EventDate,
+			FileSize:    data.FileSize,
+			MimeType:    data.MimeType,
+			AssetUrl:    data.AssetUrl,
+		})
+	}
+
+	return response, count, nil
+}
+
+// wrapper for delete gallery
+func (m *GalleryService) DeleteGallery(id int) error {
+	return m.Model.DeleteGallery(id)
+}
+
 // check if file is valid or not
 func isValidFile(file multipart.File) (bool, string) {
 	buffer := make([]byte, 512)
@@ -187,6 +216,7 @@ func (m *GalleryService) UploadImage(files []*multipart.FileHeader) ([]*model.Ga
 		// make random name file
 		newFileName := GenerateRandomName(file.Fileheader.Filename)
 		fmt.Println(newFileName)
+
 		// save the fuckin file
 		savePath := filepath.Join(dirPath, newFileName)
 		if err := SaveUploadedFile(file.Fileheader, savePath); err != nil {
