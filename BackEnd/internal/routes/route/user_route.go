@@ -10,14 +10,14 @@ import (
 // route for super admin only
 func UserControllerRoute(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 	admin := r.Group("/admin")
-	admin.Use(auth.AuthMiddleware("Super_Admin")) // protected using middleware only superadmin can access
+	admin.Use(auth.AuthMiddleware("ADMIN")) // protected using middleware only superadmin can access
 	{
-		admin.POST("/", UserHandler.CreateUser)                 // create new users
-		admin.GET("/:id", UserHandler.GetUser)                  // get users by id
-		admin.GET("/", UserHandler.GetAllUser)                  // get all users
-		admin.PUT("/:id", UserHandler.UpdateUser)               // update user by id
-		admin.DELETE("/:id", UserHandler.DeleteUser)            // delete user by id
-		admin.POST("/superadmin", UserHandler.CreateSuperAdmin) // create superadmin
+		admin.POST("/", UserHandler.SuperAdminCreateUser)                 // create new users
+		admin.GET("/:id", UserHandler.SuperAdminGetUser)                  // get users by id
+		admin.GET("/", UserHandler.SuperAdminGetAllUser)                  // get all users
+		admin.PUT("/:id", UserHandler.SuperAdminUpdateUser)               // update user by id
+		admin.DELETE("/:id", UserHandler.SuperAdminDeleteUser)            // delete user by id
+		admin.POST("/superadmin", UserHandler.SuperAdminCreateSuperAdmin) // create superadmin
 	}
 
 }
@@ -25,11 +25,13 @@ func UserControllerRoute(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 // route for koor only
 func UserControllerKoor(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 	koor := r.Group("/koor")
-	koor.Use(auth.AuthMiddleware("Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH"))
+	koor.Use(auth.AuthMiddleware("KOOR", "BPH"))
 	{
 		// all the routes here
-		koor.POST("/", UserHandler.CreateUser)    // create route
-		koor.POST("/:id", UserHandler.DeleteUser) // delete route
-		koor.PUT("/:id", UserHandler.UpdateUser)  // update route
+		koor.POST("/", UserHandler.KoorCreateUser)      // create route
+		koor.DELETE("/:id", UserHandler.KoorDeleteUser) // delete route
+		koor.PUT("/:id", UserHandler.KoorUpdateUser)    // update route
+		koor.GET("/", UserHandler.KoorGetAllUser)       // get all users
+		koor.GET("/:id", UserHandler.KoorGetUser)       // get user by id
 	}
 }
