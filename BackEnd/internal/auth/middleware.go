@@ -6,11 +6,17 @@ import (
 	"net/http"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+var RoleGroups = map[string][]string{
+	"KOOR":    {"Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH"},
+	"ADMIN":   {"Super_Admin"},
+	"BPH":     {"BPH"},
+	"ANGGOTA": {"pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"},
+}
 
 func ValidateAuth(tokenString string) (*Claims, error) {
 	claims := &Claims{}
@@ -40,33 +46,23 @@ func ValidateAuth(tokenString string) (*Claims, error) {
 
 func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+
+		// get cookie and token
+		tokenString, err := c.Cookie("AccessToken")
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error:": "Authorization is missing",
+				"error": "Cookie not found",
 			})
 			c.Abort()
 			return
 		}
 
-		// format
-		tokenParts := strings.Split(authHeader, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error:": "invalid token format",
-			})
-			c.Abort()
-			return
-		}
-
-		tokenstring := tokenParts[1]
 		// validasi token
-		claims, err := ValidateAuth(tokenstring)
+		claims, err := ValidateAuth(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error:": err.Error(),
 			})
-
 			c.Abort()
 			return
 		}
@@ -76,11 +72,8 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
 
-		// cek role
-		// allowedRoles := []string{"Super_Admin", "Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH", "pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"}
-
 		if len(allowedRoles) > 0 {
-			if !slices.Contains(allowedRoles, claims.Role) {
+			if !isRoleAllowed(claims.Role, allowedRoles) {
 				c.JSON(http.StatusForbidden, gin.H{
 					"error": "forbidden",
 				})
@@ -91,4 +84,20 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+// helper function for check role
+func isRoleAllowed(User_role string, allowedRoles []string) bool {
+	for _, role := range allowedRoles {
+		if roles, exist := RoleGroups[role]; exist {
+			if slices.Contains(roles, User_role) {
+				return true
+			}
+		} else {
+			if User_role == role {
+				return true
+			}
+		}
+	}
+	return false
 }

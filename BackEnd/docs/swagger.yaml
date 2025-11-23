@@ -1,4 +1,23 @@
 definitions:
+  model.GalleryResponse:
+    properties:
+      asset_url:
+        type: string
+      description:
+        type: string
+      event_date:
+        type: string
+      file_size:
+        type: integer
+      gallery_name:
+        type: string
+      gallery_type:
+        type: string
+      id:
+        type: integer
+      mime_type:
+        type: string
+    type: object
   model.LoginRequest:
     properties:
       email:
@@ -9,6 +28,45 @@ definitions:
     - email
     - password
     type: object
+  model.PengurusPatch:
+    properties:
+      divisi:
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 150
+        minLength: 2
+        type: string
+      period:
+        maxLength: 50
+        type: string
+      position:
+        type: string
+      sosmed:
+        type: string
+      url_asset:
+        type: string
+    type: object
+  model.PengurusResponse:
+    properties:
+      divisi:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      period:
+        type: string
+      position:
+        type: string
+      sosmed:
+        type: string
+      url_asset:
+        type: string
+    type: object
   model.RegisterRequest:
     properties:
       email:
@@ -16,7 +74,6 @@ definitions:
       fullname:
         type: string
       password:
-        minLength: 8
         type: string
       role:
         type: string
@@ -25,9 +82,6 @@ definitions:
     required:
     - email
     - fullname
-    - password
-    - role
-    - username
     type: object
   model.UserPatch:
     properties:
@@ -57,6 +111,447 @@ info:
   title: Web Doscom API
   version: "1.0"
 paths:
+  /api/v1/admin/:
+    get:
+      description: Mendapatkan daftar semua user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.UserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all users
+      tags:
+      - Super_Admin
+    post:
+      consumes:
+      - application/json
+      description: Membuat user baru
+      parameters:
+      - description: Email, FullName, Role
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create new user
+      tags:
+      - Super_Admin
+  /api/v1/admin/{id}:
+    get:
+      description: Mendapatkan user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - Super_Admin
+    put:
+      consumes:
+      - application/json
+      description: Mengupdate data user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.UserPatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update user
+      tags:
+      - Super_Admin
+  /api/v1/admin/superadmin:
+    post:
+      consumes:
+      - application/json
+      description: Membuat user dengan role superadmin (hanya untuk admin/superadmin)
+      parameters:
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create superadmin user
+      tags:
+      - Super_Admin
+  /api/v1/gallery/:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil data gallery berdasarkan tipe tertentu
+      parameters:
+      - description: 'Gallery type (misal: event, pengurus, dokumentasi)'
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully fetch gallery data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized, role tidak valid
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to fetch gallery data
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get Gallery By Type
+      tags:
+      - Gallery
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload multiple images/videos + metadata (gallery_type, description,
+        event_date)
+      parameters:
+      - description: Type of gallery (fun, proker, achievment, work, activity, blog,
+          pengurus, etc)
+        in: formData
+        name: gallery_type
+        required: true
+        type: string
+      - description: Description of gallery
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Event date (YYYY-MM-DD)
+        in: formData
+        name: event_date
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Upload multiple files
+        in: formData
+        items:
+          type: file
+        name: files
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully insert data
+          schema:
+            $ref: '#/definitions/model.GalleryResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Upload gallery (image only or mixed)
+      tags:
+      - Gallery
+  /api/v1/gallery/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete gallery data dan file nya berdasarkan ID
+      parameters:
+      - description: Gallery ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully delete Gallery
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Gallery not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete gallery by ID
+      tags:
+      - Gallery
+  /api/v1/koor/:
+    get:
+      description: Mendapatkan daftar semua user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.UserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all users
+      tags:
+      - Koor
+    post:
+      consumes:
+      - application/json
+      description: Membuat user baru
+      parameters:
+      - description: Email, FullName
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create new user
+      tags:
+      - Koor
+  /api/v1/koor/{id}:
+    get:
+      description: Mendapatkan user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get user by ID
+      tags:
+      - Koor
+    put:
+      consumes:
+      - application/json
+      description: Mengupdate data user berdasarkan ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.UserPatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update user
+      tags:
+      - Koor
   /api/v1/login:
     post:
       consumes:
@@ -99,60 +594,54 @@ paths:
       summary: Admin login
       tags:
       - Auth
-  /api/v1/register:
+  /api/v1/logout:
     post:
       consumes:
       - application/json
-      description: register untuk user dengan role Admin atau Super_Admin
-      parameters:
-      - description: Login credentials
-        in: body
-        name: login
-        required: true
-        schema:
-          $ref: '#/definitions/model.LoginRequest'
+      description: Logout user
       produces:
       - application/json
       responses:
         "200":
-          description: Login berhasil, kembalikan token JWT
+          description: OK
           schema:
             additionalProperties:
               type: string
             type: object
         "400":
-          description: Request body invalid
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
-        "401":
-          description: Email/password salah atau akses ditolak
+        "404":
+          description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
-        "500":
-          description: Error saat membuat token
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Admin register
+      security:
+      - ApiKeyAuth: []
+      summary: Logout user
       tags:
       - Auth
-  /api/v1/users:
+  /api/v1/pengurus/:
     get:
-      description: Mendapatkan daftar semua user
+      consumes:
+      - application/json
+      description: Mengambil semua data penguru
+      parameters:
+      - description: Filter by divisi (optional)
+        in: query
+        name: divisi
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/model.UserResponse'
-            type: array
+            $ref: '#/definitions/model.PengurusResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -161,181 +650,60 @@ paths:
             type: object
       security:
       - ApiKeyAuth: []
-      summary: Get all users
+      summary: Get all Pengurus
       tags:
-      - Users
+      - Pengurus
     post:
       consumes:
-      - application/json
-      description: Membuat user baru
+      - multipart/form-data
+      description: Create pengurus using multipart/form-data (JSON fields + file upload)
       parameters:
-      - description: User info
-        in: body
-        name: user
+      - description: Profile Picture
+        in: formData
+        name: file
         required: true
-        schema:
-          $ref: '#/definitions/model.RegisterRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Create new user
-      tags:
-      - Users
-  /api/v1/users/{id}:
-    delete:
-      description: Menghapus user berdasarkan ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
+        type: file
+      - description: User ID (optional)
+        in: formData
+        name: id_user
         type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Delete user
-      tags:
-      - Users
-    get:
-      description: Mendapatkan user berdasarkan ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
+      - description: Email (optional)
+        in: formData
+        name: email
+        type: string
+      - description: Divisi (required)
+        in: formData
+        name: divisi
         required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get user by ID
-      tags:
-      - Users
-    put:
-      consumes:
-      - application/json
-      description: Mengupdate data user berdasarkan ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
+        type: string
+      - description: Name (required)
+        in: formData
+        name: name
         required: true
-        type: integer
-      - description: User info
-        in: body
-        name: user
+        type: string
+      - description: Position (required)
+        in: formData
+        name: position
         required: true
-        schema:
-          $ref: '#/definitions/model.UserPatch'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Update user
-      tags:
-      - Users
-  /api/v1/users/superadmin:
-    post:
-      consumes:
-      - application/json
-      description: Membuat user dengan role superadmin (hanya untuk admin/superadmin)
-      parameters:
-      - description: User info
-        in: body
-        name: user
+        type: string
+      - description: Sosmed (optional)
+        in: formData
+        name: sosmed
+        type: string
+      - description: Period (YYYY-MM-DD)
+        in: formData
+        name: period
         required: true
-        schema:
-          $ref: '#/definitions/model.RegisterRequest'
+        type: string
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/model.PengurusResponse'
         "400":
           description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: Conflict
           schema:
             additionalProperties:
               type: string
@@ -348,9 +716,124 @@ paths:
             type: object
       security:
       - ApiKeyAuth: []
-      summary: Create superadmin user
+      summary: Create new pengurus
       tags:
-      - Users
+      - Pengurus
+  /api/v1/pengurus/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete data pengurus berdasarkan ID
+      parameters:
+      - description: Pengurus ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PengurusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Pengurus
+      tags:
+      - Pengurus
+    get:
+      consumes:
+      - application/json
+      description: Mengambil data pengurus berdasarkan ID
+      parameters:
+      - description: Pengurus ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PengurusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get Pengurus by ID
+      tags:
+      - Pengurus
+    put:
+      consumes:
+      - application/json
+      description: Update data pengurus berdasarkan ID
+      parameters:
+      - description: Pengurus ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Pengurus info
+        in: body
+        name: pengurus
+        required: true
+        schema:
+          $ref: '#/definitions/model.PengurusPatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PengurusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update Pengurus
+      tags:
+      - Pengurus
 securityDefinitions:
   ApiKeyAuth:
     in: header
