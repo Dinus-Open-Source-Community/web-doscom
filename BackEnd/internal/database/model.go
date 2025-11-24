@@ -7,35 +7,21 @@ import (
 )
 
 type Models struct {
-<<<<<<< HEAD
 	Users    model.UserModel
 	Works    model.WorkModel
 	Blogs    model.BlogModel
 	Gallery  model.GalleryModel
 	Pengurus model.PengurusModel
-=======
-	Users model.UserModel
-	Works model.WorkModel
-
-	// Activities model.ActivityModel
-
-	Blogs model.BlogModel
->>>>>>> 858e57d (add : update kategori & list by kategori)
+	// Activities model.ActivityModel // Uncomment if you have ActivityModel
 }
 
 func NewModel(db *gorm.DB) Models {
 	return Models{
-<<<<<<< HEAD
 		Users:    model.UserModel{DB: db},
 		Works:    model.WorkModel{DB: db},
 		Blogs:    model.BlogModel{DB: db},
 		Gallery:  model.GalleryModel{DB: db},
 		Pengurus: model.PengurusModel{DB: db},
-=======
-		Users: model.UserModel{DB: db},
-		Works: model.WorkModel{DB: db},
-
-		Blogs: model.BlogModel{DB: db},
->>>>>>> 858e57d (add : update kategori & list by kategori)
+		// Activities: model.ActivityModel{DB: db}, // Uncomment if you have ActivityModel
 	}
 }
