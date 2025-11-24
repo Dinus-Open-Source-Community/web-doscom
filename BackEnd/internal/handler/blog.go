@@ -19,6 +19,34 @@ func NewBlogHandler(db *gorm.DB) *BlogHandler {
 }
 
 // Create Blog
+func (h *BlogHandler) CreateBlog(c *gin.Context) {
+	var input model.RegisterBlog
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	blog := &model.Blog{
+		Title:       input.Title,
+		GalleryID:   input.GalleryID,
+		Slug:        input.Slug,
+		Content:     input.Content,
+		Kategori:    input.Kategori,
+		PublishedAt: input.PublishedAt,
+		IsPublished: input.IsPublished,
+		WorkID:      input.WorkID,
+		ActivityID:  input.ActivityID,
+		PengurusID:  input.PengurusID,
+	}
+
+	if err := h.DB.Create(blog).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, blog)
+}
+
 // Create Blog (validation only, no DB insert)
 func (h *BlogHandler) Create(c *gin.Context) {
 	var blog model.Blog
