@@ -11,11 +11,11 @@ import (
 )
 
 type BlogHandler struct {
-	DB *gorm.DB
+	Model *model.BlogModel
 }
 
-func NewBlogHandler(db *gorm.DB) *BlogHandler {
-	return &BlogHandler{DB: db}
+func NewBlogHandler(db *model.BlogModel) *BlogHandler {
+	return &BlogHandler{Model: db}
 }
 
 // Create Blog
@@ -74,7 +74,7 @@ func (h *BlogHandler) Create(c *gin.Context) {
 // List all Blogs
 func (h *BlogHandler) List(c *gin.Context) {
 	var blogs []model.Blog
-	if err := h.DB.Order("created_at DESC").Find(&blogs).Error; err != nil {
+	if err := h.Model.Order("created_at DESC").Find(&blogs).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

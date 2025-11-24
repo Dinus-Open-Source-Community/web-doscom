@@ -44,7 +44,7 @@ func (m *GalleryService) InsertGallery(gallery *model.Gallery) (*model.Gallery, 
 }
 
 // wrapper for get gallery by type
-func (m *GalleryService) GetAllGalleryByType(tipe string, limit, offset, page int) ([]*model.GalleryResponse, int64, error) {
+func (m *GalleryService) GetAllGalleryByType(tipe string, page, limit, offset int) ([]*model.GalleryResponse, int64, error) {
 
 	var response []*model.GalleryResponse
 	galleries, count, err := m.Model.GetGalleryByType(tipe, page, limit, offset)
