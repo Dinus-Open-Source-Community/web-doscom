@@ -1,0 +1,44 @@
+---
+import Button from "../ui/Button.astro";
+---
+
+<nav
+  id="sticky-nav"
+  class="fixed top-0 left-0 z-50 w-full -translate-y-full transform bg-white px-10 py-4 text-black shadow-lg transition-transform duration-500 ease-out"
+>
+  <div class="mx-auto flex max-w-7xl items-center justify-between">
+    <img src="/assets/logo/logo-doscom.svg" alt="Logo DOSCOM" class="h-8 w-auto" />
+
+    <ul class="flex justify-center gap-6 text-xl font-normal">
+      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Home</li>
+      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">About</li>
+      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Divisions</li>
+      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Works</li>
+      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Blog</li>
+      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Contact</li>
+    </ul>
+
+    <Button variant="primary" class="font-normal text-white">Join Us</Button>
+  </div>
+</nav>
+
+<script>
+  const nav = document.getElementById("sticky-nav");
+
+  function handleScroll() {
+    if (!nav) return;
+
+    // Trik: Gunakan tinggi layar (viewport) sebagai patokan trigger
+    // 0.8 berarti navbar muncul setelah scroll melewati 80% tinggi layar
+    const triggerPoint = window.innerHeight * 0.8;
+
+    if (window.scrollY > triggerPoint) {
+      nav.classList.remove("-translate-y-full");
+    } else {
+      nav.classList.add("-translate-y-full");
+    }
+  }
+
+  // Event Listener
+  window.addEventListener("scroll", handleScroll);
+</script>
