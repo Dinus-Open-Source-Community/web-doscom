@@ -5,17 +5,29 @@ import Navbar from '../components/layouts/HeroNavbar.astro'
 import Footer from '../components/layouts/Footer.astro'
 =======
 // import tailwind
+<<<<<<< HEAD
 import "../styles/global.css";
 // import Navbar from "../components/Navbar.astro";
 import HeroNavbar from "../components/layouts/HeroNavbar.astro";
 import StickyNavbar from "../components/layouts/StickyNavbar.astro";
 import Footer from "../components/layouts/Footer.astro";
+<<<<<<< HEAD
 >>>>>>> ba4002e (🧩 feat: create navbar and footer layout)
+=======
+=======
+import '../styles/global.css'
+// import Navbar from "../components/Navbar.astro";
+import HeroNavbar from '../components/layouts/HeroNavbar.astro'
+import StickyNavbar from '../components/layouts/StickyNavbar.astro'
+import Footer from '../components/layouts/Footer.astro'
+>>>>>>> 5acad4f (🧩 feat: create navbar and footer layout)
+>>>>>>> 4a38ae7 (🧩 feat: create navbar and footer layout)
 
 const { title } = Astro.props
 ---
 
 <html lang="en">
+<<<<<<< HEAD
 <<<<<<< HEAD
     <head>
         <meta charset="utf-8" />
@@ -38,6 +50,8 @@ const { title } = Astro.props
         <Footer />
     </body>
 =======
+=======
+>>>>>>> 4a38ae7 (🧩 feat: create navbar and footer layout)
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -68,5 +82,37 @@ const { title } = Astro.props
       <p>ini footer</p>
     </footer> -->
   </body>
+<<<<<<< HEAD
 >>>>>>> ba4002e (🧩 feat: create navbar and footer layout)
+=======
+=======
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Doscom | {title}</title>
+    </head>
+    <body class="flex min-h-screen flex-col justify-between">
+        <!-- <Navbar /> -->
+
+        <StickyNavbar />
+
+        <header class="relative z-10 flex h-screen items-center justify-center overflow-hidden">
+            <HeroNavbar />
+        </header>
+        <main class="z-10">
+            <slot />
+        </main>
+
+        <div class="sticky bottom-0 z-0">
+            <Footer />
+        </div>
+        <!-- <footer class="flex justify-center py-5">
+      <p>ini footer</p>
+    </footer> -->
+    </body>
+>>>>>>> 5acad4f (🧩 feat: create navbar and footer layout)
+>>>>>>> 4a38ae7 (🧩 feat: create navbar and footer layout)
 </html>
