@@ -1,5 +1,6 @@
 ---
 <<<<<<< HEAD
+<<<<<<< HEAD
 import '../styles/global.css'
 import Navbar from '../components/layouts/HeroNavbar.astro'
 import Footer from '../components/layouts/Footer.astro'
@@ -15,18 +16,27 @@ import Footer from "../components/layouts/Footer.astro";
 >>>>>>> ba4002e (🧩 feat: create navbar and footer layout)
 =======
 =======
+=======
+>>>>>>> 9a2f97b (feat: add some page and fix some bug)
 import '../styles/global.css'
 // import Navbar from "../components/Navbar.astro";
 import HeroNavbar from '../components/layouts/HeroNavbar.astro'
 import StickyNavbar from '../components/layouts/StickyNavbar.astro'
 import Footer from '../components/layouts/Footer.astro'
+<<<<<<< HEAD
 >>>>>>> 5acad4f (🧩 feat: create navbar and footer layout)
 >>>>>>> 4a38ae7 (🧩 feat: create navbar and footer layout)
+=======
+
+import '../styles/global.css'
+import Navbar from '../components/Navbar.astro'
+>>>>>>> 9a2f97b (feat: add some page and fix some bug)
 
 const { title } = Astro.props
 ---
 
 <html lang="en">
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     <head>
@@ -86,6 +96,8 @@ const { title } = Astro.props
 >>>>>>> ba4002e (🧩 feat: create navbar and footer layout)
 =======
 =======
+=======
+>>>>>>> 9a2f97b (feat: add some page and fix some bug)
     <head>
         <meta charset="utf-8" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -113,6 +125,28 @@ const { title } = Astro.props
       <p>ini footer</p>
     </footer> -->
     </body>
+<<<<<<< HEAD
 >>>>>>> 5acad4f (🧩 feat: create navbar and footer layout)
 >>>>>>> 4a38ae7 (🧩 feat: create navbar and footer layout)
+=======
+
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&family=Raleway:wght@100..900&display=swap"
+            rel="stylesheet"
+        />
+        <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Doscom | {title}</title>
+    </head>
+    <body class="flex min-h-screen flex-col justify-between">
+        <Navbar />
+        <main>
+            <slot />
+        </main>
+    </body>
+>>>>>>> 9a2f97b (feat: add some page and fix some bug)
 </html>
