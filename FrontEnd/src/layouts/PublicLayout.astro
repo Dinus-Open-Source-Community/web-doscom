@@ -1,27 +1,28 @@
 ---
 // import tailwind
-import "../styles/global.css";
-import Navbar from "../components/Navbar.astro";
+import '../styles/global.css'
+import Navbar from '../components/Navbar.astro'
 
-const { title } = Astro.props;
+const { title } = Astro.props
 ---
 
 <html lang="en">
-  <head>
-    <meta charset="utf-8" /> 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Doscom | {title}</title>
-  </head>
-  <body class="flex min-h-screen flex-col justify-between">
-    <Navbar />
-    <main>
-      <slot />
-    </main>
-    <!-- <footer class="flex justify-center py-5">
-      <p>ini footer</p>
-    </footer> -->
-  </body>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&family=Raleway:wght@100..900&display=swap"
+            rel="stylesheet"
+        />
+        <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Doscom | {title}</title>
+    </head>
+    <body class="flex min-h-screen flex-col justify-between">
+        <Navbar />
+        <main>
+            <slot />
+        </main>
+    </body>
 </html>

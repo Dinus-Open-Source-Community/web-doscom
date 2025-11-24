@@ -120,44 +120,59 @@ import ArrowRightPrimary from '../../public/arrowRightPrimary.svg'
         </div>
 
         <div class="bg-[var(--color-primary)] w-full h-full">
-            <div class="w-full max-w-7xl h-full mx-auto py-12 flex flex-row">
-                <div class="flex flex-col justify-between space-y-4">
-                    <h1 class="font-jakarta font-semibold text-5xl tracking-tight text-white">Our Recent <br /> Activities</h1>
-                    <ul class="font-jakarta font-normal tracking-tight text-white text-3xl leading-relaxed">
-                        <li>Daily Activity</li>
-                        <li>Works</li>
-                        <li>Events</li>
-                        <li>Sharing</li>
-                    </ul>
+            <div class="w-full h-full py-12 flex pl-60">
+                <div class="flex flex-col w-3xl justify-between space-y-6 py-3">
+                    <div class="space-y-6">
+                        <h1 class="font-jakarta font-semibold text-5xl tracking-tight text-white">Our Recent <br /> Activities</h1>
+                        <ul class="font-jakarta font-normal tracking-tight text-white text-3xl leading-relaxed">
+                            <li>Daily Activity</li>
+                            <li>Works</li>
+                            <li>Events</li>
+                            <li>Sharing</li>
+                        </ul>
+                    </div>
                     <div>
                         <Button variant="secondary" size="icon"><ArrowLeftPrimary width={26} height={26} /> </Button>
                         <Button variant="secondary" size="icon"><ArrowRightPrimary width={26} height={26} /></Button>
                     </div>
                 </div>
-                <div class="flex gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar px-10 snap-x no-scrollbar scroll-smooth">
+
+                <div class="flex gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar snap-x no-scrollbar scroll-smooth">
                     <Card
-                        image="../../public/Dform.png"
-                        variant="works"
+                        image="../../public/realeaseParty.jpg"
+                        variant="activities"
                         title="TealinuxOS"
-                        desc="A digital platform for community event attendance and registration"
-                        category="Operation System"
+                        desc="Release Party adalah acara peluncuran TeaLinuxOS, distro Linux racikan DOSCOM yang dikembangkan secara terbuka dengan filosofi “Nikmatnya Sebuah Racikan”."
+                        category={['Workshop', 'Bootcamp']}
                     />
                     <Card
-                        image="../../public/tealinux.png"
-                        variant="works"
-                        title="TealinuxOS"
-                        desc="A Linux-based operating system with a lightweight and user-friendly interface."
-                        category="Operation System"
+                        image="../../public/realeaseParty.jpg"
+                        variant="activities"
+                        title="Doscom University"
+                        desc="Doscom University bukanlah universitas fisik, melainkan sebuah program atau acara pelatihan yang diselenggarakan oleh Doscom (Dinus Open Source Community). "
+                        category={['Workshop', 'Bootcamp']}
                     />
                     <Card
-                        image="../../public/Dform.png"
-                        variant="works"
+                        image="../../public/realeaseParty.jpg"
+                        variant="activities"
                         title="Rice Source"
                         desc="An open-source repository for community projects and experiments"
-                        category="Open Source"
+                        category={['Workshop', 'Bootcamp']}
                     />
                 </div>
             </div>
+        </div>
+
+        <div class="relative w-full h-[380px] sm:h-[460px] md:h-[520px] lg:h-[580px] xl:h-[714px] overflow-hidden">
+            <img src="../../public/createImpact.jpg" alt="Create Impact" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+
+            <div class="absolute inset-0 bg-black/60"></div>
+
+            <h1
+                class="absolute inset-0 flex items-center w-[483px] left-20 px-6 text-white font-jakarta font-bold leading-tight tracking-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl"
+            >
+                Your open source spirit is our mission. Together, we #CreateImpact.
+            </h1>
         </div>
     </section>
 </PublicLayout>
