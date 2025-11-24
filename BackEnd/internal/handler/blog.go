@@ -100,16 +100,45 @@ func (h *BlogHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, blog)
 }
 
+// UpdateKategori updates the kategori of a blog by id
 func (h *BlogHandler) UpdateKategori(c *gin.Context) {
-	// TODO: implement the logic for updating kategori
-	c.JSON(200, gin.H{"message": "UpdateKategori not implemented"})
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	var req struct {
+		Kategori string `json:"kategori" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	var blog model.Blog
+	if err := h.DB.First(&blog, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "blog not found"})
+		return
+	}
+	blog.Kategori = req.Kategori
+	if err := h.DB.Save(&blog).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Kategori updated", "blog": blog})
 }
+
+// ListByKategori returns blogs filtered by kategori
 func (h *BlogHandler) ListByKategori(c *gin.Context) {
 	kategori := c.Param("kategori")
-	// TODO: Implement logic to list blogs by kategori
-	c.JSON(200, gin.H{
+	var blogs []model.Blog
+	if err := h.DB.Where("kategori = ?", kategori).Order("created_at DESC").Find(&blogs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
 		"message":  "List blogs by kategori",
 		"kategori": kategori,
+		"blogs":    blogs,
 	})
 }
 
