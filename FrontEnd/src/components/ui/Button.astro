@@ -10,7 +10,7 @@ interface Props extends HTMLAttributes<"button"> {
 const { variant = "primary", size = "default", class: extraClass = "", ...rest } = Astro.props;
 
 const baseStyles =
-  "inline-flex items-center justify-center rounded-full font-jakarta transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)]";
+  "inline-flex items-center justify-center rounded-full  transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)]";
 
 const variantStyles = {
   primary:
