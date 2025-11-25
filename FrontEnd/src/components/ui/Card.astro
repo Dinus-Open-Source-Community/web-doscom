@@ -1,50 +1,66 @@
 ---
-import Button from './Button.astro'
+import Button from "./Button.astro";
 
 interface Card {
     variant: 'programs' | 'works' | 'activities' | 'structure-orga' | 'core-team'
     category: string[] | string
 }
 
-const { variant = 'programs', image, title, desc, titleButton, category } = Astro.props
+const { variant = "programs", image, title, desc, titleButton, category } = Astro.props;
 ---
 
 {
-    variant === 'programs' && (
-        <div class="relative w-full h-[380px] sm:h-[420px] md:h-[460px] rounded-2xl overflow-hidden shadow-[6px_10px_20px_rgba(0,0,0,0.40)] transition shrink-0">
-            <img src={image} alt={title} class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+  variant === "programs" && (
+    <div class="relative h-[420px] w-full overflow-hidden rounded-2xl shadow-[6px_10px_20px_rgba(0,0,0,0.40)] transition md:h-[460px]">
+      <img src={image} alt={title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      <div class="absolute inset-0 bg-linear-to-t from-black via-black/55 to-transparent" />
+      <div class="absolute bottom-0 p-5 text-white">
+        <h2 class="font-poppins text-xl font-semibold md:text-2xl">{title}</h2>
 
-            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent" />
+        <p class="font-poppins text-sm font-normal tracking-tight opacity-90">{desc}</p>
 
-            <div class="absolute bottom-0 p-4 sm:p-5 text-white">
-                <h2 class="text-lg sm:text-xl md:text-2xl font-poppins font-semibold">{title}</h2>
-                <p class="font-poppins font-normal text-xs sm:text-sm opacity-90 tracking-tight">{desc}</p>
-
-                <Button variant="primary" size="full" class="mt-3 text-white font-semibold text-xs sm:text-sm md:text-base font-poppins p-2.5 rounded-xl">
-                    {titleButton}
-                </Button>
-            </div>
-        </div>
-    )
+        <Button
+          variant="primary"
+          size="full"
+          class="font-poppins mt-3 rounded-xl p-2.5 text-sm font-semibold text-white md:text-base"
+        >
+          {titleButton}
+        </Button>
+      </div>
+    </div>
+  )
 }
 
 {
-    variant === 'works' && (
-        <div class="relative w-[340px] sm:w-[420px] md:w-[580px] h-[420px] sm:h-[500px] md:h-[560px] rounded-2xl overflow-hidden shadow-[4px_6px_14px_rgba(0,0,0,0.25)] bg-black transition shrink-0">
-            <img src={image} alt={title} class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+  variant === "works" && (
+    <div class="relative h-[560px] w-[580px] shrink-0 overflow-hidden rounded-2xl bg-black shadow-[4px_6px_14px_rgba(0,0,0,0.25)] transition">
+      <img src={image} alt={title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
 
-            <div class="absolute inset-0 bg-black/55" />
+      <div class="absolute inset-0 bg-black/55 to-transparent" />
 
-            <div class="absolute bottom-0 p-5 sm:p-7 md:p-9 text-white font-jakarta flex flex-col gap-2">
-                <div class="bg-white text-black w-fit px-3 py-1.5 rounded-full font-medium text-xs sm:text-sm tracking-tight">
-                    <span>{category}</span>
-                </div>
-
-                <h2 class="text-2xl sm:text-[28px] md:text-[32px] leading-tight tracking-tight font-semibold">{title}</h2>
-                <p class="text-sm sm:text-base opacity-85 font-normal">{desc}</p>
-            </div>
+      <div class="font-jakarta absolute bottom-0 flex flex-col gap-2 p-9 text-white">
+        <div class="w-fit rounded-full bg-white px-3 py-1.5 text-sm font-medium tracking-tight text-black">
+          <span>{category}</span>
         </div>
-    )
+
+        <h2 class="text-[32px] leading-tight font-semibold tracking-tight">{title}</h2>
+
+        <p class="text-base font-normal opacity-85">{desc}</p>
+      </div>
+    </div>
+  )
+}
+
+{
+  variant === "core-team" && (
+    <div class="flex max-w-xs flex-col gap-3 rounded-xl bg-[#0A84DC] p-4">
+      <img src={image} alt={title} class="rounded-lg" />
+      <div class="flex flex-col gap-2 text-white">
+        <p class="text-3xl font-bold">{title}</p>
+        <p class="text-sm">{desc}</p>
+      </div>
+    </div>
+  )
 }
 
 {
