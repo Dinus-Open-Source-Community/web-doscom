@@ -1,10 +1,7 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro'
 import Button from '../components/ui/Button.astro'
-import ArrowLeft from '/public/assets/icons/arrowleft.svg'
-import ArrowRight from '../../public/assets/icons/arrowright.svg'
-import ArrowRightPrimary from '../../public/assets/icons/arrowRightPrimary.svg'
-import ArrowLeftPrimary from '../../public/assets/icons/arrowLeftPrimary.svg'
+
 import Card from '../components/ui/Card.astro'
 import VisiMisi from '../components/VisiMisi.astro'
 ---
@@ -45,8 +42,8 @@ import VisiMisi from '../components/VisiMisi.astro'
                     A list of planned activities that will be implemented to <br /> achieve organizational goals in a structured and <br /> sustainable manner.
                 </p>
                 <div>
-                    <Button variant="primary" size="icon"><ArrowLeft width={26} height={26} /> </Button>
-                    <Button variant="primary" size="icon"><ArrowRight width={26} height={26} /></Button>
+                    <Button variant="primary" size="icon"><img src="/FrontEnd/public/assets/icons/arrowleft.svg" alt="arrow-left" width="26" height="26" /> </Button>
+                    <Button variant="primary" size="icon"><img src="/FrontEnd/public/assets/icons/arrowright.svg" alt="arrow-left" width="26" height="26" /></Button>
                 </div>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6">
@@ -88,8 +85,8 @@ import VisiMisi from '../components/VisiMisi.astro'
                         A list of planned activities that will be implemented to <br /> achieve organizational goals in a structured and <br /> sustainable manner.
                     </p>
                     <div>
-                        <Button variant="primary" size="icon"><ArrowLeft width={26} height={26} /> </Button>
-                        <Button variant="primary" size="icon"><ArrowRight width={26} height={26} /></Button>
+                        <Button variant="primary" size="icon"><img src="/FrontEnd/public/assets/icons/arrowleft.svg" alt="arrow-left" width="26" height="26" /> </Button>
+                        <Button variant="primary" size="icon"><img src="/FrontEnd/public/assets/icons/arrowright.svg" alt="arrow-right" width="26" height="26" /></Button>
                     </div>
                 </div>
             </div>
@@ -132,8 +129,12 @@ import VisiMisi from '../components/VisiMisi.astro'
                         </ul>
                     </div>
                     <div>
-                        <Button variant="secondary" size="icon"><ArrowLeftPrimary width={26} height={26} /> </Button>
-                        <Button variant="secondary" size="icon"><ArrowRightPrimary width={26} height={26} /></Button>
+                        <Button variant="secondary" size="icon"
+                            ><img src="/FrontEnd/public/assets/icons/arrowLeftPrimary.svg" alt="arrow-left-primary" width="26" height="26" />
+                        </Button>
+                        <Button variant="secondary" size="icon"
+                            ><img src="/FrontEnd/public/assets/icons/arrowRightPrimary.svg" alt="arrow-right-primary" width="26" height="26" /></Button
+                        >
                     </div>
                 </div>
 
