@@ -7,7 +7,6 @@ import (
 	"web_doscom/internal/database/model"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type BlogHandler struct {
