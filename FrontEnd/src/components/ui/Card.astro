@@ -1,12 +1,12 @@
 ---
-import Button from "./Button.astro";
+import Button from './Button.astro'
 
 interface Card {
     variant: 'programs' | 'works' | 'activities' | 'structure-orga' | 'core-team'
     category: string[] | string
 }
 
-const { variant = "programs", image, title, desc, titleButton, category } = Astro.props;
+const { variant = 'programs', image, title, desc, titleButton, category } = Astro.props
 ---
 
 {
