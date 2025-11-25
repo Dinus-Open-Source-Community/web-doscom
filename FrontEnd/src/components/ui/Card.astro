@@ -1,11 +1,11 @@
 ---
-import Button from './Button.astro'
+import Button from "./Button.astro";
 
 interface Card {
   variant: "programs" | "works";
 }
 
-const { variant = 'programs', image, title, desc, titleButton, category } = Astro.props
+const { variant = "programs", image, title, desc, titleButton, category } = Astro.props;
 ---
 
 {
@@ -22,6 +22,74 @@ const { variant = 'programs', image, title, desc, titleButton, category } = Astr
           variant="primary"
           size="full"
           class="font-poppins mt-3 rounded-xl p-2.5 text-sm font-semibold text-white md:text-base"
+        >
+          {titleButton}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+{
+  variant === "works" && (
+    <div class="relative h-[560px] w-[580px] shrink-0 overflow-hidden rounded-2xl bg-black shadow-[4px_6px_14px_rgba(0,0,0,0.25)] transition">
+      <img src={image} alt={title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+
+      <div class="absolute inset-0 bg-black/55 to-transparent" />
+
+      <div class="font-jakarta absolute bottom-0 flex flex-col gap-2 p-9 text-white">
+        <div class="w-fit rounded-full bg-white px-3 py-1.5 text-sm font-medium tracking-tight text-black">
+          <span>{category}</span>
+        </div>
+
+        <h2 class="text-[32px] leading-tight font-semibold tracking-tight">{title}</h2>
+
+        <p class="text-base font-normal opacity-85">{desc}</p>
+      </div>
+    </div>
+  )
+}
+
+{
+  variant === "core-team" && (
+    <div class="flex max-w-xs flex-col gap-3 rounded-xl bg-[#0A84DC] p-4">
+      <img src={image} alt={title} class="rounded-lg" />
+      <div class="flex flex-col gap-2 text-white">
+        <p class="text-3xl font-bold">{title}</p>
+        <p class="text-sm">{desc}</p>
+      </div>
+    </div>
+  )
+}
+
+{
+    variant === 'activities' && (
+        <div class="relative w-[360px] sm:w-[520px] md:w-[656px] h-[500px] sm:h-[540px] md:h-[575px] rounded-3xl p-3.5 overflow-hidden flex flex-col justify-between  bg-white transition shrink-0">
+            <img src={image} alt={title} class="object-cover rounded-xl w-full h-[260px] sm:h-[320px] md:h-[359px]" loading="lazy" />
+
+            <div class="text-[var(--text-secondary)] font-jakarta flex flex-col gap-2 mt-2">
+                <h2 class="text-2xl sm:text-[28px] md:text-[32px] tracking-tight font-semibold">{title}</h2>
+                <p class="text-sm sm:text-base opacity-85 font-normal tracking-normal w-[541.7px] text-start mb-2">{desc}</p>
+
+                {category.length > 0 && (
+                    <div class=" flex gap-2">
+                        {category.map((cat: string) => (
+                            <div class="bg-[var(--color-primary)] text-white w-fit px-5 py-2.5 rounded-full font-medium text-sm sm:text-base tracking-tight">
+                                <span>{cat}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+{
+    variant === 'structure-orga' && (
+        <div
+            class="relative w-[174px]  min-h-[157px]  rounded-lg p-[2px]
+    bg-gradient-to-br from-[var(--color-primary)]/80 to-white shadow-xl"
         >
           {titleButton}
         </Button>
