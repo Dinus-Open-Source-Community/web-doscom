@@ -1,0 +1,33 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"button"> {
+  variant?: "primary" | "secondary" | "outline";
+  size?: "small" | "default" | "large" | "icon" | "full";
+  class?: string;
+}
+
+const { variant = "primary", size = "default", class: extraClass = "", ...rest } = Astro.props;
+
+const baseStyles =
+  "inline-flex items-center justify-center rounded-full font-jakarta transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)]";
+
+const variantStyles = {
+  primary:
+    "bg-[var(--color-primary)] text-[var(--text-primary)] hover:shadow-md hover:opacity-95 focus-visible:ring-[var(--color-primary)]",
+  secondary: "bg-[var(--color-secondary)] text-[var(--text-primary)] hover:shadow-xs ",
+  outline: "bg-transparent text-[var(--text-primary)] border-3 border-[var(--color-primary)] ",
+};
+
+const sizeStyles = {
+  small: "px-4 py-2 sm:px-5 sm:py-2.5",
+  default: "px-5 py-2.5 sm:px-10 sm:py-2.5",
+  large: "px-6 py-3 sm:px-10 sm:py-4 ",
+  icon: "p-2 sm:p-3",
+  full: "w-full",
+};
+---
+
+<button class={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${extraClass}`} {...rest}>
+  <slot />
+</button>
