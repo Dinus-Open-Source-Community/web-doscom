@@ -2,7 +2,8 @@
 import Button from "./Button.astro";
 
 interface Card {
-  variant: "programs" | "works";
+  variant: "programs" | "works" | "activities";
+  category: string[] | string;
 }
 
 const { variant = "programs", image, title, desc, titleButton, category } = Astro.props;
@@ -10,18 +11,19 @@ const { variant = "programs", image, title, desc, titleButton, category } = Astr
 
 {
   variant === "programs" && (
-    <div class="relative h-[420px] w-full overflow-hidden rounded-2xl shadow-[6px_10px_20px_rgba(0,0,0,0.40)] transition md:h-[460px]">
+    <div class="relative h-[380px] w-full shrink-0 overflow-hidden rounded-2xl shadow-[6px_10px_20px_rgba(0,0,0,0.40)] transition sm:h-[420px] md:h-[460px]">
       <img src={image} alt={title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
-      <div class="absolute inset-0 bg-linear-to-t from-black via-black/55 to-transparent" />
-      <div class="absolute bottom-0 p-5 text-white">
-        <h2 class="font-poppins text-xl font-semibold md:text-2xl">{title}</h2>
 
-        <p class="font-poppins text-sm font-normal tracking-tight opacity-90">{desc}</p>
+      <div class="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent" />
+
+      <div class="absolute bottom-0 p-4 text-white sm:p-5">
+        <h2 class="font-poppins text-lg font-semibold sm:text-xl md:text-2xl">{title}</h2>
+        <p class="font-poppins text-xs font-normal tracking-tight opacity-90 sm:text-sm">{desc}</p>
 
         <Button
           variant="primary"
           size="full"
-          class="font-poppins mt-3 rounded-xl p-2.5 text-sm font-semibold text-white md:text-base"
+          class="font-poppins mt-3 rounded-xl p-2.5 text-xs font-semibold text-white sm:text-sm md:text-base"
         >
           {titleButton}
         </Button>
@@ -32,31 +34,46 @@ const { variant = "programs", image, title, desc, titleButton, category } = Astr
 
 {
   variant === "works" && (
-    <div class="relative h-[560px] w-[580px] shrink-0 overflow-hidden rounded-2xl bg-black shadow-[4px_6px_14px_rgba(0,0,0,0.25)] transition">
+    <div class="relative h-[420px] w-[340px] shrink-0 overflow-hidden rounded-2xl bg-black shadow-[4px_6px_14px_rgba(0,0,0,0.25)] transition sm:h-[500px] sm:w-[420px] md:h-[560px] md:w-[580px]">
       <img src={image} alt={title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
 
-      <div class="absolute inset-0 bg-black/55 to-transparent" />
+      <div class="absolute inset-0 bg-black/55" />
 
-      <div class="font-jakarta absolute bottom-0 flex flex-col gap-2 p-9 text-white">
-        <div class="w-fit rounded-full bg-white px-3 py-1.5 text-sm font-medium tracking-tight text-black">
+      <div class="font-jakarta absolute bottom-0 flex flex-col gap-2 p-5 text-white sm:p-7 md:p-9">
+        <div class="w-fit rounded-full bg-white px-3 py-1.5 text-xs font-medium tracking-tight text-black sm:text-sm">
           <span>{category}</span>
         </div>
 
-        <h2 class="text-[32px] leading-tight font-semibold tracking-tight">{title}</h2>
-
-        <p class="text-base font-normal opacity-85">{desc}</p>
+        <h2 class="text-2xl leading-tight font-semibold tracking-tight sm:text-[28px] md:text-[32px]">{title}</h2>
+        <p class="text-sm font-normal opacity-85 sm:text-base">{desc}</p>
       </div>
     </div>
   )
 }
 
 {
-  variant === "core-team" && (
-    <div class="flex max-w-xs flex-col gap-3 rounded-xl bg-[#0A84DC] p-4">
-      <img src={image} alt={title} class="rounded-lg" />
-      <div class="flex flex-col gap-2 text-white">
-        <p class="text-3xl font-bold">{title}</p>
-        <p class="text-sm">{desc}</p>
+  variant === "activities" && (
+    <div class="relative flex h-[500px] w-[360px] shrink-0 flex-col justify-between overflow-hidden rounded-3xl bg-white p-3.5 transition sm:h-[540px] sm:w-[520px] md:h-[575px] md:w-[656px]">
+      <img
+        src={image}
+        alt={title}
+        class="h-[260px] w-full rounded-xl object-cover sm:h-[320px] md:h-[359px]"
+        loading="lazy"
+      />
+
+      <div class="font-jakarta mt-2 flex flex-col gap-2 text-[var(--text-secondary)]">
+        <h2 class="text-2xl font-semibold tracking-tight sm:text-[28px] md:text-[32px]">{title}</h2>
+        <p class="mb-2 w-[541.7px] text-start text-sm font-normal tracking-normal opacity-85 sm:text-base">{desc}</p>
+
+        {category.length > 0 && (
+          <div class="flex gap-2">
+            {category.map((cat: string) => (
+              <div class="w-fit rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium tracking-tight text-white sm:text-base">
+                <span>{cat}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

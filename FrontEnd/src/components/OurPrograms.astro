@@ -1,0 +1,42 @@
+---
+import Button from "./ui/Button.astro";
+import Card from "./ui/Card.astro";
+---
+
+<div class="max-w-7xl w-full h-full mx-auto mt-10 sm:p-4 p-0 sticky">
+    <div class="w-full">
+        <h1 class="font-semibold text-5xl font-jakarta">Our Programs</h1>
+    </div>
+    <div class="flex flex-row justify-between mt-4 mb-3">
+        <p class="text-[var(--text-secondary)] font-normal text-lg font-jakarta">
+            A list of planned activities that will be implemented to <br /> achieve organizational goals in a structured and <br /> sustainable manner.
+        </p>
+        <div>
+            <Button variant="primary" size="icon"><img src="/assets/icons/arrowleft.svg" alt="arrow left" width="26" height="26" /> </Button>
+            <Button variant="primary" size="icon"><img src="/assets/icons/arrowright.svg" alt="arrow right" width="26" height="26" /></Button>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card
+            image="/assets/image/realeaseParty.jpg"
+            title="Release Party"
+            desc="Release Party adalah momen istimewa di mana Doscom secara resmi meluncurkan TeaLinuxOS, sebuah distro Linux berbasis open source yang dikembangkan secara mandiri oleh Doscom (Dinus Open Source Community)"
+            titleButton="Look Now"
+            variant="programs"
+        />
+        <Card
+            image="/assets/image/oots.jpg"
+            title="Open Source On The School"
+            desc="Open Source on The School adalah program berbagi ilmu dan inspirasi untuk siswa tingkat sekolah. Di sini, peserta diperkenalkan pada dunia open source, pemrograman dasar, dan pentingnya kolaborasi dalam teknologi."
+            titleButton="Look Now"
+            variant="programs"
+        />
+        <Card
+            image="/assets/image/du.jpg"
+            title="Doscom University"
+            desc="Doscom University adalah sebuah program pelatihan atau event yang diselenggarakan oleh Doscom (Dinus Open Source Community), sebuah komunitas open source di bawah naungan Univeristas Dian Nuswantoro. "
+            titleButton="Look Now"
+            variant="programs"
+        />
+    </div>
+</div>

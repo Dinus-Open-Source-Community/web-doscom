@@ -1,163 +1,24 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro'
 import Button from '../components/ui/Button.astro'
-import ArrowLeft from '../../public/arrowleft.svg'
-import ArrowRight from '../../public/arrowright.svg'
 import Card from '../components/ui/Card.astro'
 import VisiMisi from '../components/VisiMisi.astro'
-import ArrowLeftPrimary from '../../public/arrowLeftPrimary.svg'
-import ArrowRightPrimary from '../../public/arrowRightPrimary.svg'
+import CreateImpact from '../components/CreateImpact.astro'
+import Home from '../components/Home.astro'
+import OurPrograms from '../components/OurPrograms.astro'
+import OurWorks from '../components/OurWorks.astro'
+import OurActivities from '../components/OurActivities.astro'
 ---
 
 <PublicLayout title="Home">
     <section class="w-full">
-        <div class="w-full h-screen">
-            <img src="../../public/home.jpg" alt="Image-Doscom" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-            <div class="absolute inset-0 bg-black/60"></div>
-            <div class="absolute inset-0 flex flex-col justify-between px-6 md:px-12 lg:px-42 py-26">
-                <div class="mt-10 md:mt-24 lg:mt-32">
-                    <h1 class="text-white font-bold font-jakarta tracking-tighter leading-[0.9]
-            text-[48px] sm:text-[64px] md:text-[80px] lg:text-[100px]">
-                        DINUS<br />OPEN<br />SOURCE<br />COMMUNITY
-                    </h1>
-                </div>
-
-                <div class="flex flex-col items-end gap-4 mb-6 md:mb-12 lg:mb-16">
-                    <p class="text-white font-normal font-jakarta leading-tight tracking-tight text-end
-          text-[24px] sm:text-[32px] md:text-[40px] lg:text-[42px]">
-                        Open Your Mind<br />With Open Source
-                    </p>
-
-                    <div class="flex flex-row gap-3">
-                        <Button variant="primary" size="default" class="font-medium text-white text-2xl"> About </Button>
-                        <Button variant="outline" size="large" class="text-white font-medium text-2xl"> Contribute </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="max-w-7xl w-full h-full mx-auto mt-10 sm:p-4 p-0">
-            <div class="w-full">
-                <h1 class="font-semibold text-5xl font-jakarta">Our Programs</h1>
-            </div>
-            <div class="flex flex-row justify-between mt-4 mb-3">
-                <p class="text-[var(--text-secondary)] font-normal text-lg font-jakarta">
-                    A list of planned activities that will be implemented to <br /> achieve organizational goals in a structured and <br /> sustainable manner.
-                </p>
-                <div>
-                    <Button variant="primary" size="icon"><ArrowLeft width={26} height={26} /> </Button>
-                    <Button variant="primary" size="icon"><ArrowRight width={26} height={26} /></Button>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card
-                    image="../../public/realeaseParty.jpg"
-                    title="Release Party"
-                    desc="Release Party adalah momen istimewa di mana Doscom secara resmi meluncurkan TeaLinuxOS, sebuah distro Linux berbasis open source yang dikembangkan secara mandiri oleh Doscom (Dinus Open Source Community)"
-                    titleButton="Look Now"
-                    variant="programs"
-                />
-                <Card
-                    image="../../public/oots.jpg"
-                    title="Open Source On The School"
-                    desc="Open Source on The School adalah program berbagi ilmu dan inspirasi untuk siswa tingkat sekolah. Di sini, peserta diperkenalkan pada dunia open source, pemrograman dasar, dan pentingnya kolaborasi dalam teknologi."
-                    titleButton="Look Now"
-                    variant="programs"
-                />
-                <Card
-                    image="../../public/du.jpg"
-                    title="Doscom University"
-                    desc="Doscom University adalah sebuah program pelatihan atau event yang diselenggarakan oleh Doscom (Dinus Open Source Community), sebuah komunitas open source di bawah naungan Univeristas Dian Nuswantoro. "
-                    titleButton="Look Now"
-                    variant="programs"
-                />
-            </div>
-        </div>
-
+        <Home />
+        <OurPrograms />
         <div class="w-full mt-12 h-full bg-[var(--color-primary)]">
             <VisiMisi />
         </div>
-
-        <div class="w-full">
-            <div class="w-full max-w-7xl h-full mx-auto mt-10 md:px-0 px-4">
-                <div class="w-full">
-                    <h1 class="font-semibold text-5xl font-jakarta">Our Works</h1>
-                </div>
-                <div class="flex flex-row justify-between mt-4 mb-3">
-                    <p class="text-[var(--text-secondary)] font-normal text-lg font-jakarta">
-                        A list of planned activities that will be implemented to <br /> achieve organizational goals in a structured and <br /> sustainable manner.
-                    </p>
-                    <div>
-                        <Button variant="primary" size="icon"><ArrowLeft width={26} height={26} /> </Button>
-                        <Button variant="primary" size="icon"><ArrowRight width={26} height={26} /></Button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar px-10 snap-x no-scrollbar scroll-smooth">
-                <Card
-                    image="../../public/Dform.png"
-                    variant="works"
-                    title="TealinuxOS"
-                    desc="A digital platform for community event attendance and registration"
-                    category="Operation System"
-                />
-                <Card
-                    image="../../public/tealinux.png"
-                    variant="works"
-                    title="TealinuxOS"
-                    desc="A Linux-based operating system with a lightweight and user-friendly interface."
-                    category="Operation System"
-                />
-                <Card
-                    image="../../public/Dform.png"
-                    variant="works"
-                    title="Rice Source"
-                    desc="An open-source repository for community projects and experiments"
-                    category="Open Source"
-                />
-            </div>
-        </div>
-
-        <div class="bg-[var(--color-primary)] w-full h-full">
-            <div class="w-full max-w-7xl h-full mx-auto py-12 flex flex-row">
-                <div class="flex flex-col justify-between space-y-4">
-                    <h1 class="font-jakarta font-semibold text-5xl tracking-tight text-white">Our Recent <br /> Activities</h1>
-                    <ul class="font-jakarta font-normal tracking-tight text-white text-3xl leading-relaxed">
-                        <li>Daily Activity</li>
-                        <li>Works</li>
-                        <li>Events</li>
-                        <li>Sharing</li>
-                    </ul>
-                    <div>
-                        <Button variant="secondary" size="icon"><ArrowLeftPrimary width={26} height={26} /> </Button>
-                        <Button variant="secondary" size="icon"><ArrowRightPrimary width={26} height={26} /></Button>
-                    </div>
-                </div>
-                <div class="flex gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar px-10 snap-x no-scrollbar scroll-smooth">
-                    <Card
-                        image="../../public/Dform.png"
-                        variant="works"
-                        title="TealinuxOS"
-                        desc="A digital platform for community event attendance and registration"
-                        category="Operation System"
-                    />
-                    <Card
-                        image="../../public/tealinux.png"
-                        variant="works"
-                        title="TealinuxOS"
-                        desc="A Linux-based operating system with a lightweight and user-friendly interface."
-                        category="Operation System"
-                    />
-                    <Card
-                        image="../../public/Dform.png"
-                        variant="works"
-                        title="Rice Source"
-                        desc="An open-source repository for community projects and experiments"
-                        category="Open Source"
-                    />
-                </div>
-            </div>
-        </div>
+        <OurWorks />
+        <OurActivities />
+        <CreateImpact />
     </section>
 </PublicLayout>
