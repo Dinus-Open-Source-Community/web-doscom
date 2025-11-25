@@ -10,33 +10,34 @@ const { title } = Astro.props
 ---
 
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="generator" content={Astro.generator} />
-        <title>Doscom | {title}</title>
-    </head>
-    <body class="flex min-h-screen flex-col justify-between">
-        <Navbar />
-        <main>
-            <!-- <Navbar /> -->
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Doscom | {title}</title>
+  </head>
+  <body class="flex min-h-screen flex-col justify-between">
+    <!-- <Navbar /> -->
 
-            <StickyNavbar />
+    <StickyNavbar />
 
-            <header class="relative z-10 flex h-screen items-center justify-center overflow-hidden">
-                <HeroNavbar />
-            </header>
-            <main class="z-10">
-                <slot />
-            </main>
+    <header class="relative z-20 flex h-screen items-center justify-center overflow-hidden">
+      <HeroNavbar />
+    </header>
+    <main class="z-10">
+      <slot />
+    </main>
 
-            <div class="sticky bottom-0 z-0">
-                <Footer />
-            </div>
-        </main>
-    </body>
+    <div class="sticky bottom-0 z-0">
+      <Footer />
+    </div>
+    <!-- <footer class="flex justify-center py-5">
+      <p>ini footer</p>
+    </footer> -->
+  </body>
 </html>

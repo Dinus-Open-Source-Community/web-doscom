@@ -44,11 +44,7 @@ func (m *GalleryService) InsertGallery(gallery *model.Gallery) (*model.Gallery, 
 }
 
 // wrapper for get gallery by type
-<<<<<<< HEAD
 func (m *GalleryService) GetAllGalleryByType(tipe string, page, limit, offset int) ([]*model.GalleryResponse, int64, error) {
-=======
-func (m *GalleryService) GetAllGalleryByType(tipe string, limit, offset, page int) ([]*model.GalleryResponse, int64, error) {
->>>>>>> fd36652 (add some function, fix some function, malaasss)
 
 	var response []*model.GalleryResponse
 	galleries, count, err := m.Model.GetGalleryByType(tipe, page, limit, offset)
@@ -76,7 +72,6 @@ func (m *GalleryService) DeleteGallery(id int) error {
 	return m.Model.DeleteGallery(id)
 }
 
-<<<<<<< HEAD
 // get gallery by id
 func (m *GalleryService) GetGalleryByID(id int) (*model.GalleryResponse, error) {
 	gallery, err := m.Model.GetGalleryByID(id)
@@ -119,8 +114,6 @@ func (m *GalleryService) GetAllGallery(page, limit, offset int) ([]*model.Galler
 	return response, count, nil
 }
 
-=======
->>>>>>> fd36652 (add some function, fix some function, malaasss)
 // check if file is valid or not
 func isValidFile(file multipart.File) (bool, string) {
 	buffer := make([]byte, 512)

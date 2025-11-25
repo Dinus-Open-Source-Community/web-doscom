@@ -131,11 +131,7 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 // @Tags Gallery
 // @Accept json
 // @Produce json
-<<<<<<< HEAD
 // @Param type query string true "Gallery type (fun, proker, achievment, work, activity, blog, pengurus, etc)"
-=======
-// @Param type query string true "Gallery type (misal: event, pengurus, dokumentasi)"
->>>>>>> fd36652 (add some function, fix some function, malaasss)
 // @Param page query int false "Page number"
 // @Param limit query int false "Page limit"
 // @Success 200 {object} map[string]interface{} "Successfully fetch gallery data"

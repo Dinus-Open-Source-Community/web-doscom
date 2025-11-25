@@ -10,21 +10,6 @@ import (
 func GalleryRoute(r *gin.RouterGroup, GalleryHandler *handler.GalleryHandler) {
 	crevmed := r.Group("/gallery")
 	// public api
-<<<<<<< HEAD
-	{
-		crevmed.GET("/", GalleryHandler.GetGalleryByType) // get gallery by id
-	}
-
-	// private api -> need auth
-	crevmedAuth := crevmed.Group("/")
-	crevmedAuth.Use(auth.AuthMiddleware("Kor_Medcrev"))
-	{
-		crevmed.POST("/", GalleryHandler.InsertGallery)      // insert gallery
-		crevmed.GET("/all", GalleryHandler.GetAllGallery)    // get all gallery
-		crevmed.GET("/:id", GalleryHandler.GetGalleryByID)   // get gallery by id
-		crevmed.PUT("/:id", GalleryHandler.UpdateGallery)    // update gallery by id
-		crevmed.DELETE("/:id", GalleryHandler.DeleteGallery) // delete gallery by id
-=======
 	{
 		crevmed.GET("/", GalleryHandler.GetGalleryByType) // get gallery by id
 	}
@@ -37,6 +22,5 @@ func GalleryRoute(r *gin.RouterGroup, GalleryHandler *handler.GalleryHandler) {
 		// get all gallery
 		crevmed.DELETE("/:id", GalleryHandler.DeleteGallery) // update gallery by id
 		// delete gallery by id
->>>>>>> fd36652 (add some function, fix some function, malaasss)
 	}
 }
