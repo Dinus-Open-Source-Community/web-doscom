@@ -162,16 +162,36 @@ const { variant = "programs", image, title, desc, titleButton, category } = Astr
 }
 
 {
-  variant === 'division' && (
-    <div class="relative h-[300px] w-full sm:h-[380px] md:h-[580px]">
-      <img src={image} alt={title} class="h-full w-full object-cover" />
+    variant === 'structure-orga' && (
+        <div
+            class="relative w-[174px]  min-h-[157px]  rounded-lg p-[2px]
+    bg-gradient-to-br from-[var(--color-primary)]/80 to-white shadow-xl"
+        >
+            <div class="rounded-lg py-6 px-3 bg-white w-full h-full">
+                <div class=" flex flex-col h-full">
+                    <div class="rounded-full bg-[var(--color-primary)] p-1.5 w-fit mb-3">
+                        <img src="/assets/icons/horn.svg" alt="" class="w-5 h-5 sm:w-7 sm:h-7" />
+                    </div>
 
-      <div class="absolute inset-0 bg-linear-to-t from-(--color-primary) via-[var(--color-primary)/45] to-transparent" />
+                    <div class="mt-auto">
+                        <h2 class="font-jakarta font-semibold text-[14px] sm:text-[16px] ">{title}</h2>
+                        <p class="font-jakarta font-normal text-[10px] sm:text-[12px] tracking-wide ">{desc}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
 
-      <div class="absolute inset-0 mx-auto flex w-full max-w-[80%] items-end justify-between px-4 pb-6 sm:px-8 sm:pb-8 md:pb-10">
-        <h1 class="font-jakarta block w-[386px] text-xl leading-[1.05] font-bold wrap-break-word text-white uppercase drop-shadow-xl sm:text-3xl md:text-[40px]">
-          {title}
-        </h1>
+{
+    variant === 'division' && (
+        <div class="relative w-full h-[300px] sm:h-[380px] md:h-[580px]">
+            <img src={image} alt={title} class="w-full h-full object-cover " />
+
+            <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-primary)] via-[var(--color-primary)/45] to-transparent" />
+
+            <div class="absolute inset-0 w-full max-w-[80%] mx-auto flex items-end justify-between px-4 sm:px-8  pb-6 sm:pb-8 md:pb-10">
+                <h1 class="font-jakarta font-bold uppercase text-white text-xl sm:text-3xl md:text-[40px] w-[386px] drop-shadow-xl block break-words leading-[1.05]">{title}</h1>
 
                 <Button
                     variant="primary"
