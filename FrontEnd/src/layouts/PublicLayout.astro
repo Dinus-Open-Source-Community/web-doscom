@@ -1,162 +1,42 @@
 ---
-<<<<<<< HEAD
-<<<<<<< HEAD
 import '../styles/global.css'
-import Navbar from '../components/layouts/HeroNavbar.astro'
-import Footer from '../components/layouts/Footer.astro'
-=======
-// import tailwind
-<<<<<<< HEAD
-import "../styles/global.css";
-// import Navbar from "../components/Navbar.astro";
-import HeroNavbar from "../components/layouts/HeroNavbar.astro";
-import StickyNavbar from "../components/layouts/StickyNavbar.astro";
-import Footer from "../components/layouts/Footer.astro";
-<<<<<<< HEAD
->>>>>>> ba4002e (🧩 feat: create navbar and footer layout)
-=======
-=======
-=======
->>>>>>> 9a2f97b (feat: add some page and fix some bug)
-import '../styles/global.css'
-<<<<<<< HEAD
+import Navbar from '../components/layouts/Navbar.astro'
 // import Navbar from "../components/Navbar.astro";
 import HeroNavbar from '../components/layouts/HeroNavbar.astro'
 import StickyNavbar from '../components/layouts/StickyNavbar.astro'
 import Footer from '../components/layouts/Footer.astro'
-<<<<<<< HEAD
->>>>>>> 5acad4f (🧩 feat: create navbar and footer layout)
->>>>>>> 4a38ae7 (🧩 feat: create navbar and footer layout)
-=======
-
-import '../styles/global.css'
-import Navbar from '../components/Navbar.astro'
-<<<<<<< HEAD
->>>>>>> 9a2f97b (feat: add some page and fix some bug)
-=======
-=======
-import Navbar from '../components/layouts/HeroNavbar.astro'
-import Footer from '../components/layouts/Footer.astro'
->>>>>>> 147f6ec (fix: fix conflict files)
->>>>>>> 3f104f0 (fix: fix conflict files)
 
 const { title } = Astro.props
 ---
 
 <html lang="en">
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     <head>
         <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&family=Raleway:wght@100..900&display=swap"
-            rel="stylesheet"
-        />
-        <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="generator" content={Astro.generator} />
-        <title>Doscom | {title}</title>
-    </head>
-    <body class="flex min-h-screen flex-col justify-between">
-        <Navbar />
-        <main>
-            <slot />
-        </main>
-
-        <Footer />
-    </body>
-=======
-=======
->>>>>>> 4a38ae7 (🧩 feat: create navbar and footer layout)
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap"
-      rel="stylesheet"
-    />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Doscom | {title}</title>
-  </head>
-  <body class="flex min-h-screen flex-col justify-between">
-    <!-- <Navbar /> -->
-
-    <StickyNavbar />
-
-    <header class="relative z-10 flex h-screen items-center justify-center overflow-hidden">
-      <HeroNavbar />
-    </header>
-    <main class="z-10">
-      <slot />
-    </main>
-
-    <div class="sticky bottom-0 z-0">
-      <Footer />
-    </div>
-    <!-- <footer class="flex justify-center py-5">
-      <p>ini footer</p>
-    </footer> -->
-  </body>
-<<<<<<< HEAD
->>>>>>> ba4002e (🧩 feat: create navbar and footer layout)
-=======
-=======
-=======
->>>>>>> 9a2f97b (feat: add some page and fix some bug)
-    <head>
         <meta charset="utf-8" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="generator" content={Astro.generator} />
         <title>Doscom | {title}</title>
     </head>
     <body class="flex min-h-screen flex-col justify-between">
-        <!-- <Navbar /> -->
-
-        <StickyNavbar />
-
-        <header class="relative z-10 flex h-screen items-center justify-center overflow-hidden">
-            <HeroNavbar />
-        </header>
-        <main class="z-10">
-            <slot />
-        </main>
-
-        <div class="sticky bottom-0 z-0">
-            <Footer />
-        </div>
-        <!-- <footer class="flex justify-center py-5">
-      <p>ini footer</p>
-    </footer> -->
-    </body>
-<<<<<<< HEAD
->>>>>>> 5acad4f (🧩 feat: create navbar and footer layout)
->>>>>>> 4a38ae7 (🧩 feat: create navbar and footer layout)
-=======
-
-    <head>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@100..900&family=Plus+Jakarta+Sans:wght@200..800&family=Raleway:wght@100..900&display=swap"
-            rel="stylesheet"
-        />
-        <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="generator" content={Astro.generator} />
-        <title>Doscom | {title}</title>
-    </head>
-    <body class="flex min-h-screen flex-col justify-between">
         <Navbar />
         <main>
-            <slot />
-        </main>
+            <!-- <Navbar /> -->
 
-        <Footer />
+            <StickyNavbar />
+
+            <header class="relative z-10 flex h-screen items-center justify-center overflow-hidden">
+                <HeroNavbar />
+            </header>
+            <main class="z-10">
+                <slot />
+            </main>
+
+            <div class="sticky bottom-0 z-0">
+                <Footer />
+            </div>
+        </main>
     </body>
->>>>>>> 9a2f97b (feat: add some page and fix some bug)
 </html>
