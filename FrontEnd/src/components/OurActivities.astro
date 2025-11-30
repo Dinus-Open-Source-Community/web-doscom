@@ -4,24 +4,24 @@ import Card from './ui/Card.astro'
 ---
 
 <div class="bg-[var(--color-primary)] w-full h-full">
-    <div class="w-full h-full py-12 flex pl-60">
-        <div class="flex flex-col w-3xl justify-between space-y-6 py-3">
-            <div class="space-y-6">
-                <h1 class="font-jakarta font-semibold text-5xl tracking-tight text-white">Our Recent <br /> Activities</h1>
-                <ul class="font-jakarta font-normal tracking-tight text-white text-3xl leading-relaxed">
+    <div class="w-full h-full py-8 md:py-12 flex flex-col md:flex-row px-4 md:px-12 lg:pl-20 xl:pl-32 gap-6 md:gap-0">
+        <div class="flex flex-col w-full md:w-auto md:min-w-[320px] lg:min-w-[380px] justify-between space-y-6 py-3">
+            <div class="space-y-4 md:space-y-6">
+                <h1 class="font-jakarta font-semibold text-3xl md:text-4xl tracking-tight text-white">Our Recent <br /> Activities</h1>
+                <ul class="font-jakarta font-normal tracking-tight text-white text-lg md:text-xl leading-relaxed space-y-1">
                     <li>Daily Activity</li>
                     <li>Works</li>
                     <li>Events</li>
                     <li>Sharing</li>
                 </ul>
             </div>
-            <div>
-                <Button variant="primary" size="icon"><img src="/assets/icons/arrowLeftPrimary.svg" alt="arrow left primary" width="26" height="26" /> </Button>
-                <Button variant="primary" size="icon"><img src="/assets/icons/arrowRightPrimary.svg" alt="arrow right primary" width="26" height="26" /></Button>
+            <div class="flex gap-2">
+                <Button variant="primary" size="icon"><img src="/assets/icons/arrowLeftPrimary.svg" alt="arrow left primary" width="24" height="24" /> </Button>
+                <Button variant="primary" size="icon"><img src="/assets/icons/arrowRightPrimary.svg" alt="arrow right primary" width="24" height="24" /></Button>
             </div>
         </div>
 
-        <div class="flex gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar snap-x no-scrollbar scroll-smooth">
+        <div class="flex gap-4 md:gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar snap-x scroll-smooth">
             <Card
                 image="/assets/image/realeaseParty.jpg"
                 variant="activities"
