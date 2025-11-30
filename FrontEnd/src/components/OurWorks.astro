@@ -4,22 +4,22 @@ import Card from "./ui/Card.astro";
 ---
 
 <div class="w-full">
-    <div class="w-full max-w-7xl h-full mx-auto mt-10 md:px-0 px-4">
+    <div class="w-full max-w-7xl h-full mx-auto mt-12 md:mt-16 px-4 md:px-6">
         <div class="w-full">
-            <h1 class="font-semibold text-5xl font-jakarta">Our Works</h1>
+            <h1 class="font-semibold text-3xl md:text-4xl font-jakarta">Our Works</h1>
         </div>
-        <div class="flex flex-row justify-between mt-4 mb-3">
-            <p class="text-[var(--text-secondary)] font-normal text-lg font-jakarta">
-                A list of planned activities that will be implemented to <br /> achieve organizational goals in a structured and <br /> sustainable manner.
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mt-4 mb-6 gap-4">
+            <p class="text-[var(--text-secondary)] font-normal text-base md:text-lg font-jakarta leading-relaxed">
+                A list of planned activities that will be implemented to <br class="hidden md:block" /> achieve organizational goals in a structured and <br class="hidden md:block" /> sustainable manner.
             </p>
-            <div>
-                <Button variant="primary" size="icon"><img src="/assets/icons/arrowleft.svg" alt="arrow left" width="26" height="26" /> </Button>
-                <Button variant="primary" size="icon"><img src="/assets/icons/arrowright.svg" alt="arrow right" width="26" height="26" /></Button>
+            <div class="flex gap-2">
+                <Button variant="primary" size="icon"><img src="/assets/icons/arrowleft.svg" alt="arrow left" width="24" height="24" /> </Button>
+                <Button variant="primary" size="icon"><img src="/assets/icons/arrowright.svg" alt="arrow right" width="24" height="24" /></Button>
             </div>
         </div>
     </div>
 
-    <div class="flex gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar px-10 snap-x no-scrollbar scroll-smooth">
+    <div class="flex gap-4 md:gap-6 overflow-x-auto relative w-full py-4 overflow-visible no-scrollbar px-4 md:px-10 snap-x scroll-smooth">
         <Card
             image="/assets/image/Dform.png"
             variant="works"
