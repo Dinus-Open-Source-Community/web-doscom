@@ -1,5 +1,5 @@
 ---
-import Button from "../ui/Button.astro";
+import Button from '../ui/Button.astro'
 ---
 
 <nav
@@ -11,10 +11,14 @@ import Button from "../ui/Button.astro";
 
     <ul class="flex justify-center gap-6 text-xl font-normal">
       <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Home</li>
-      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">About</li>
+      <li>
+        <a href="/about" class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">About</a>
+      </li>
       <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Divisions</li>
-      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Works</li>
-      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Blog</li>
+      <li>
+        <a href="/works" class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Works</a>
+      </li>
+      <li><a href="/blog" class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Blog</a></li>
       <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Contact</li>
     </ul>
 
@@ -23,22 +27,22 @@ import Button from "../ui/Button.astro";
 </nav>
 
 <script>
-  const nav = document.getElementById("sticky-nav");
+  const nav = document.getElementById('sticky-nav')
 
   function handleScroll() {
-    if (!nav) return;
+    if (!nav) return
 
     // Trik: Gunakan tinggi layar (viewport) sebagai patokan trigger
     // 0.8 berarti navbar muncul setelah scroll melewati 80% tinggi layar
-    const triggerPoint = window.innerHeight * 0.8;
+    const triggerPoint = window.innerHeight * 0.8
 
     if (window.scrollY > triggerPoint) {
-      nav.classList.remove("-translate-y-full");
+      nav.classList.remove('-translate-y-full')
     } else {
-      nav.classList.add("-translate-y-full");
+      nav.classList.add('-translate-y-full')
     }
   }
 
   // Event Listener
-  window.addEventListener("scroll", handleScroll);
+  window.addEventListener('scroll', handleScroll)
 </script>
