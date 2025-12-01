@@ -1,0 +1,26 @@
+---
+const stacks = [
+  { title: "Frontend", items: "React, Next, Astro, Vue" },
+  { title: "CyberSecurity", items: "Wireshark, Metasploit, Burp Suite, Nmap" },
+  { title: "Data Analisis", items: "Excel, Power BI, Tableau, Google Data Studio" },
+  { title: "UI/UX Design", items: "Figma, Adobe XD, Sketch, InVision" },
+  { title: "Backend", items: "Node.js, Express, Django, Flask" },
+  { title: "Networking", items: "Cisco, MikroTik, pfSense, OpenVPN" },
+  { title: "Data Science", items: "Python, Pandas, NumPy, Jupyter, R" },
+  { title: "Video Editor", items: "Adobe Premiere, Final Cut Pro, DaVinci Resolve" },
+  { title: "DevOps", items: "Docker, Kubernetes, Jenkins, AWS" },
+  { title: "Machine Learning", items: "scikit-learn, TensorFlow, PyTorch, Keras" },
+  { title: "Photoshoot", items: "Adobe Photoshop, Lightroom, Capture One" },
+];
+---
+
+<div class="grid grid-cols-4 grid-rows-3 gap-3">
+  {
+    stacks.map((stack) => (
+      <div class={`flex flex-col ${stack.title === "Networking" ? "row-span-2" : ""}`}>
+        <p class="text-2xl font-semibold">{stack.title}</p>
+        <p class="font-extralight">{stack.items}</p>
+      </div>
+    ))
+  }
+</div>
