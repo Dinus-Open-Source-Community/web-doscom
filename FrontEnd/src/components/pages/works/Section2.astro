@@ -1,0 +1,56 @@
+---
+import Chip from '../../ui/Chip.astro'
+import Card from '../../ui/Card.astro'
+import arrowIcon from '../../../assets/icon-arrow.svg?raw'
+
+const labels = ['Semua', 'Event', 'Workshop', 'Seminar', 'Sharing']
+const projects = [
+  { title: 'Web Doscom', category: 'Website' },
+  { title: 'Presensi QR', category: 'Aplikasi' },
+  { title: 'Landing Page', category: 'Website' },
+  { title: 'Sistem Keuangan', category: 'System' },
+  { title: 'Game Engine', category: 'Desktop' },
+  { title: 'IoT Dashboard', category: 'Hardware' },
+]
+
+const events = [
+  // 2 Item pertama ini nanti jadi yang BESAR
+  { title: 'Release Party 2025', tags: ['Event', 'Seminar'] },
+  { title: 'Tech Talk 2025', tags: ['Event', 'Sharing'] },
+
+  // Item selanjutnya jadi yang KECIL (Grid 3)
+  { title: 'Workshop React', tags: ['Workshop'] },
+  { title: 'Design System', tags: ['UI/UX'] },
+  { title: 'Golang Backend', tags: ['Backend'] },
+  { title: 'DevOps 101', tags: ['Infra'] },
+  { title: 'Open Source', tags: ['Community'] },
+  { title: 'Hacktoberfest', tags: ['Event'] },
+]
+---
+
+<section class="relative flex min-h-screen justify-center bg-white">
+  <div class="my-12 flex w-full max-w-[96rem] flex-col gap-5">
+    <div class="flex w-full max-w-[96rem] gap-2 font-semibold">
+      {labels.map((label) => <Chip variant="inactive" label={label} />)}
+    </div>
+    <div class="flex flex-col items-center gap-3">
+      <div class="grid w-full grid-cols-1 gap-6 md:grid-cols-6">
+        {events.map((event, index) => <Card variant="blogs" title={event.title} tags={event.tags} index={index} />)}
+      </div>
+      <div class="flex grid-cols-4 gap-1">
+        <div class="relative h-10 w-10 rounded-full bg-gray-300">
+          <img src="/assets/icons/next.svg" alt="selanjutnya" class="absolute inset-0 m-auto h-5 w-5" />
+        </div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)]">
+          <p class="text-xl font-semibold text-white">1</p>
+        </div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
+          <p class="text-xl font-semibold">2</p>
+        </div>
+        <div class="relative h-10 w-10 rounded-full bg-gray-300">
+          <img src="/assets/icons/next.svg" alt="selanjutnya" class="absolute inset-0 m-auto h-5 w-5 rotate-180" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

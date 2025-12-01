@@ -1,36 +1,12 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro'
+import Section1 from '../components/pages/works/Section1.astro'
+import Section2 from '../components/pages/works/Section2.astro'
+import Section3 from '../components/pages/works/Section3.astro'
 ---
 
 <PublicLayout title="Works">
-  <section class="relative flex min-h-screen items-center justify-center bg-white pb-10">
-    <div class="z-10 flex max-w-7xl items-center justify-center gap-40">
-      <div class="relative -mt-8 h-fit w-full">
-        <img src="/assets/photos/about-back-1.webp" alt="foto belakang" />
-        <img
-          src="/assets/photos/about-front-1.webp"
-          alt="foto depan"
-          class="absolute -right-1/2 -bottom-1/3 -translate-x-1/4 -translate-y-1/6"
-        />
-      </div>
-      <div class="flex flex-col gap-10">
-        <p class="text-5xl font-bold">Komunitas Open Source untuk Belajar, Berbagi, dan Berkarya.</p>
-        <div class="flex flex-col gap-5 text-xl font-medium text-[#000000]">
-          <p>
-            DOSCOM adalah komunitas open source di Universitas Dian Nuswantoro yang berfokus pada pengembangan, edukasi,
-            dan kolaborasi dalam dunia teknologi terbuka.
-          </p>
-          <p>
-            Kami percaya bahwa semangat open source bukan hanya tentang kode, tetapi juga tentang berbagi pengetahuan,
-            membangun bersama, dan tumbuh sebagai satu komunitas.
-          </p>
-          <p>
-            Melalui berbagai kegiatan seperti workshop, seminar, dan project kolaboratif, DOSCOM menjadi tempat bagi
-            mahasiswa untuk meningkatkan kemampuan, berkontribusi, dan menciptakan dampak nyata di dunia teknologi.
-          </p>
-        </div>
-      </div>
-    </div>
-    <img src="assets/vectors/about-1.svg" alt="about vector" class="absolute bottom-0 w-full" />
-  </section>
+  <Section1 />
+  <Section2 />
+  <Section3 />
 </PublicLayout>

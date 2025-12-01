@@ -1,0 +1,23 @@
+---
+interface Chips {
+  variant: 'active' | 'inactive'
+}
+
+const { variant = 'active', label } = Astro.props
+---
+
+{
+  variant === 'active' && (
+    <div class="h-fit cursor-pointer rounded-2xl border-2 border-[var(--color-primary)] bg-[var(--color-primary)] px-5 py-0.5 text-center text-white transition-all duration-200 hover:bg-[var(--color-primary)]/80">
+      <p class="text-lg">{label}</p>
+    </div>
+  )
+}
+
+{
+  variant === 'inactive' && (
+    <div class="h-fit cursor-pointer rounded-2xl border-2 border-[var(--color-primary)] px-5 py-0.5 text-center text-[var(--color-primary)] transition-all duration-200 hover:bg-[var(--color-primary)] hover:text-white">
+      <p class="text-lg">{label}</p>
+    </div>
+  )
+}
