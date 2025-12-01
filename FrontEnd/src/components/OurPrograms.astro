@@ -3,20 +3,20 @@ import Button from "./ui/Button.astro";
 import Card from "./ui/Card.astro";
 ---
 
-<div class="max-w-7xl w-full h-full mx-auto mt-10 sm:p-4 p-0 sticky">
+<div class="max-w-7xl w-full h-full mx-auto mt-12 md:mt-16 px-4 md:px-6">
     <div class="w-full">
-        <h1 class="font-semibold text-5xl font-jakarta">Our Programs</h1>
+        <h1 class="font-semibold text-3xl md:text-4xl font-jakarta">Our Programs</h1>
     </div>
-    <div class="flex flex-row justify-between mt-4 mb-3">
-        <p class="text-[var(--text-secondary)] font-normal text-lg font-jakarta">
-            A list of planned activities that will be implemented to <br /> achieve organizational goals in a structured and <br /> sustainable manner.
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mt-4 mb-6 gap-4">
+        <p class="text-[var(--text-secondary)] font-normal text-base md:text-lg font-jakarta leading-relaxed">
+            A list of planned activities that will be implemented to <br class="hidden md:block" /> achieve organizational goals in a structured and <br class="hidden md:block" /> sustainable manner.
         </p>
-        <div>
-            <Button variant="primary" size="icon"><img src="/assets/icons/arrowleft.svg" alt="arrow left" width="26" height="26" /> </Button>
-            <Button variant="primary" size="icon"><img src="/assets/icons/arrowright.svg" alt="arrow right" width="26" height="26" /></Button>
+        <div class="flex gap-2">
+            <Button variant="primary" size="icon"><img src="/assets/icons/arrowleft.svg" alt="arrow left" width="24" height="24" /> </Button>
+            <Button variant="primary" size="icon"><img src="/assets/icons/arrowright.svg" alt="arrow right" width="24" height="24" /></Button>
         </div>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <Card
             image="/assets/image/realeaseParty.jpg"
             title="Release Party"
