@@ -7,6 +7,7 @@
     --text-secondary: #222222;
     --font-poppins: 'Poppins', sans-serif;
     --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+    --font-raleway: 'Raleway', sans-serif;
 }
 
 .font-jakarta {
@@ -15,6 +16,10 @@
 
 .font-poppins {
     font-family: var(--font-poppins);
+}
+
+.font-raleway {
+    font-family: var(--font-raleway);
 }
 
 .no-scrollbar::-webkit-scrollbar {
