@@ -1,10 +1,10 @@
 ---
 import Chip from '../../ui/Chip.astro'
 import Card from '../../ui/Card.astro'
-import Pagination from '../../ui/Pagination.astro'
 import arrowIcon from '../../../assets/icon-arrow.svg?raw'
+import Pagination from '../../ui/Pagination.astro'
 
-const labels = ['Semua', 'Website', 'Aplikasi', 'Jaringan', 'Data', 'AI', 'Design', 'UI/UX Design']
+const labels = ['Semua', 'Event', 'Workshop', 'Seminar', 'Sharing']
 const projects = [
   { title: 'Web Doscom', category: 'Website' },
   { title: 'Presensi QR', category: 'Aplikasi' },
@@ -35,17 +35,8 @@ const events = [
       {labels.map((label) => <Chip variant="inactive" label={label} />)}
     </div>
     <div class="flex flex-col items-center gap-3">
-      <div class="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {
-          projects.map((project) => (
-            <Card
-              variant="projects"
-              title={project.title}
-              category={project.category}
-              image="/assets/photos/works-5.png"
-            />
-          ))
-        }
+      <div class="grid w-full grid-cols-1 gap-6 md:grid-cols-6">
+        {events.map((event, index) => <Card variant="blogs" title={event.title} tags={event.tags} index={index} />)}
       </div>
       <Pagination />
     </div>
