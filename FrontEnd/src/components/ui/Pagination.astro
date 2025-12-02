@@ -1,0 +1,21 @@
+---
+import nextIcon from '../../assets/icon-next.svg?raw'
+---
+
+<div class="flex grid-cols-4 gap-1">
+  <div class="relative h-10 w-10 rounded-full bg-[var(--color-primary)]">
+    <span class="absolute inset-0 m-auto h-5 w-5 text-white [&>svg]:h-full [&>svg]:w-full" set:html={nextIcon} />
+  </div>
+  <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)]">
+    <p class="text-xl font-semibold text-white">1</p>
+  </div>
+  <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
+    <p class="text-xl font-semibold">2</p>
+  </div>
+  <div class="relative h-10 w-10 rounded-full bg-[var(--color-primary)]">
+    <span
+      class="absolute inset-0 m-auto h-5 w-5 rotate-180 text-white [&>svg]:h-full [&>svg]:w-full"
+      set:html={nextIcon}
+    />
+  </div>
+</div>
