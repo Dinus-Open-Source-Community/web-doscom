@@ -1,26 +1,52 @@
 ---
-import Button from './Button.astro'
-import arrowIcon from '../../assets/icon-arrow.svg?raw'
+import Button from "./Button.astro";
+import arrowIcon from "../../assets/icon-arrow.svg?raw";
 
 interface Card {
-  variant: 'programs' | 'core-team' | 'works' | 'activities' | 'structure-orga' | 'projects' | 'blogs'
-  category: string[] | string
-  tags?: string[]
+  variant:
+    | "programs"
+    | "core-team"
+    | "works"
+    | "activities"
+    | "structure-orga"
+    | "projects"
+    | "blogs"
+    | "division";
+  category: string[] | string;
+  tags?: string[];
 }
 
-const { variant = 'programs', image, title, desc, titleButton, category, tags = [], index = 0 } = Astro.props
+const {
+  variant = "programs",
+  image,
+  title,
+  desc,
+  titleButton,
+  category,
+  tags = [],
+  index = 0,
+} = Astro.props;
 ---
 
 {
-  variant === 'programs' && (
-    <div class="relative h-[380px] w-full shrink-0 overflow-hidden rounded-2xl shadow-[6px_10px_20px_rgba(0,0,0,0.40)] transition sm:h-[420px] md:h-[460px]">
-      <img src={image} alt={title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+  variant === "programs" && (
+    <div class="relative h-[380px] w-full shrink-0 font-jakarta overflow-hidden rounded-2xl shadow-[6px_10px_20px_rgba(0,0,0,0.40)] transition sm:h-[420px] md:h-[460px]">
+      <img
+        src={image}
+        alt={title}
+        class="absolute inset-0 h-full w-full object-cover"
+        loading="lazy"
+      />
 
       <div class="absolute inset-0 bg-linear-to-t from-black via-black/55 to-transparent" />
 
       <div class="absolute bottom-0 p-4 text-white sm:p-5">
-        <h2 class="font-poppins text-lg font-semibold sm:text-xl md:text-2xl">{title}</h2>
-        <p class="font-poppins text-xs font-normal tracking-tight opacity-90 sm:text-sm">{desc}</p>
+        <h2 class="font-poppins text-lg font-semibold sm:text-xl md:text-2xl">
+          {title}
+        </h2>
+        <p class="font-poppins text-xs font-normal tracking-tight opacity-90 sm:text-sm">
+          {desc}
+        </p>
 
         <Button
           variant="primary"
@@ -35,7 +61,7 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
 }
 
 {
-  variant === 'core-team' && (
+  variant === "core-team" && (
     <div class="flex h-full w-full flex-col gap-3 rounded-xl bg-[#0a84dc] px-4 pt-4 pb-7">
       <img src={image} alt={title} class="rounded-lg" />
       <div class="flex flex-col gap-1 text-white">
@@ -47,9 +73,14 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
 }
 
 {
-  variant === 'works' && (
+  variant === "works" && (
     <div class="relative h-[420px] w-[340px] shrink-0 overflow-hidden rounded-2xl bg-black shadow-[4px_6px_14px_rgba(0,0,0,0.25)] transition sm:h-[500px] sm:w-[420px] md:h-[560px] md:w-[580px]">
-      <img src={image} alt={title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      <img
+        src={image}
+        alt={title}
+        class="absolute inset-0 h-full w-full object-cover"
+        loading="lazy"
+      />
 
       <div class="absolute inset-0 bg-black/55" />
 
@@ -58,7 +89,9 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
           <span>{category}</span>
         </div>
 
-        <h2 class="text-2xl leading-tight font-semibold tracking-tight sm:text-[28px] md:text-[32px]">{title}</h2>
+        <h2 class="text-2xl leading-tight font-semibold tracking-tight sm:text-[28px] md:text-[32px]">
+          {title}
+        </h2>
         <p class="text-sm font-normal opacity-85 sm:text-base">{desc}</p>
       </div>
     </div>
@@ -66,7 +99,7 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
 }
 
 {
-  variant === 'activities' && (
+  variant === "activities" && (
     <div class="relative flex h-[500px] w-[360px] shrink-0 flex-col justify-between overflow-hidden rounded-3xl bg-white p-3.5 transition sm:h-[540px] sm:w-[520px] md:h-[575px] md:w-[656px]">
       <img
         src={image}
@@ -76,8 +109,12 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
       />
 
       <div class="font-jakarta mt-2 flex flex-col gap-2 text-(--text-secondary)">
-        <h2 class="text-2xl font-semibold tracking-tight sm:text-[28px] md:text-[32px]">{title}</h2>
-        <p class="mb-2 w-[541.7px] text-start text-sm font-normal tracking-normal opacity-85 sm:text-base">{desc}</p>
+        <h2 class="text-2xl font-semibold tracking-tight sm:text-[28px] md:text-[32px]">
+          {title}
+        </h2>
+        <p class="mb-2 w-[541.7px] text-start text-sm font-normal tracking-normal opacity-85 sm:text-base">
+          {desc}
+        </p>
 
         {category.length > 0 && (
           <div class="flex gap-2">
@@ -94,17 +131,25 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
 }
 
 {
-  variant === 'structure-orga' && (
-    <div class="relative min-h-[157px] w-[174px] rounded-lg bg-linear-to-br from-(--color-primary)/80 to-white p-0.5 shadow-xl">
+  variant === "structure-orga" && (
+    <div class="relative min-h-[157px] w-[200px] rounded-lg bg-linear-to-br from-(--color-primary)/80 to-white p-0.5 shadow-xl">
       <div class="h-full w-full rounded-lg bg-white px-3 py-6">
         <div class="flex h-full flex-col">
           <div class="mb-3 w-fit rounded-full bg-(--color-primary) p-1.5">
-            <img src="/assets/icons/horn.svg" alt="" class="h-5 w-5 sm:h-7 sm:w-7" />
+            <img
+              src="/assets/icons/horn.svg"
+              alt=""
+              class="h-5 w-5 sm:h-7 sm:w-7"
+            />
           </div>
 
           <div class="mt-auto">
-            <h2 class="font-jakarta text-[14px] font-semibold sm:text-[16px]">{title}</h2>
-            <p class="font-jakarta text-[10px] font-normal tracking-wide sm:text-[12px]">{desc}</p>
+            <h2 class="font-jakarta text-[14px] font-semibold sm:text-[16px]">
+              {title}
+            </h2>
+            <p class="font-jakarta text-[10px] font-normal tracking-wide sm:text-[12px]">
+              {desc}
+            </p>
           </div>
         </div>
       </div>
@@ -113,11 +158,11 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
 }
 
 {
-  variant === 'division' && (
-    <div class="relative h-[300px] w-full sm:h-[380px] md:h-[580px]">
+  variant === "division" && (
+    <div class="relative h-[880px] w-full ">
       <img src={image} alt={title} class="h-full w-full object-cover" />
 
-      <div class="absolute inset-0 bg-linear-to-t from-(--color-primary) via-[var(--color-primary)/45] to-transparent" />
+      <div class="absolute inset-0 bg-linear-to-t from-(--color-primary) via-(--color-primary)/40  to-(--color-primary)/0" />
 
       <div class="absolute inset-0 mx-auto flex w-full max-w-[80%] items-end justify-between px-4 pb-6 sm:px-8 sm:pb-8 md:pb-10">
         <h1 class="font-jakarta block w-[386px] text-xl leading-[1.05] font-bold wrap-break-word text-white uppercase drop-shadow-xl sm:text-3xl md:text-[40px]">
@@ -137,15 +182,22 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
 }
 
 {
-  variant === 'projects' && (
+  variant === "projects" && (
     <div class="group relative block aspect-square w-full overflow-hidden rounded-xl bg-gray-200 transition-all hover:shadow-lg">
       <div class="h-full w-full bg-gray-200 transition-transform duration-500 group-hover:scale-105">
-        <img src={image} alt={title} class="h-full w-full object-cover" loading="lazy" />
+        <img
+          src={image}
+          alt={title}
+          class="h-full w-full object-cover"
+          loading="lazy"
+        />
       </div>
       <div class="absolute inset-0 min-h-screen bg-[#0E0E0E]/60" />
 
       <div class="absolute bottom-0 left-0 w-full p-6">
-        <h3 class="text-xl font-bold text-white transition-colors group-hover:text-[var(--color-primary)]">{title}</h3>
+        <h3 class="text-xl font-bold text-white transition-colors group-hover:text-[var(--color-primary)]">
+          {title}
+        </h3>
         <p class="text-sm font-medium text-gray-300">{category}</p>
       </div>
     </div>
@@ -153,11 +205,11 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
 }
 
 {
-  variant === 'blogs' && (
+  variant === "blogs" && (
     <div
       class:list={[
-        'group relative flex aspect-video w-full flex-col justify-end overflow-hidden rounded-xl bg-gray-200 p-6 transition-all hover:shadow-lg',
-        index < 2 ? 'h-80 md:col-span-3' : 'h-64 md:col-span-2',
+        "group relative flex aspect-video w-full flex-col justify-end overflow-hidden rounded-xl bg-gray-200 p-6 transition-all hover:shadow-lg",
+        index < 2 ? "h-80 md:col-span-3" : "h-64 md:col-span-2",
       ]}
     >
       {/* Background Placeholder */}
@@ -167,7 +219,14 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
       <div class="relative z-10 flex items-end justify-between">
         <div>
           {/* Logic Font Size: Item besar font-nya lebih besar */}
-          <h3 class:list={['mb-2 font-bold text-gray-900', index < 2 ? 'text-3xl' : 'text-xl']}>{title}</h3>
+          <h3
+            class:list={[
+              "mb-2 font-bold text-gray-900",
+              index < 2 ? "text-3xl" : "text-xl",
+            ]}
+          >
+            {title}
+          </h3>
 
           {/* Tags Loop */}
           <div class="flex gap-2">
@@ -181,7 +240,10 @@ const { variant = 'programs', image, title, desc, titleButton, category, tags = 
 
         {/* Button Arrow */}
         <button class="flex h-10 w-10 items-center justify-center rounded-full bg-black/10 transition-colors hover:bg-black/20">
-          <span class="h-7 w-7 text-gray-800 [&>svg]:h-full [&>svg]:w-full" set:html={arrowIcon} />
+          <span
+            class="h-7 w-7 text-gray-800 [&>svg]:h-full [&>svg]:w-full"
+            set:html={arrowIcon}
+          />
         </button>
       </div>
     </div>
