@@ -1,18 +1,20 @@
 ---
-import PublicLayout from "../layouts/PublicLayout.astro";
-import VisiMisi from "../components/VisiMisi.astro";
-import CreateImpact from "../components/CreateImpact.astro";
-import Home from "../components/Home.astro";
-import OurPrograms from "../components/OurPrograms.astro";
-import OurWorks from "../components/OurWorks.astro";
-import OurActivities from "../components/OurActivities.astro";
+import PublicLayout from '../layouts/PublicLayout.astro'
+import VisiMisi from '../components/VisiMisi.astro'
+import CreateImpact from '../components/CreateImpact.astro'
+import Home from '../components/Home.astro'
+import OurPrograms from '../components/OurPrograms.astro'
+import OurWorks from '../components/OurWorks.astro'
+import OurActivities from '../components/OurActivities.astro'
 ---
 
 <PublicLayout title="Home">
-  <section class="w-full">
+  <section class="w-full bg-white">
     <Home />
     <OurPrograms />
-    <VisiMisi />
+    <div class="mt-12 h-full w-full bg-(--color-primary)">
+      <VisiMisi />
+    </div>
     <OurWorks />
     <OurActivities />
     <CreateImpact />
