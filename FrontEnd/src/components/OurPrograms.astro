@@ -1,68 +1,93 @@
 ---
-import Button from "./ui/Button.astro";
-import Card from "./ui/Card.astro";
+import Button from './ui/Button.astro';
+import Card from './ui/Card.astro';
 ---
 
 <div
-  class="max-w-7xl font-jakarta w-full h-full mx-auto pt-12 md:pt-16 px-4 md:px-6 bg-white"
+	class="md:max-w-7xl max-w-3xl relative font-jakarta w-full h-full md:mx-auto pt-12 md:pt-16 md:px-6 bg-white"
 >
-  <div class="w-full">
-    <h1 class="font-semibold text-3xl md:text-5xl font-jakarta">
-      Our Programs
-    </h1>
-  </div>
-  <div
-    class="flex flex-col md:flex-row justify-between items-start md:items-end mt-4 mb-6 gap-4"
-  >
-    <p
-      class="text-[var(--text-secondary)] font-normal text-base md:text-lg font-jakarta leading-relaxed"
-    >
-      A list of planned activities that will be implemented to <br
-        class="hidden md:block"
-      /> achieve organizational goals in a structured and <br
-        class="hidden md:block"
-      /> sustainable manner.
-    </p>
-    <div class="flex gap-2">
-      <Button variant="primary" size="icon"
-        ><img
-          src="/assets/icons/arrowleft.svg"
-          alt="arrow left"
-          width="24"
-          height="24"
-        />
-      </Button>
-      <Button variant="primary" size="icon"
-        ><img
-          src="/assets/icons/arrowright.svg"
-          alt="arrow right"
-          width="24"
-          height="24"
-        /></Button
-      >
-    </div>
-  </div>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-    <Card
-      image="/assets/image/realeaseParty.jpg"
-      title="Release Party"
-      desc="Release Party adalah momen istimewa di mana Doscom secara resmi meluncurkan TeaLinuxOS, sebuah distro Linux berbasis open source yang dikembangkan secara mandiri oleh Doscom (Dinus Open Source Community)"
-      titleButton="Look Now"
-      variant="programs"
-    />
-    <Card
-      image="/assets/image/oots.jpg"
-      title="Open Source On The School"
-      desc="Open Source on The School adalah program berbagi ilmu dan inspirasi untuk siswa tingkat sekolah. Di sini, peserta diperkenalkan pada dunia open source, pemrograman dasar, dan pentingnya kolaborasi dalam teknologi."
-      titleButton="Look Now"
-      variant="programs"
-    />
-    <Card
-      image="/assets/image/du.jpg"
-      title="Doscom University"
-      desc="Doscom University adalah sebuah program pelatihan atau event yang diselenggarakan oleh Doscom (Dinus Open Source Community), sebuah komunitas open source di bawah naungan Univeristas Dian Nuswantoro. "
-      titleButton="Look Now"
-      variant="programs"
-    />
-  </div>
+	<div class="w-full px-2">
+		<h1 class="font-semibold text-3xl md:text-5xl font-jakarta">
+			Our Programs
+		</h1>
+	</div>
+	<div
+		class="flex flex-col md:flex-row justify-between items-start md:items-end mt-2 mb-8 gap-4 px-2"
+	>
+		<p
+			class="text-[var(--text-secondary)] font-normal text-base md:text-lg font-jakarta leading-relaxed"
+		>
+			A list of planned activities that will be implemented to <br
+				class="hidden md:block"
+			/> achieve organizational goals in a structured and <br
+				class="hidden md:block"
+			/> sustainable manner.
+		</p>
+
+		<div class="hidden md:flex gap-2 md:sticky top-0 right-4">
+			<Button variant="primary" size="icon">
+				<img
+					src="/assets/icons/arrowleft.svg"
+					alt="arrow left"
+					width="24"
+					height="24"
+				/>
+			</Button>
+			<Button variant="primary" size="icon">
+				<img
+					src="/assets/icons/arrowright.svg"
+					alt="arrow right"
+					width="24"
+					height="24"
+				/>
+			</Button>
+		</div>
+	</div>
+
+	<div
+		class="relative flex flex-row overflow-x-auto pt-2 no-scrollbar gap-4 md:gap-6"
+	>
+		<Card
+			image="/assets/image/realeaseParty.jpg"
+			title="Release Party"
+			desc="Release Party adalah momen istimewa di mana Doscom secara resmi meluncurkan TeaLinuxOS, sebuah distro Linux berbasis open source yang dikembangkan secara mandiri oleh Doscom (Dinus Open Source Community)"
+			titleButton="Look Now"
+			variant="programs"
+		/>
+		<Card
+			image="/assets/image/oots.jpg"
+			title="Open Source On The School"
+			desc="Open Source on The School adalah program berbagi ilmu dan inspirasi untuk siswa tingkat sekolah. Di sini, peserta diperkenalkan pada dunia open source, pemrograman dasar, dan pentingnya kolaborasi dalam teknologi."
+			titleButton="Look Now"
+			variant="programs"
+		/>
+		<Card
+			image="/assets/image/du.jpg"
+			title="Doscom University"
+			desc="Doscom University adalah sebuah program pelatihan atau event yang diselenggarakan oleh Doscom (Dinus Open Source Community), sebuah komunitas open source di bawah naungan Univeristas Dian Nuswantoro. "
+			titleButton="Look Now"
+			variant="programs"
+		/>
+		<Card
+			image="/assets/image/realeaseParty.jpg"
+			title="Release Party"
+			desc="Release Party adalah momen istimewa di mana Doscom secara resmi meluncurkan TeaLinuxOS, sebuah distro Linux berbasis open source yang dikembangkan secara mandiri oleh Doscom (Dinus Open Source Community)"
+			titleButton="Look Now"
+			variant="programs"
+		/>
+		<Card
+			image="/assets/image/oots.jpg"
+			title="Open Source On The School"
+			desc="Open Source on The School adalah program berbagi ilmu dan inspirasi untuk siswa tingkat sekolah. Di sini, peserta diperkenalkan pada dunia open source, pemrograman dasar, dan pentingnya kolaborasi dalam teknologi."
+			titleButton="Look Now"
+			variant="programs"
+		/>
+		<Card
+			image="/assets/image/du.jpg"
+			title="Doscom University"
+			desc="Doscom University adalah sebuah program pelatihan atau event yang diselenggarakan oleh Doscom (Dinus Open Source Community), sebuah komunitas open source di bawah naungan Univeristas Dian Nuswantoro. "
+			titleButton="Look Now"
+			variant="programs"
+		/>
+	</div>
 </div>
