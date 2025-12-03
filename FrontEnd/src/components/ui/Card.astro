@@ -159,20 +159,20 @@ const {
 
 {
 	variant === 'division' && (
-		<div class="relative h-[880px] w-full ">
+		<div class="relative md:h-[880px] h-full w-full ">
 			<img src={image} alt={title} class="h-full w-full object-cover" />
 
 			<div class="absolute inset-0 bg-linear-to-t from-(--color-primary) via-(--color-primary)/40  to-(--color-primary)/0" />
 
-			<div class="absolute inset-0 mx-auto flex w-full max-w-[80%] items-end justify-between px-4 pb-6 sm:px-8 sm:pb-8 md:pb-10">
-				<h1 class="font-jakarta block w-[386px] text-xl leading-[1.05] font-bold wrap-break-word text-white uppercase drop-shadow-xl sm:text-3xl md:text-[40px]">
+			<div class="absolute inset-0 mx-auto flex w-full md:max-w-[80%] items-end justify-between px-4 pb-6 sm:px-8 sm:pb-8 md:pb-10">
+				<h1 class="font-jakarta block md:w-[386px] w-[70%] md:text-xl text-base leading-[1.05] font-bold wrap-break-word text-white uppercase drop-shadow-xl sm:text-3xl md:text-[40px]">
 					{title}
 				</h1>
 
 				<Button
 					variant="primary"
 					size="default"
-					class="font-poppins text-sm font-medium text-white shadow-md shadow-white/50 transition hover:shadow-none sm:text-base md:text-lg lg:text-xl"
+					class="font-poppins text-sm font-medium   text-white shadow-md shadow-white/50 transition hover:shadow-none lg:text-xl"
 				>
 					Read More
 				</Button>
