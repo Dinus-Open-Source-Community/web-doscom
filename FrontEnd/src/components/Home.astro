@@ -1,51 +1,61 @@
 ---
-import Button from "./ui/Button.astro";
+import Button from './ui/Button.astro';
 ---
 
-<div class="w-full h-screen relative">
-  <img
-    src="/assets/image/home.jpg"
-    alt="Image-Doscom"
-    class="w-full h-full object-cover"
-    loading="lazy"
-  />
-  <div class="absolute inset-0 bg-black/60"></div>
-  <div
-    class="absolute inset-0 flex flex-col justify-between px-6 md:px-12 lg:px-20 xl:px-63 py-20 md:py-30"
-  >
-    <div class="mt-10 md:mt-16 lg:mt-20">
-      <h1
-        class="text-white font-bold font-jakarta tracking-tighter leading-[1]
-            text-[36px] sm:text-[44px] md:text-[52px] lg:text-[100px]"
-      >
-        DINUS<br />OPEN<br />SOURCE<br />COMMUNITY
-      </h1>
-    </div>
+<div class="relative w-full h-dvh overflow-hidden bg-white">
+	<img
+		src="/assets/image/home.jpg"
+		alt="Image-Doscom"
+		class="absolute inset-0 w-full h-full object-cover z-0"
+		loading="lazy"
+	/>
 
-    <div class="flex flex-col items-end gap-4 md:gap-5 mb-6 md:mb-10 lg:mb-12">
-      <p
-        class="text-white font-normal font-jakarta leading-tight tracking-tight text-end
-          text-[18px] sm:text-[22px] md:text-[26px] lg:text-[42px]"
-      >
-        Open Your Mind<br />With open Source
-      </p>
+	<div class="absolute inset-0 bg-black/60 z-10"></div>
 
-      <div class="flex flex-row gap-3 md:gap-4">
-        <Button
-          variant="primary"
-          size="default"
-          class="font-medium text-white text-sm md:text-xl"
-        >
-          About
-        </Button>
-        <Button
-          variant="outline"
-          size="default"
-          class="text-white font-medium text-sm md:text-xl"
-        >
-          Contribute
-        </Button>
-      </div>
-    </div>
-  </div>
+	<div
+		class="relative inset-0 z-20 flex flex-col justify-between
+           px-6 py-12
+           md:px-20 md:py-20
+           xl:px-32 xl:py-24"
+	>
+		<div class="mt-40 md:mt-25 pl-0 md:pl-16 max-w-4xl">
+			<h1
+				class="text-white font-bold font-jakarta tracking-tighter leading-none
+               md:text-[100px] text-4xl text-center md:text-left"
+			>
+				DINUS <br class="md:block hidden" /> OPEN <br class="md:block hidden" />
+				SOURCE <br />COMMUNITY
+			</h1>
+		</div>
+
+		<div
+			class="flex flex-col items-center md:items-end md:gap-6 gap-4 md:mt-10 mt-3 mb-4 md:mb-10"
+		>
+			<p
+				class="text-white font-normal font-jakarta tracking-tight leading-none text-right
+               md:text-[42px] text-xl"
+			>
+				Open Your Mind<br class="md:block hidden" />With Open Source
+			</p>
+
+			<div
+				class="flex md:flex-row flex-col md:gap-4 gap-2 md:w-full w-3xs md:justify-end"
+			>
+				<Button
+					variant="primary"
+					size="default"
+					class="font-medium text-white text-base md:text-xl md:px-6 md:py-3 px-7 py-1"
+				>
+					About
+				</Button>
+				<Button
+					variant="outline"
+					size="default"
+					class="font-medium text-white text-base md:text-xl md:px-6 md:py-3 px-7 py-1"
+				>
+					Contribute
+				</Button>
+			</div>
+		</div>
+	</div>
 </div>
