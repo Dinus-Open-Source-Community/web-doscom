@@ -13,8 +13,6 @@ import (
 )
 
 type PengurusHandler struct {
-	// Model          *model.PengurusModel
-	// GalleryService *service.GalleryService
 	Service *service.PengurusService
 }
 

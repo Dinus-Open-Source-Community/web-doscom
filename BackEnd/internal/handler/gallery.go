@@ -69,9 +69,10 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 		return
 	}
 
-	// insert to database woooooooooooooooooo
+	// insert to database
 	result := []*model.Gallery{}
 	for _, files := range uploadedFile {
+
 		file_upload := &model.Gallery{
 			GalleryName: files.GalleryName,
 			GalleryType: input.GalleryType,
@@ -84,6 +85,7 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}
+
 		fileUpload, err := m.GalleryService.InsertGallery(file_upload)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -92,6 +94,7 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 			return
 		}
 		result = append(result, fileUpload)
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -21,6 +21,10 @@ type GalleryService struct {
 	Model *model.GalleryModel
 }
 
+func NewGalleryService(m *model.GalleryModel) *GalleryService {
+	return &GalleryService{Model: m}
+}
+
 const (
 	maxUploadSize = 20 << 20 // 20mb
 	maxFileSize   = 5 << 20  // 5mb
@@ -32,10 +36,6 @@ type validateFile struct {
 	Folder     string
 	fileSize   int64
 	kategori   string
-}
-
-func NewGalleryService(m *model.GalleryModel) *GalleryService {
-	return &GalleryService{Model: m}
 }
 
 // wrapper for insert gallery
@@ -145,7 +145,7 @@ func SaveUploadedFile(fileHeader *multipart.FileHeader, savePath string) error {
 	return os.Rename(tempFolder, savePath)
 }
 
-// service for uploading image or video to storage
+// service for uploading image or video to storage and insert to database
 func (m *GalleryService) UploadImage(files []*multipart.FileHeader) ([]*model.GalleryInsert, error) {
 	env.LoadEnv()
 	// get the storage path

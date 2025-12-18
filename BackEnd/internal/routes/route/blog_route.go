@@ -11,7 +11,7 @@ func RegisterBlogRoutes(rg *gin.RouterGroup, blogHandler *handler.BlogHandler) {
 	blogRoutes := rg.Group("/blogs")
 	blogRoutes.Use(auth.AuthMiddleware("Super_Admin", "Kor_Medcrev"))
 	{
-		blogRoutes.POST("", blogHandler.Create)      // create new blog
+		blogRoutes.POST("/", blogHandler.CreateBlog) // create new blog
 		blogRoutes.GET("/:id", blogHandler.Get)      // get blog by id
 		blogRoutes.GET("", blogHandler.List)         // get all blog
 		blogRoutes.PUT("/:id", blogHandler.Update)   // update blog by id
