@@ -224,7 +224,7 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 		respList = append(respList, model.PengurusResponse{
 			ID:       p.ID,
 			URLAsset: p.URLAsset,
-			Email:    "",
+			Email:    p.Email,
 			Divisi:   p.Divisi,
 			Name:     p.Name,
 			Position: p.Position,

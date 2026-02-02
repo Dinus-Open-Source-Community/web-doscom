@@ -73,3 +73,27 @@ func (m *BlogService) CreateBlogImage(blogID int, existingID []int, newImages []
 
 	return result, nil
 }
+
+func (s *BlogService) GetAllBlogs() ([]model.Blog, error) {
+	return s.BlogModel.GetAllBlogs()
+}
+
+func (s *BlogService) GetBlogByID(id int) (*model.Blog, error) {
+	return s.BlogModel.GetBlogById(id)
+}
+
+func (s *BlogService) UpdateBlog(id int, patch model.BlogPatch) (*model.Blog, error) {
+	return s.BlogModel.UpdateBlog(id, patch)
+}
+
+func (s *BlogService) GetBlogsByKategori(kategori string) ([]model.Blog, error) {
+	var blogs []model.Blog
+	if err := s.BlogModel.DB.Where("kategori = ?", kategori).Order("created_at DESC").Find(&blogs).Error; err != nil {
+		return nil, err
+	}
+	return blogs, nil
+}
+
+func (s *BlogService) DeleteBlog(id int) error {
+	return s.BlogModel.DeleteBlog(id)
+}

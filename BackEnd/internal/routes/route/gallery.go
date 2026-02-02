@@ -18,9 +18,10 @@ func GalleryRoute(r *gin.RouterGroup, GalleryHandler *handler.GalleryHandler) {
 	crevmedAuth := crevmed.Group("/")
 	crevmedAuth.Use(auth.AuthMiddleware("Kor_Medcrev"))
 	{
-		crevmed.POST("/", GalleryHandler.InsertGallery) // insert gallery
-		// get all gallery
-		crevmed.DELETE("/:id", GalleryHandler.DeleteGallery) // update gallery by id
-		// delete gallery by id
+		crevmed.POST("/", GalleryHandler.InsertGallery)      // insert gallery
+		crevmed.GET("/all", GalleryHandler.GetAllGallery)    // get all gallery
+		crevmed.GET("/:id", GalleryHandler.GetGalleryByID)   // get gallery by id
+		crevmed.PUT("/:id", GalleryHandler.UpdateGallery)    // update gallery by id
+		crevmed.DELETE("/:id", GalleryHandler.DeleteGallery) // delete gallery by id
 	}
 }

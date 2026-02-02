@@ -72,6 +72,48 @@ func (m *GalleryService) DeleteGallery(id int) error {
 	return m.Model.DeleteGallery(id)
 }
 
+// get gallery by id
+func (m *GalleryService) GetGalleryByID(id int) (*model.GalleryResponse, error) {
+	gallery, err := m.Model.GetGalleryByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.GalleryResponse{
+		ID:          gallery.ID,
+		GalleryName: gallery.GalleryName,
+		GalleryType: gallery.GalleryType,
+		Description: gallery.Description,
+		EventDate:   gallery.EventDate,
+		FileSize:    gallery.FileSize,
+		MimeType:    gallery.MimeType,
+		AssetUrl:    gallery.AssetUrl,
+	}, nil
+}
+
+// get all gallery
+func (m *GalleryService) GetAllGallery(page, limit, offset int) ([]*model.GalleryResponse, int64, error) {
+	var response []*model.GalleryResponse
+	galleries, count, err := m.Model.GetAllGallery(page, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	for _, data := range galleries {
+		response = append(response, &model.GalleryResponse{
+			ID:          data.ID,
+			GalleryName: data.GalleryName,
+			GalleryType: data.GalleryType,
+			Description: data.Description,
+			EventDate:   data.EventDate,
+			FileSize:    data.FileSize,
+			MimeType:    data.MimeType,
+			AssetUrl:    data.AssetUrl,
+		})
+	}
+
+	return response, count, nil
+}
+
 // check if file is valid or not
 func isValidFile(file multipart.File) (bool, string) {
 	buffer := make([]byte, 512)
@@ -366,5 +408,23 @@ func (m *GalleryService) UploadInsertSingleImage(files *multipart.FileHeader) (*
 		FileSize:    upload.FileSize,
 		MimeType:    upload.MimeType,
 		AssetUrl:    upload.AssetUrl,
+	}, nil
+}
+
+func (m *GalleryService) UpdateGallery(id int, updateData *model.GalleryUpdate) (*model.GalleryResponse, error) {
+	updatedGallery, err := m.Model.UpdateGallery(id, *updateData)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to update gallery")
+	}
+
+	return &model.GalleryResponse{
+		ID:          updatedGallery.ID,
+		GalleryName: updatedGallery.GalleryName,
+		GalleryType: updatedGallery.GalleryType,
+		Description: updatedGallery.Description,
+		EventDate:   updatedGallery.EventDate,
+		FileSize:    updatedGallery.FileSize,
+		MimeType:    updatedGallery.MimeType,
+		AssetUrl:    updatedGallery.AssetUrl,
 	}, nil
 }

@@ -25,7 +25,7 @@ func UserControllerRoute(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 // route for koor only
 func UserControllerKoor(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 	koor := r.Group("/koor")
-	koor.Use(auth.AuthMiddleware("KOOR", "BPH"))
+	koor.Use(auth.AuthMiddleware("KOOR", "BPH", "ADMIN")) // protected using middleware only koor can access
 	{
 		// all the routes here
 		koor.POST("/", UserHandler.KoorCreateUser)      // create route

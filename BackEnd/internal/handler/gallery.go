@@ -37,13 +37,30 @@ func NewUploadHandler(m *service.GalleryService) *GalleryHandler {
 // @Router /api/v1/gallery/ [post]
 func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 
-	var input model.CreateGallery
-	if c.ShouldBind(&input) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Missing required fieldss: ",
-		})
-		return
+	// Ambil form value satu per satu
+	galleryName := c.PostForm("gallery_name")
+	galleryType := c.PostForm("gallery_type")
+	description := c.PostForm("description")
+	eventDate := c.PostForm("event_date")
+	kategori := c.PostForm("kategori")
+
+	missingFields := []string{}
+	if galleryName == "" {
+		missingFields = append(missingFields, "gallery_name")
 	}
+	if galleryType == "" {
+		missingFields = append(missingFields, "gallery_type")
+	}
+	if description == "" {
+		missingFields = append(missingFields, "description")
+	}
+	if eventDate == "" {
+		missingFields = append(missingFields, "event_date")
+	}
+	if kategori == "" {
+		missingFields = append(missingFields, "kategori")
+	}
+
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -51,11 +68,15 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 		})
 		return
 	}
-
 	files := form.File["files"]
 	if len(files) == 0 {
+		missingFields = append(missingFields, "files (at least 1 file)")
+	}
+
+	if len(missingFields) > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No files uploaded, ngantuk ta, po piye mas?",
+			"error":   "Missing required fields",
+			"details": missingFields,
 		})
 		return
 	}
@@ -72,12 +93,11 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 	// insert to database
 	result := []*model.Gallery{}
 	for _, files := range uploadedFile {
-
 		file_upload := &model.Gallery{
 			GalleryName: files.GalleryName,
-			GalleryType: input.GalleryType,
-			Description: input.Description,
-			EventDate:   input.EventDate,
+			GalleryType: galleryType,
+			Description: description,
+			EventDate:   eventDate,
 			FileSize:    files.FileSize,
 			MimeType:    files.MimeType,
 			AssetUrl:    files.AssetUrl,
@@ -94,7 +114,6 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 			return
 		}
 		result = append(result, fileUpload)
-
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -239,4 +258,103 @@ func (m *GalleryHandler) InsertProfilePic(c *gin.Context) {
 		"data":    upload,
 	})
 
+}
+
+// get gallery by id
+
+func (m *GalleryHandler) GetGalleryByID(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid gallery ID",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	gallery, err := m.GalleryService.GetGalleryByID(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to fetch gallery data",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully fetch gallery data",
+		"data":    gallery,
+	})
+}
+
+// get all gallery
+
+func (m *GalleryHandler) GetAllGallery(c *gin.Context) {
+
+	// pagination
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset := (page - 1) * limit
+
+	galleryList, count, err := m.GalleryService.GetAllGallery(page, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to fetch gallery data",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	totalPages := 1
+	if limit > 0 {
+		totalPages = int(math.Ceil(float64(count) / float64(limit)))
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully fetch gallery data",
+		"data":    galleryList,
+		"metadata": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total_items": count,
+			"total_pages": totalPages,
+		},
+	})
+}
+
+// update gallery by id
+func (m *GalleryHandler) UpdateGallery(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid gallery ID",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	var input model.GalleryUpdate
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	updateGallery, err := m.GalleryService.UpdateGallery(id, &input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to update gallery data",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully updated gallery data",
+		"data":    updateGallery,
+	})
 }

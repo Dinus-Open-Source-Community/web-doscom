@@ -145,8 +145,8 @@ func (h *BlogHandler) Create(c *gin.Context) {
 
 // List all Blogs
 func (h *BlogHandler) List(c *gin.Context) {
-	var blogs []model.Blog
-	if err := h.Service.Order("created_at DESC").Find(&blogs).Error; err != nil {
+	blogs, err := h.Service.GetAllBlogs()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -160,8 +160,8 @@ func (h *BlogHandler) Get(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	var blog model.Blog
-	if err := h.DB.First(&blog, id).Error; err != nil {
+	blog, err := h.Service.GetBlogByID(id)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "blog not found"})
 		return
 	}
@@ -175,29 +175,17 @@ func (h *BlogHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	var input model.Blog
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var patch model.BlogPatch
+	if err := c.ShouldBindJSON(&patch); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var blog model.Blog
-	if err := h.DB.First(&blog, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "blog not found"})
-		return
-	}
-	blog.Title = input.Title
-	blog.Slug = input.Slug
-	blog.Content = input.Content
-	blog.PublishedAt = input.PublishedAt
-	blog.IsPublished = input.IsPublished
-	blog.Kategori = input.Kategori
-	blog.WorkID = input.WorkID
-	blog.PengurusID = input.PengurusID
-	if err := h.DB.Save(&blog).Error; err != nil {
+	updatedBlog, err := h.Service.UpdateBlog(id, patch)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, blog)
+	c.JSON(http.StatusOK, updatedBlog)
 }
 
 // UpdateKategori updates the kategori of a blog by id
@@ -208,30 +196,26 @@ func (h *BlogHandler) UpdateKategori(c *gin.Context) {
 		return
 	}
 	var req struct {
-		Kategori string `json:"kategori" binding:"required"`
+		Kategori string `json:"kategori" binding:"required,kategori"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var blog model.Blog
-	if err := h.DB.First(&blog, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "blog not found"})
-		return
-	}
-	blog.Kategori = req.Kategori
-	if err := h.DB.Save(&blog).Error; err != nil {
+	patch := model.BlogPatch{Kategori: &req.Kategori}
+	updatedBlog, err := h.Service.UpdateBlog(id, patch)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Kategori updated", "blog": blog})
+	c.JSON(http.StatusOK, gin.H{"message": "Kategori updated", "blog": updatedBlog})
 }
 
 // ListByKategori returns blogs filtered by kategori
 func (h *BlogHandler) ListByKategori(c *gin.Context) {
 	kategori := c.Param("kategori")
-	var blogs []model.Blog
-	if err := h.DB.Where("kategori = ?", kategori).Order("created_at DESC").Find(&blogs).Error; err != nil {
+	blogs, err := h.Service.GetBlogsByKategori(kategori)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -249,7 +233,7 @@ func (h *BlogHandler) Delete(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	if err := h.DB.Delete(&model.Blog{}, id).Error; err != nil {
+	if err := h.Service.DeleteBlog(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
