@@ -1,130 +1,122 @@
+# 🧩 Web Doscom Project - Backend & Frontend
 
+Web Doscom adalah aplikasi web modern untuk **Dinus Open Source Community (Doscom)** yang dibangun dengan arsitektur **Microservices (Dockerized)**. Proyek ini memisahkan Backend (Golang) dan Frontend (Astro) yang saling berkomunikasi via REST API.
 
 ---
 
-# 🧩 Web Doscom Project
+## Teknologi yang Digunakan
 
+| Komponen | Teknologi | Deskripsi |
+| :--- | :--- | :--- |
+| **Backend** | ![Golang](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white) **Golang (Gin)** | RESTful API, Auth (JWT), Services |
+| **Frontend** | ![Astro](https://img.shields.io/badge/Astro-BC52EE?style=flat&logo=astro&logoColor=white) **Astro** | Modern Static & Server Side Rendering |
+| **Database** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white) **PostgreSQL** | Relational Database Management |
+| **Storage** | ![MinIO](https://img.shields.io/badge/MinIO-C72E49?style=flat&logo=minio&logoColor=white) **MinIO** | S3 Compatible Object Storage (File Uploads) |
+| **Container** | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white) **Docker Compose** | Orchestration & Deployment |
 
+---
 
-## 📁 Struktur Proyek
+##  Struktur Direktori
 
-```
+```bash
 web-doscom/
 │
-├── BackEnd/           # Source code backend Go
-│   ├── cmd/           # Entry point aplikasi
-│   ├── internal/      # Package internal backend
-│   ├── migrations/    # File migrasi database
-│   ├── go.mod
-│   └── Dockerfile
+├── BackEnd/               # Source code Backend (Go)
+│   ├── cmd/api/           # Entry point (main.go)
+│   ├── internal/          # Core Logic (Handler, Service, Model)
+│   ├── migrations/        # SQL Migration files
+│   └── Dockerfile         # Config Docker Backend
 │
-├── FrontEnd/          # Source code frontend Astro
-│   ├── public/
-│   ├── src/
-│   ├── package.json
-│   └── Dockerfile
+├── FrontEnd/              # Source code Frontend (Astro)
+│   ├── src/               # Pages, Components, Layouts
+│   └── Dockerfile         # Config Docker Frontend
 │
-└── docker-compose.yml # Konfigurasi multi-container Docker
+├── docker-compose.yml     # Konfigurasi Multi-Container
+└── perbaikan.md           # 📘 Panduan Teknis & Instruksi Tim (WAJIB BACA)
 ```
 
 ---
 
-## 🚀 Menjalankan Proyek
+##  Cara Menjalankan Aplikasi
 
-### 1. Pastikan telah terinstal:
+Pastikan PC Anda sudah terinstal **Docker** dan **Docker Compose**.
 
-* [Docker](https://docs.docker.com/get-docker/)
-* [Docker Compose](https://docs.docker.com/compose/install/)
-
-Cek versi:
-
+### 1. Clone & Masuk Direktori
 ```bash
-docker -v
-docker compose version
-```
-
----
-
-### 2. Clone repository ini
-
-```bash
-git clone https://github.com/<username>/web-doscom.git
+git clone https://github.com/doscom/web-doscom.git
 cd web-doscom
 ```
 
----
-
-### 3. Jalankan seluruh service
-
-Gunakan perintah berikut untuk menjalankan **database**, **backend**, dan **frontend** sekaligus:
+### 2. Jalankan Environment (Sekali Perintah)
+Cukup jalankan satu perintah ini untuk menyalakan Backend, Frontend, Database, dan MinIO sekaligus:
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-🧠 **Penjelasan singkat service:**
+*Tunggu beberapa saat hingga semua container `healthy` dan database selesai inisialisasi.*
 
-* `db` → PostgreSQL (port: 5432)
-* `backend` → Go API Server (port: 8080)
-* `frontend` → Astro Frontend (port: 4321)
-
----
-
-### 4. Akses aplikasi
-
-| Komponen    | URL Akses                                      | Keterangan                                 |
-| ----------- | ---------------------------------------------- | ------------------------------------------ |
-| Frontend    | [http://localhost:4321](http://localhost:4321) | Aplikasi utama                             |
-| Backend API | [http://localhost:8080](http://localhost:8080) | Endpoint API Go                            |
+### 3. Cek Status
+Pastikan semua container berjalan:
+```bash
+docker ps
+```
 
 ---
 
-### 5. Melihat log container
+##  Akses & Kredensial (PENTING)
 
-Untuk melihat log backend:
+Setelah aplikasi berjalan, Anda bisa mengakses layanan berikut:
 
+###  Aplikasi Utama
+| Layanan | URL | Keterangan |
+| :--- | :--- | :--- |
+| **Frontend Website** | [http://localhost:4321](http://localhost:4321) | Halaman utama yang diakses user |
+| **Backend API** | [http://localhost:8080](http://localhost:8080) | Base URL API |
+| **Swagger Docs** | [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html) | **Dokumentasi API Lengkap** |
+| **MinIO Console** | [http://localhost:9001](http://localhost:9001) | Dashboard Cloud Storage |
+| **Adminer** | [http://localhost:8081](http://localhost:8081) | Database GUI (Optional) |
+
+### 👤 Akun Admin Default (Super Admin)
+Gunakan akun ini untuk login pertama kali dan mengelola sistem:
+
+*   **Username**: `admin`
+*   **Password**: `admin123`
+*   **Email**: `admin@doscom.org`
+
+>  **Catatan**: Password ini di-seed otomatis saat pertama kali docker dijalankan. Segera ganti password di production!
+
+---
+
+##  Endpoint API Tersedia
+
+Detail lengkap bisa dilihat di **Swagger UI**, berikut ringkasannya:
+
+*   `POST /api/v1/auth/login` - Login User
+*   `POST /api/v1/gallery` - Upload Galeri (MinIO)
+*   `POST /api/v1/pengurus` - Register Pengurus (MinIO)
+*   `POST /api/v1/blogs` - Create Blog Articles
+*   `GET /api/v1/work` - List Works
+*   ... dan lainnya.
+
+---
+
+##  Troubleshooting
+
+**Backend restart terus?**
+Cek log error-nya:
 ```bash
 docker logs doscom-backend -f
 ```
 
-Untuk melihat log frontend:
+**Database connection refused?**
+Pastikan container `doscom-db` sudah `healthy`. Jika baru pertama kali run, inisialisasi database butuh waktu ~30 detik.
 
-```bash
-docker logs doscom-frontend -f
-```
-
-Untuk melihat log database:
-
-```bash
-docker logs doscom-db -f
-```
-
----
-
-### 6. Menghentikan semua container
-
-```bash
-docker compose down
-```
-
-Jika ingin juga menghapus volume (data database):
-
+**Menghapus semua data (Reset)?**
 ```bash
 docker compose down -v
 ```
 
 ---
 
-
----
-
-  ```
-
----
-
-## 📄 Lisensi
-
-Proyek ini dikembangkan untuk keperluan internal **Doscom (Dinus Open Source Community)**.
-Hak cipta © 2025 Doscom Developers.
-
----
+*Dibuat oleh Tim Doscom Developers - 2025*
