@@ -5,122 +5,169 @@ import (
 	"strconv"
 
 	"web_doscom/internal/database/model"
+	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type BlogHandler struct {
-	DB *gorm.DB
+	Service *service.BlogService
 }
 
-func NewBlogHandler(db *gorm.DB) *BlogHandler {
-	return &BlogHandler{DB: db}
+func NewBlogHandler(service *service.BlogService) *BlogHandler {
+	return &BlogHandler{Service: service}
 }
 
-// Create Blog
-// Create Blog (validation only, no DB insert)
+// Create Blog godoc
+// @Summary Create new blog
+// @Description Create a new blog post
+// @Tags Blog
+// @Accept json
+// @Produce json
+// @Param blog body model.RegisterBlog true "Blog data"
+// @Success 201 {object} model.Blog
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs [post]
 func (h *BlogHandler) Create(c *gin.Context) {
-	var blog model.Blog
-
-	if err := c.ShouldBindJSON(&blog); err != nil {
+	var input model.Blog
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Example: add custom validation if needed
-	if blog.Title == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Title is required"})
+	// Insert using service model
+	if err := h.Service.Model.InsertBlog(&input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create blog: " + err.Error()})
 		return
 	}
 
-	if blog.Content == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Content is required"})
-		return
-	}
-
-	// If all validation passed
-	c.JSON(http.StatusOK, gin.H{"message": "Blog input is valid", "blog": blog})
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Blog created successfully",
+		"blog":    input,
+	})
 }
 
-// List all Blogs
+// List all Blogs godoc
+// @Summary List all blogs
+// @Description Get all blog posts
+// @Tags Blog
+// @Produce json
+// @Success 200 {array} model.Blog
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs [get]
 func (h *BlogHandler) List(c *gin.Context) {
-	var blogs []model.Blog
-	if err := h.DB.Order("created_at DESC").Find(&blogs).Error; err != nil {
+	blogs, err := h.Service.Model.GetAllBlogs()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, blogs)
 }
 
-// Get Blog by ID
+// Get Blog by ID godoc
+// @Summary Get blog by ID
+// @Description Get detailed information of a blog
+// @Tags Blog
+// @Produce json
+// @Param id path int true "Blog ID"
+// @Success 200 {object} model.Blog
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs/{id} [get]
 func (h *BlogHandler) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	var blog model.Blog
-	if err := h.DB.First(&blog, id).Error; err != nil {
+	blog, err := h.Service.Model.GetBlogById(id)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "blog not found"})
 		return
 	}
 	c.JSON(http.StatusOK, blog)
 }
 
-// Update Blog
+// Update Blog godoc
+// @Summary Update blog
+// @Description Update existing blog post
+// @Tags Blog
+// @Accept json
+// @Produce json
+// @Param id path int true "Blog ID"
+// @Param blog body model.BlogPatch true "Update data"
+// @Success 200 {object} model.Blog
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs/{id} [put]
 func (h *BlogHandler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	var input model.Blog
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var patch model.BlogPatch
+	if err := c.ShouldBindJSON(&patch); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var blog model.Blog
-	if err := h.DB.First(&blog, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "blog not found"})
-		return
-	}
-	blog.Title = input.Title
-	blog.Slug = input.Slug
-	blog.Content = input.Content
-	blog.PublishedAt = input.PublishedAt
-	blog.IsPublished = input.IsPublished
-	blog.Kategori = input.Kategori
-	blog.WorkID = input.WorkID
-	blog.PengurusID = input.PengurusID
-	if err := h.DB.Save(&blog).Error; err != nil {
+	
+	blog, err := h.Service.Model.UpdateBlog(id, patch)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, blog)
 }
 
-func (h *BlogHandler) UpdateKategori(c *gin.Context) {
-	// TODO: implement the logic for updating kategori
-	c.JSON(200, gin.H{"message": "UpdateKategori not implemented"})
-}
+// ListByKategori godoc
+// @Summary List blogs by category
+// @Description Get all blogs specific to a category
+// @Tags Blog
+// @Produce json
+// @Param kategori path string true "Category name"
+// @Success 200 {array} model.Blog
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs/kategori/{kategori} [get]
 func (h *BlogHandler) ListByKategori(c *gin.Context) {
 	kategori := c.Param("kategori")
-	// TODO: Implement logic to list blogs by kategori
-	c.JSON(200, gin.H{
+	blogs, err := h.Service.Model.GetBlogsByKategori(kategori)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch blogs: " + err.Error()})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
 		"message":  "List blogs by kategori",
 		"kategori": kategori,
+		"blogs":    blogs,
 	})
 }
 
-// Delete Blog
+// Delete Blog godoc
+// @Summary Delete blog
+// @Description Delete a blog post
+// @Tags Blog
+// @Param id path int true "Blog ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs/{id} [delete]
 func (h *BlogHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	if err := h.DB.Delete(&model.Blog{}, id).Error; err != nil {
+	if err := h.Service.Model.DeleteBlog(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -1,4 +1,95 @@
 definitions:
+  handler.DeleteFileRequest:
+    properties:
+      file_name:
+        type: string
+    required:
+    - file_name
+    type: object
+  handler.DeleteFileResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  handler.ListFilesResponse:
+    properties:
+      count:
+        type: integer
+      files:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  handler.UploadImageResponse:
+    properties:
+      file_name:
+        type: string
+      file_url:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  model.Blog:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      id_activity:
+        type: integer
+      id_asset:
+        type: integer
+      id_pengurus:
+        type: integer
+      id_work:
+        type: integer
+      is_published:
+        default: false
+        type: boolean
+      kategori:
+        type: string
+      published_at:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.BlogPatch:
+    properties:
+      content:
+        type: string
+      id_activity:
+        type: integer
+      id_asset:
+        type: integer
+      id_pengurus:
+        type: integer
+      id_work:
+        type: integer
+      is_published:
+        type: boolean
+      kategori:
+        type: string
+      published_at:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
   model.GalleryResponse:
     properties:
       asset_url:
@@ -66,6 +157,40 @@ definitions:
         type: string
       url_asset:
         type: string
+    type: object
+  model.RegisterBlog:
+    properties:
+      content:
+        type: string
+      id_activity:
+        type: integer
+      id_asset:
+        type: integer
+      id_pengurus:
+        type: integer
+      id_work:
+        type: integer
+      is_published:
+        type: boolean
+      kategori:
+        type: string
+      published_at:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+    required:
+    - content
+    - id_activity
+    - id_asset
+    - id_pengurus
+    - id_work
+    - is_published
+    - kategori
+    - published_at
+    - slug
+    - title
     type: object
   model.RegisterRequest:
     properties:
@@ -287,6 +412,200 @@ paths:
       summary: Create superadmin user
       tags:
       - Super_Admin
+  /api/v1/blogs:
+    get:
+      description: Get all blog posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Blog'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all blogs
+      tags:
+      - Blog
+    post:
+      consumes:
+      - application/json
+      description: Create a new blog post
+      parameters:
+      - description: Blog data
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterBlog'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create new blog
+      tags:
+      - Blog
+  /api/v1/blogs/{id}:
+    delete:
+      description: Delete a blog post
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete blog
+      tags:
+      - Blog
+    get:
+      description: Get detailed information of a blog
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get blog by ID
+      tags:
+      - Blog
+    put:
+      consumes:
+      - application/json
+      description: Update existing blog post
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/model.BlogPatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update blog
+      tags:
+      - Blog
+  /api/v1/blogs/kategori/{kategori}:
+    get:
+      description: Get all blogs specific to a category
+      parameters:
+      - description: Category name
+        in: path
+        name: kategori
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Blog'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List blogs by category
+      tags:
+      - Blog
   /api/v1/gallery/:
     get:
       consumes:
@@ -334,8 +653,8 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Upload multiple images/videos + metadata (gallery_type, description,
-        event_date)
+      description: Upload multiple images or videos to MinIO storage with metadata.
+        All files stored in MinIO bucket 'doscom-uploads/gallery'.
       parameters:
       - description: Type of gallery (fun, proker, achievment, work, activity, blog,
           pengurus, etc)
@@ -354,7 +673,7 @@ paths:
         required: true
         type: string
       - collectionFormat: csv
-        description: Upload multiple files
+        description: Upload multiple image/video files
         in: formData
         items:
           type: file
@@ -365,24 +684,30 @@ paths:
       - application/json
       responses:
         "200":
-          description: Successfully insert data
+          description: Successfully uploaded to MinIO
           schema:
             $ref: '#/definitions/model.GalleryResponse'
         "400":
-          description: Bad request
+          description: Bad request - missing fields or invalid files
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - authentication required
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Server error
+          description: Server error - upload failed
           schema:
             additionalProperties:
               type: string
             type: object
       security:
-      - ApiKeyAuth: []
-      summary: Upload gallery (image only or mixed)
+      - BearerAuth: []
+      summary: Upload gallery images/videos
       tags:
       - Gallery
   /api/v1/gallery/{id}:
@@ -656,41 +981,45 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Create pengurus using multipart/form-data (JSON fields + file upload)
+      description: Create pengurus with profile picture upload to MinIO. All files
+        uploaded to MinIO bucket.
       parameters:
-      - description: Profile Picture
+      - description: Profile Picture (image file)
         in: formData
         name: file
         required: true
         type: file
-      - description: User ID (optional)
+      - description: User ID (optional, auto-filled for non-admin)
         in: formData
         name: id_user
         type: integer
-      - description: Email (optional)
+      - description: Email (optional, auto-filled for non-admin)
         in: formData
         name: email
         type: string
-      - description: Divisi (required)
+      - description: 'Divisi - Valid values: bph, pemro, jaringan, medcrev, data'
         in: formData
         name: divisi
         required: true
         type: string
-      - description: Name (required)
+      - description: Name (2-150 characters)
         in: formData
         name: name
         required: true
         type: string
-      - description: Position (required)
+      - description: 'Position - Valid values: ketum, sdm, pr, pm, pm_ang, sekum,
+          bendum, sek_ang, ben_ang, kor_pemro, kor_jaringan, kor_medcrev, kor_data,
+          anggota, pemro_ang, jaringan_ang, medcrev_ang, data_ang'
         in: formData
         name: position
         required: true
         type: string
-      - description: Sosmed (optional)
+      - description: 'Social Media Platform (optional) - Valid values: instagram,
+          linkedin, github. Leave empty for default ''instagram'''
         in: formData
         name: sosmed
         type: string
-      - description: Period (YYYY-MM-DD)
+      - description: Period (YYYY-MM-DD format)
         in: formData
         name: period
         required: true
@@ -703,19 +1032,19 @@ paths:
           schema:
             $ref: '#/definitions/model.PengurusResponse'
         "400":
-          description: Bad Request
+          description: Validation error - check divisi, position, or sosmed values
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Server error
           schema:
             additionalProperties:
               type: string
             type: object
       security:
-      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Create new pengurus
       tags:
       - Pengurus
@@ -834,6 +1163,177 @@ paths:
       summary: Update Pengurus
       tags:
       - Pengurus
+  /api/v1/upload/file:
+    delete:
+      consumes:
+      - application/json
+      - application/json
+      description: |-
+        Delete a file from MinIO storage
+        Delete an uploaded file from MinIO storage
+      parameters:
+      - description: Delete request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.DeleteFileRequest'
+      - description: File name to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: File deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Delete failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      - BearerAuth: []
+      summary: Delete file from MinIO
+      tags:
+      - upload
+      - Upload
+  /api/v1/upload/files:
+    get:
+      consumes:
+      - application/json
+      - application/json
+      description: |-
+        List all files in a specific category folder
+        List all files in a specific category from MinIO
+      parameters:
+      - description: Category (gallery, blog, work, pengurus)
+        in: query
+        name: category
+        required: true
+        type: string
+      - description: Category to filter (gallery, blog, work, pengurus)
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: Files retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ListFilesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to list files
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      - BearerAuth: []
+      summary: List files from MinIO
+      tags:
+      - upload
+      - Upload
+  /api/v1/upload/image:
+    post:
+      consumes:
+      - multipart/form-data
+      - multipart/form-data
+      description: |-
+        Upload an image file to MinIO storage
+        Upload an image file to MinIO object storage with category
+      parameters:
+      - description: Image file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Category (gallery, blog, work, pengurus)
+        in: formData
+        name: category
+        required: true
+        type: string
+      - description: Image file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Category (gallery, blog, work, pengurus)
+        in: formData
+        name: category
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: File uploaded successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Upload failed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      - BearerAuth: []
+      summary: Upload image to MinIO
+      tags:
+      - upload
+      - Upload
 securityDefinitions:
   ApiKeyAuth:
     in: header
