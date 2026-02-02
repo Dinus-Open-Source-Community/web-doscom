@@ -26,11 +26,20 @@ func Routes(app *config.Application) http.Handler {
 
 		// gallery
 		galleryService := service.NewGalleryService(&app.Model.Gallery)
-		galleryHandler := handler.NewUploadHandler(galleryService)
+		galleryHandler := handler.NewUploadHandler(galleryService, storageService)
 
 		// pengurus
 		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
-		pengurusHandler := handler.NewPengurusHandler(pengurusService)
+		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
+
+		blogService := service.NewBlogService(&app.Model.Blogs)
+		blogHandler := handler.NewBlogHandler(blogService)
+
+		// Register upload routes if MinIO is available
+		if storageService != nil {
+			storageHandler := handler.NewStorageHandler(storageService)
+			routes.RegisterUploadRoutes(v1, storageHandler)
+		}
 
 		// blog
 		blogService := service.NewBlogService(&app.Model.Blogs, &app.Model.BlogGallery, galleryService)

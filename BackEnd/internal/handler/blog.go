@@ -121,29 +121,33 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 
 // Create Blog (validation only, no DB insert)
 func (h *BlogHandler) Create(c *gin.Context) {
-	var blog model.Blog
-
-	if err := c.ShouldBindJSON(&blog); err != nil {
+	var input model.Blog
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Example: add custom validation if needed
-	if blog.Title == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Title is required"})
+	// Insert using service model
+	if err := h.Service.Model.InsertBlog(&input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create blog: " + err.Error()})
 		return
 	}
 
-	if blog.Content == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Content is required"})
-		return
-	}
-
-	// If all validation passed
-	c.JSON(http.StatusOK, gin.H{"message": "Blog input is valid", "blog": blog})
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Blog created successfully",
+		"blog":    input,
+	})
 }
 
-// List all Blogs
+// List all Blogs godoc
+// @Summary List all blogs
+// @Description Get all blog posts
+// @Tags Blog
+// @Produce json
+// @Success 200 {array} model.Blog
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs [get]
 func (h *BlogHandler) List(c *gin.Context) {
 	blogs, err := h.Service.GetAllBlogs()
 	if err != nil {
@@ -153,7 +157,17 @@ func (h *BlogHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, blogs)
 }
 
-// Get Blog by ID
+// Get Blog by ID godoc
+// @Summary Get blog by ID
+// @Description Get detailed information of a blog
+// @Tags Blog
+// @Produce json
+// @Param id path int true "Blog ID"
+// @Success 200 {object} model.Blog
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs/{id} [get]
 func (h *BlogHandler) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -168,7 +182,20 @@ func (h *BlogHandler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, blog)
 }
 
-// Update Blog
+// Update Blog godoc
+// @Summary Update blog
+// @Description Update existing blog post
+// @Tags Blog
+// @Accept json
+// @Produce json
+// @Param id path int true "Blog ID"
+// @Param blog body model.BlogPatch true "Update data"
+// @Success 200 {object} model.Blog
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs/{id} [put]
 func (h *BlogHandler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -226,7 +253,16 @@ func (h *BlogHandler) ListByKategori(c *gin.Context) {
 	})
 }
 
-// Delete Blog
+// Delete Blog godoc
+// @Summary Delete blog
+// @Description Delete a blog post
+// @Tags Blog
+// @Param id path int true "Blog ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security BearerAuth
+// @Router /api/v1/blogs/{id} [delete]
 func (h *BlogHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

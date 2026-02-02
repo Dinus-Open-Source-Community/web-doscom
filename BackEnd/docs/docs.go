@@ -473,10 +473,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
-                "description": "Upload multiple images/videos + metadata (gallery_type, description, event_date)",
+                "description": "Upload multiple images or videos to MinIO storage with metadata. All files stored in MinIO bucket 'doscom-uploads/gallery'.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -486,7 +486,7 @@ const docTemplate = `{
                 "tags": [
                     "Gallery"
                 ],
-                "summary": "Upload gallery (image only or mixed)",
+                "summary": "Upload gallery images/videos",
                 "parameters": [
                     {
                         "type": "string",
@@ -515,7 +515,7 @@ const docTemplate = `{
                             "type": "file"
                         },
                         "collectionFormat": "csv",
-                        "description": "Upload multiple files",
+                        "description": "Upload multiple image/video files",
                         "name": "files",
                         "in": "formData",
                         "required": true
@@ -523,13 +523,22 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully insert data",
+                        "description": "Successfully uploaded to MinIO",
                         "schema": {
                             "$ref": "#/definitions/web_doscom_internal_database_model.GalleryResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Bad request - missing fields or invalid files",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - authentication required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -538,7 +547,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Server error",
+                        "description": "Server error - upload failed",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -970,10 +979,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
-                "description": "Create pengurus using multipart/form-data (JSON fields + file upload)",
+                "description": "Create pengurus with profile picture upload to MinIO. All files uploaded to MinIO bucket.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -987,53 +996,53 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "Profile Picture",
+                        "description": "Profile Picture (image file)",
                         "name": "file",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "User ID (optional)",
+                        "description": "User ID (optional, auto-filled for non-admin)",
                         "name": "id_user",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "Email (optional)",
+                        "description": "Email (optional, auto-filled for non-admin)",
                         "name": "email",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "Divisi (required)",
+                        "description": "Divisi - Valid values: bph, pemro, jaringan, medcrev, data",
                         "name": "divisi",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Name (required)",
+                        "description": "Name (2-150 characters)",
                         "name": "name",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Position (required)",
+                        "description": "Position - Valid values: ketum, sdm, pr, pm, pm_ang, sekum, bendum, sek_ang, ben_ang, kor_pemro, kor_jaringan, kor_medcrev, kor_data, anggota, pemro_ang, jaringan_ang, medcrev_ang, data_ang",
                         "name": "position",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Sosmed (optional)",
+                        "description": "Social Media Platform (optional) - Valid values: instagram, linkedin, github. Leave empty for default 'instagram'",
                         "name": "sosmed",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "Period (YYYY-MM-DD)",
+                        "description": "Period (YYYY-MM-DD format)",
                         "name": "period",
                         "in": "formData",
                         "required": true
@@ -1047,7 +1056,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Validation error - check divisi, position, or sosmed values",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1056,7 +1065,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1236,6 +1245,259 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/upload/file": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a file from MinIO storage\nDelete an uploaded file from MinIO storage",
+                "consumes": [
+                    "application/json",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "upload",
+                    "Upload"
+                ],
+                "summary": "Delete file from MinIO",
+                "parameters": [
+                    {
+                        "description": "Delete request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.DeleteFileRequest"
+                        }
+                    },
+                    {
+                        "description": "File name to delete",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Delete failed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/upload/files": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List all files in a specific category folder\nList all files in a specific category from MinIO",
+                "consumes": [
+                    "application/json",
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "upload",
+                    "Upload"
+                ],
+                "summary": "List files from MinIO",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category (gallery, blog, work, pengurus)",
+                        "name": "category",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category to filter (gallery, blog, work, pengurus)",
+                        "name": "category",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Files retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ListFilesResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to list files",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/upload/image": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    },
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload an image file to MinIO storage\nUpload an image file to MinIO object storage with category",
+                "consumes": [
+                    "multipart/form-data",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "upload",
+                    "Upload"
+                ],
+                "summary": "Upload image to MinIO",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category (gallery, blog, work, pengurus)",
+                        "name": "category",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Image file to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category (gallery, blog, work, pengurus)",
+                        "name": "category",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File uploaded successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Upload failed",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

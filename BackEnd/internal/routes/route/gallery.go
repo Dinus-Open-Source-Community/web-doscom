@@ -11,16 +11,14 @@ func GalleryRoute(r *gin.RouterGroup, GalleryHandler *handler.GalleryHandler) {
 	crevmed := r.Group("/gallery")
 	// public api
 	{
-		crevmed.GET("/", GalleryHandler.GetGalleryByType) // get gallery by id
+		crevmed.GET("/", GalleryHandler.GetGalleryByType) // get gallery by type
 	}
 
 	// private api -> need auth
 	crevmedAuth := crevmed.Group("/")
-	crevmedAuth.Use(auth.AuthMiddleware("Kor_Medcrev"))
+	crevmedAuth.Use(auth.AuthMiddleware("Kor_Medcrev", "Super_Admin"))
 	{
-		crevmed.POST("/", GalleryHandler.InsertGallery) // insert gallery
-		// get all gallery
-		crevmed.DELETE("/:id", GalleryHandler.DeleteGallery) // update gallery by id
-		// delete gallery by id
+		crevmedAuth.POST("/", GalleryHandler.InsertGallery)      // insert gallery
+		crevmedAuth.DELETE("/:id", GalleryHandler.DeleteGallery) // delete gallery by id
 	}
 }
