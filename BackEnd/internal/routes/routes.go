@@ -24,11 +24,26 @@ func Routes(app *config.Application) http.Handler {
 		workHandler := handler.NewWorkHandler(&app.Model.Works)
 		userHandler := handler.NewUserHandler(&app.Model.Users)
 
+		// Initialize storage service if MinIO is available
+		var storageService *service.StorageService
+		if app.MinioClient != nil {
+			storageService = service.NewStorageService(app.MinioClient, app.DB)
+		}
+
 		galleryService := service.NewGalleryService(&app.Model.Gallery)
-		galleryHandler := handler.NewUploadHandler(galleryService)
+		galleryHandler := handler.NewUploadHandler(galleryService, storageService)
 
 		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
-		pengurusHandler := handler.NewPengurusHandler(pengurusService)
+		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
+
+		blogService := service.NewBlogService(&app.Model.Blogs)
+		blogHandler := handler.NewBlogHandler(blogService)
+
+		// Register upload routes if MinIO is available
+		if storageService != nil {
+			storageHandler := handler.NewStorageHandler(storageService)
+			routes.RegisterUploadRoutes(v1, storageHandler)
+		}
 
 		routes.AuthRoutes(v1, authHandler)
 		routes.UserControllerKoor(v1, userHandler)
@@ -36,6 +51,7 @@ func Routes(app *config.Application) http.Handler {
 		routes.RegisterWorkRoutes(v1, workHandler)
 		routes.GalleryRoute(v1, galleryHandler)
 		routes.RegisterPengurusRoutes(v1, pengurusHandler)
+		routes.RegisterBlogRoutes(v1, blogHandler)
 
 		// swagger
 		g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

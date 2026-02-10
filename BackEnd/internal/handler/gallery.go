@@ -14,36 +14,58 @@ import (
 // handler for uploading image or video
 type GalleryHandler struct {
 	GalleryService *service.GalleryService
+	StorageService *service.StorageService
 }
 
-func NewUploadHandler(m *service.GalleryService) *GalleryHandler {
-	return &GalleryHandler{GalleryService: m}
+func NewUploadHandler(galleryService *service.GalleryService, storageService *service.StorageService) *GalleryHandler {
+	return &GalleryHandler{
+		GalleryService: galleryService,
+		StorageService: storageService,
+	}
 }
 
 // InsertGallery godoc
-// @Summary Upload gallery (image only or mixed)
-// @Description Upload multiple images/videos + metadata (gallery_type, description, event_date)
+// @Summary Upload gallery images/videos
+// @Description Upload multiple images or videos to MinIO storage with metadata. All files stored in MinIO bucket 'doscom-uploads/gallery'.
 // @Accept multipart/form-data
 // @Produce json
 // @Param gallery_type formData string true "Type of gallery (fun, proker, achievment, work, activity, blog, pengurus, etc)"
 // @Param description formData string true "Description of gallery"
 // @Param event_date formData string true "Event date (YYYY-MM-DD)"
-// @Param files formData []file true "Upload multiple files"
-// @Success 200 {object} model.GalleryResponse "Successfully insert data"
-// @Failure 400 {object} map[string]string "Bad request"
-// @Failure 500 {object} map[string]string "Server error"
-// @Security ApiKeyAuth
+// @Param files formData []file true "Upload multiple image/video files"
+// @Success 200 {object} model.GalleryResponse "Successfully uploaded to MinIO"
+// @Failure 400 {object} map[string]string "Bad request - missing fields or invalid files"
+// @Failure 401 {object} map[string]string "Unauthorized - authentication required"
+// @Failure 500 {object} map[string]string "Server error - upload failed"
+// @Security BearerAuth
 // @Tags Gallery
 // @Router /api/v1/gallery/ [post]
 func (m *GalleryHandler) InsertGallery(c *gin.Context) {
-
 	var input model.CreateGallery
 	if c.ShouldBind(&input) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Missing required fieldss: ",
+			"error": "Missing required fields",
 		})
 		return
 	}
+
+	// Get user ID from context (set by auth middleware)
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authenticated",
+		})
+		return
+	}
+
+	userID, ok := userIDVal.(int)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user ID type",
+		})
+		return
+	}
+
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -55,50 +77,66 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 	files := form.File["files"]
 	if len(files) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No files uploaded, ngantuk ta, po piye mas?",
+			"error": "No files uploaded",
 		})
 		return
 	}
 
-	// upload file
-	uploadedFile, err := m.GalleryService.UploadImage(files)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	// insert to database woooooooooooooooooo
+	// Upload files to MinIO
 	result := []*model.Gallery{}
-	for _, files := range uploadedFile {
-		file_upload := &model.Gallery{
-			GalleryName: files.GalleryName,
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Failed to open file: " + err.Error(),
+			})
+			return
+		}
+		defer file.Close()
+
+		// Upload to MinIO with gallery category
+		fileURL, err := m.StorageService.UploadFile(
+			c.Request.Context(),
+			file,
+			fileHeader,
+			"gallery",
+			uint(userID),
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to upload file: " + err.Error(),
+			})
+			return
+		}
+
+		// Insert to database
+		fileUpload := &model.Gallery{
+			GalleryName: fileHeader.Filename,
 			GalleryType: input.GalleryType,
 			Description: input.Description,
 			EventDate:   input.EventDate,
-			FileSize:    files.FileSize,
-			MimeType:    files.MimeType,
-			AssetUrl:    files.AssetUrl,
-			Kategori:    files.Kategori,
+			FileSize:    fileHeader.Size,
+			MimeType:    fileHeader.Header.Get("Content-Type"),
+			AssetUrl:    fileURL,
+			Kategori:    "image",
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
 		}
-		fileUpload, err := m.GalleryService.InsertGallery(file_upload)
+
+		uploadedGallery, err := m.GalleryService.InsertGallery(fileUpload)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to insert data",
 			})
 			return
 		}
-		result = append(result, fileUpload)
+		result = append(result, uploadedGallery)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully insert data",
 		"data":    result,
 	})
-
 }
 
 // get gallery by type
@@ -194,8 +232,24 @@ func (m *GalleryHandler) DeleteGallery(c *gin.Context) {
 
 // insert photo profile
 func (m *GalleryHandler) InsertProfilePic(c *gin.Context) {
+	// Get user ID from context
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authenticated",
+		})
+		return
+	}
 
-	files, err := c.FormFile("file")
+	userID, ok := userIDVal.(int)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user ID type",
+		})
+		return
+	}
+
+	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read file",
@@ -203,7 +257,23 @@ func (m *GalleryHandler) InsertProfilePic(c *gin.Context) {
 		return
 	}
 
-	uploadedFile, err := m.GalleryService.UploadSingleImage(files)
+	file, err := fileHeader.Open()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to open file",
+		})
+		return
+	}
+	defer file.Close()
+
+	// Upload to MinIO with pengurus category
+	fileURL, err := m.StorageService.UploadFile(
+		c.Request.Context(),
+		file,
+		fileHeader,
+		"pengurus",
+		uint(userID),
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -211,18 +281,20 @@ func (m *GalleryHandler) InsertProfilePic(c *gin.Context) {
 		return
 	}
 
+	// Insert to database
 	fileUpload := &model.Gallery{
-		GalleryName: uploadedFile.GalleryName,
+		GalleryName: fileHeader.Filename,
 		GalleryType: "pengurus",
 		Description: "foto Profile",
 		EventDate:   time.Now().Format("2006-01-02"),
-		FileSize:    uploadedFile.FileSize,
-		MimeType:    uploadedFile.MimeType,
-		AssetUrl:    uploadedFile.AssetUrl,
-		Kategori:    uploadedFile.Kategori,
+		FileSize:    fileHeader.Size,
+		MimeType:    fileHeader.Header.Get("Content-Type"),
+		AssetUrl:    fileURL,
+		Kategori:    "image",
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
+
 	upload, err := m.GalleryService.InsertGallery(fileUpload)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -235,5 +307,4 @@ func (m *GalleryHandler) InsertProfilePic(c *gin.Context) {
 		"message": "Successfully insert data",
 		"data":    upload,
 	})
-
 }

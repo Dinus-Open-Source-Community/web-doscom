@@ -16,8 +16,6 @@ func RegisterBlogRoutes(rg *gin.RouterGroup, blogHandler *handler.BlogHandler) {
 		blogRoutes.GET("", blogHandler.List)         // get all blog
 		blogRoutes.PUT("/:id", blogHandler.Update)   // update blog by id
 		blogRoutes.PATCH("/:id", blogHandler.Update) // update blog by id
-		blogRoutes.PUT("/:kategori/:id", blogHandler.UpdateKategori)
-		blogRoutes.PATCH("/:kategori/:id", blogHandler.UpdateKategori)
 		blogRoutes.GET("/kategori/:kategori", blogHandler.ListByKategori)
 		blogRoutes.DELETE("/:id", blogHandler.Delete)
 	}
