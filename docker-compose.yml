@@ -37,7 +37,7 @@ services:
       - ./BackEnd:/app
     networks:
       - doscom-network
-    command: go run ./cmd/api/main.go
+    entrypoint: [ "/bin/sh", "/app/docker-entrypoint.sh" ]
 
   # Frontend (Vite/Next/React)
   frontend:
@@ -71,9 +71,32 @@ services:
     networks:
       - doscom-network
 
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: doscom-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000" # MinIO API
+      - "9001:9001" # MinIO Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    networks:
+      - doscom-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
 networks:
   doscom-network:
     driver: bridge
 
 volumes:
   db_data:
+  minio_data:

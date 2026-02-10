@@ -42,10 +42,21 @@ func main() {
 	if err != nil {
 		log.Fatal("Invalid port value")
 	}
+
+	// Initialize MinIO client
+	minioClient, err := config.InitMinioClient()
+	if err != nil {
+		log.Printf("Warning: MinIO initialization failed: %v", err)
+		log.Println("File upload features will be disabled")
+	} else {
+		log.Println("MinIO client initialized successfully")
+	}
+
 	app := &config.Application{
-		Port:  port,
-		DB:    db.DB,
-		Model: models,
+		Port:        port,
+		DB:          db.DB,
+		Model:       models,
+		MinioClient: minioClient,
 	}
 
 	if err := server.NewServer(app); err != nil {

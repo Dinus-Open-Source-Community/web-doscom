@@ -15,11 +15,15 @@ import (
 type PengurusHandler struct {
 	// Model          *model.PengurusModel
 	// GalleryService *service.GalleryService
-	Service *service.PengurusService
+	Service        *service.PengurusService
+	StorageService *service.StorageService
 }
 
-func NewPengurusHandler(m *service.PengurusService) *PengurusHandler {
-	return &PengurusHandler{Service: m}
+func NewPengurusHandler(pengurusService *service.PengurusService, storageService *service.StorageService) *PengurusHandler {
+	return &PengurusHandler{
+		Service:        pengurusService,
+		StorageService: storageService,
+	}
 }
 
 // set position by role
@@ -36,22 +40,22 @@ func (PengurusHandler) SetPositionByrole(position string) (string, error) {
 
 // CreatePengurus godoc
 // @Summary Create new pengurus
-// @Description Create pengurus using multipart/form-data (JSON fields + file upload)
+// @Description Create pengurus with profile picture upload to MinIO. All files uploaded to MinIO bucket.
 // @Tags Pengurus
 // @Accept multipart/form-data
 // @Produce json
-// @Param file formData file true "Profile Picture"
-// @Param id_user formData int false "User ID (optional)"
-// @Param email formData string false "Email (optional)"
-// @Param divisi formData string true "Divisi (required)"
-// @Param name formData string true "Name (required)"
-// @Param position formData string true "Position (required)"
-// @Param sosmed formData string false "Sosmed (optional)"
-// @Param period formData string true "Period (YYYY-MM-DD)"
+// @Param file formData file true "Profile Picture (image file)"
+// @Param id_user formData int false "User ID (optional, auto-filled for non-admin)"
+// @Param email formData string false "Email (optional, auto-filled for non-admin)"
+// @Param divisi formData string true "Divisi - Valid values: bph, pemro, jaringan, medcrev, data"
+// @Param name formData string true "Name (2-150 characters)"
+// @Param position formData string true "Position - Valid values: ketum, sdm, pr, pm, pm_ang, sekum, bendum, sek_ang, ben_ang, kor_pemro, kor_jaringan, kor_medcrev, kor_data, anggota, pemro_ang, jaringan_ang, medcrev_ang, data_ang"
+// @Param sosmed formData string false "Social Media Platform (optional) - Valid values: instagram, linkedin, github. Leave empty for default 'instagram'"
+// @Param period formData string true "Period (YYYY-MM-DD format)"
 // @Success 201 {object} model.PengurusResponse
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Security ApiKeyAuth
+// @Failure 400 {object} map[string]string "Validation error - check divisi, position, or sosmed values"
+// @Failure 500 {object} map[string]string "Server error"
+// @Security BearerAuth
 // @Router /api/v1/pengurus/ [post]
 func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	user_role := c.MustGet("role").(string)
@@ -65,27 +69,47 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 		})
 		return
 	}
-	// save photo to gallery and insert to database
-	file, err := c.FormFile("file")
+
+	// Get file from form
+	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read file",
 		})
 		return
 	}
-	profilePic, err := h.Service.GalleryModel.UploadInsertSingleImage(file)
+
+	file, err := fileHeader.Open()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to open file",
 		})
 		return
 	}
-	// Auto-assign assign position for kor and anggota
-	position, err := h.SetPositionByrole(input.Position) // masih issue tapi normal tapi issue tapi normal
+	defer file.Close()
+
+	// Upload to MinIO with pengurus category
+	fileURL, err := h.StorageService.UploadFile(
+		c.Request.Context(),
+		file,
+		fileHeader,
+		"pengurus",
+		uint(user_ID),
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to upload file: " + err.Error(),
+		})
+		return
+	}
+
+	// Auto-assign position for kor and anggota
+	position, err := h.SetPositionByrole(input.Position)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	// check user_id
@@ -101,31 +125,39 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	case strings.HasPrefix(user_role, "Super_Admin"):
 		if input.UserID == 0 && input.Email == "" {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "User_id & Email must be given, datane sopo kii wok",
+				"error": "User_id & Email must be given",
 			})
 			return
 		}
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user_id, koe sopo wok",
+			"error": "Invalid user_id",
 		})
 		return
 	}
 
+	// Handle sosmed field - database constraint requires specific values
+	sosmedValue := input.Sosmed
+	if sosmedValue == "" {
+		sosmedValue = "instagram" // Default value to satisfy database constraint
+	}
+
 	pengurus := &model.Pengurus{
 		UserID:   input.UserID,
-		URLAsset: profilePic.AssetUrl,
+		URLAsset: fileURL,
 		Email:    input.Email,
 		Divisi:   input.Divisi,
 		Name:     input.Name,
 		Position: position,
-		Sosmed:   input.Sosmed,
+		Sosmed:   sosmedValue,
 		Period:   input.Period,
 	}
+
 	if err := h.Service.PengurusModel.InsertPengurus(pengurus); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	resp := model.PengurusResponse{
 		ID:       pengurus.ID,
 		URLAsset: pengurus.URLAsset,
@@ -136,6 +168,7 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 		Sosmed:   pengurus.Sosmed,
 		Period:   pengurus.Period,
 	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message":  "Pengurus created successfully",
 		"pengurus": resp,

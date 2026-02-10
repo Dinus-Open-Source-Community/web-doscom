@@ -149,3 +149,12 @@ func (m *BlogModel) DeleteBlog(id int) error {
 	}
 	return nil
 }
+
+// GetBlogsByKategori returns all blogs by kategori
+func (m *BlogModel) GetBlogsByKategori(kategori string) ([]Blog, error) {
+	var blogs []Blog
+	if err := m.DB.Where("kategori = ?", kategori).Order("created_at DESC").Find(&blogs).Error; err != nil {
+		return nil, err
+	}
+	return blogs, nil
+}

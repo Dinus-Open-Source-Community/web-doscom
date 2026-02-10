@@ -17,7 +17,9 @@ func LoadEnv() {
 }
 
 type Application struct {
-	Port  int
-	DB    *gorm.DB
-	Model database.Models
+	Port        int
+	DB          *gorm.DB
+	Model       database.Models
+	MinioClient *MinioClient
 }
+
