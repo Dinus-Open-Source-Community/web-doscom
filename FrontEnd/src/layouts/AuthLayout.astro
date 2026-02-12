@@ -1,0 +1,13 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+const { title } = Astro.props;
+---
+
+<BaseLayout title={title}>
+  <div class="flex min-h-screen flex-col justify-between">
+    <main>
+      <slot />
+    </main>
+  </div>
+</BaseLayout>

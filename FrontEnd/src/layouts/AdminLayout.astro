@@ -1,28 +1,18 @@
 ---
-// import tailwind
-import "../styles/global.css";
+import BaseLayout from "./BaseLayout.astro";
 import Sidebar from "../components/layouts/Sidebar.astro";
 
-const { title } = Astro.props
+const { title } = Astro.props;
 ---
 
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="generator" content={Astro.generator} />
-        <title>Doscom | {title}</title>
-    </head>
-    <body>
-        <div class="flex">
-            <Sidebar />
+<BaseLayout title={title}>
+  <div class="flex min-h-screen flex-col">
+    <Sidebar />
 
-            <div class="flex min-h-screen w-full flex-col justify-between">
-                <main>
-                    <slot />
-                </main>
-            </div>
-        </div>
-    </body>
-</html>
+    <div class="flex w-full flex-col justify-between">
+      <main>
+        <slot />
+      </main>
+    </div>
+  </div>
+</BaseLayout>
