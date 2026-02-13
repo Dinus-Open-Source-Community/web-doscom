@@ -3,32 +3,79 @@ import type { HTMLAttributes } from "astro/types";
 
 interface Props extends Omit<HTMLAttributes<"input">, "type"> {
   type?: "text" | "email" | "number" | "password" | "tel" | "textarea";
-  label?: string;
-  readonly?: boolean;
+  variant?: "primary" | "admin";
 }
 
-const { type = "text", class: className, placeholder, ...props } = Astro.props;
+const { type = "text", variant = "primary", class: className, placeholder, ...props } = Astro.props;
 
-// Style dasar sesuai desainmu (Tailwind)
-// Saya gabungkan style agar konsisten
-const baseStyles =
-  "w-full rounded-xl border-2 border-[#BDBDBD] py-3 px-5 placeholder:font-jakarta text-xl placeholder:font-semibold placeholder:text-[#BDBDBD] focus:border-[var(--color-primary)] focus:outline-none bg-transparent transition-colors duration-200";
+const primaryStyle =
+  "rounded-xl border-2 border-[#BDBDBD] py-3 px-5 text-xl placeholder:font-normal placeholder:text-[#BDBDBD] bg-transparent focus:border-[var(--color-primary)]";
+
+const adminStyle =
+  "rounded-lg shadow-md py-2.5 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-slate-200/30 focus:ring-1 focus:ring-slate-200/30 shadow-sm";
+
+const baseClasses = "w-full focus:outline-none transition-all duration-200 font-jakarta block";
+const selectedStyle = variant === "admin" ? adminStyle : primaryStyle;
+
+const inputClasses = [baseClasses, selectedStyle, className];
 ---
 
 {
   type === "textarea" ? (
-    <textarea
-      class:list={[baseStyles, "resize-none", className]}
-      rows="8"
-      {...props}
-      placeholder={placeholder ?? ""}
-    />
+    <textarea class:list={[...inputClasses, "resize-none"]} rows="4" {...props} placeholder={placeholder ?? ""} />
   ) : (
-    <input
-      type={type}
-      class:list={[baseStyles, className]}
-      {...props}
-      placeholder={placeholder ?? ""}
-    />
+    <div class="relative w-full">
+      <input type={type} class:list={inputClasses} {...props} placeholder={placeholder ?? ""} id={props.id} />
+
+      {type === "password" && (
+        <button
+          type="button"
+          class="absolute inset-y-0 right-0 flex items-center mr-3 focus:outline-none toggle-password-btn transition-transform duration-200 cursor-pointer"
+          aria-label="Toggle password visibility"
+        >
+          <span class="text-xl eye-open hidden" role="img" aria-label="show password">
+            🐵
+          </span>
+
+          <span class="text-xl eye-closed" role="img" aria-label="hide password">
+            🙈
+          </span>
+        </button>
+      )}
+    </div>
   )
 }
+
+<script>
+  function initPasswordToggle() {
+    const buttons = document.querySelectorAll(".toggle-password-btn");
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const button = e.currentTarget as HTMLButtonElement;
+        const container = button.parentElement;
+        const input = container?.querySelector("input");
+
+        // Cari icon mata
+        const eyeOpen = button.querySelector(".eye-open");
+        const eyeClosed = button.querySelector(".eye-closed");
+
+        if (input) {
+          if (input.type === "password") {
+            input.type = "text";
+            eyeOpen?.classList.remove("hidden");
+            eyeClosed?.classList.add("hidden");
+          } else {
+            input.type = "password";
+            eyeOpen?.classList.add("hidden");
+            eyeClosed?.classList.remove("hidden");
+          }
+        }
+      });
+    });
+  }
+
+  initPasswordToggle();
+
+  document.addEventListener("astro:after-swap", initPasswordToggle);
+</script>
