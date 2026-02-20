@@ -1,3 +1,236 @@
-<nav class="mt-20 flex w-1/6 justify-center">
-  <p>ini sidebar</p>
-</nav>
+---
+import Icon from "../ui/Icon.astro";
+import SidebarItem from "./SidebarItem.astro";
+
+const menuGroups = [
+  {
+    header: "DASHBOARD",
+    items: [
+      {
+        name: "Dashboard",
+        icon: "grid",
+        href: "#",
+        active: true,
+        submenu: [
+          { name: "Overview", href: "/admin/dashboard", icon: "chart" },
+          { name: "Analytics", href: "/admin/analytics", icon: "pie" },
+          { name: "Reports", href: "/admin/reports", icon: "doc" },
+        ],
+      },
+      { name: "Sales", icon: "dollar", href: "/admin/sales", active: false },
+    ],
+  },
+  {
+    header: "COMMUNICATION",
+    items: [
+      { name: "Messages", icon: "chat", href: "/admin/messages", active: false },
+      {
+        name: "Team",
+        icon: "users",
+        href: "#",
+        active: false,
+        submenu: [
+          { name: "Members", href: "/admin/team/members", icon: "user" },
+          { name: "Permissions", href: "/admin/team/permissions", icon: "key" },
+        ],
+      },
+    ],
+  },
+  {
+    header: "SETTINGS",
+    items: [
+      { name: "Access Control", icon: "lock", href: "/admin/access", active: false },
+      { name: "Settings", icon: "cog", href: "/admin/settings", active: false },
+    ],
+  },
+];
+
+const bottomItems = [
+  { name: "Help", icon: "help", href: "/admin/help" },
+  { name: "Log out", icon: "logout", href: "/logout" },
+];
+---
+
+<aside
+  id="sidebar"
+  class="group relative h-screen bg-white border-r border-gray-200 flex flex-col transition-[width] duration-300 ease-in-out w-64 z-50 overflow-visible"
+  data-collapsed="false"
+>
+  <div class="h-20 flex items-center justify-between px-6 border-b border-gray-100 shrink-0">
+    <div class="brand-wrapper flex items-center overflow-hidden">
+      <div class="w-10 h-10 flex items-center justify-center shrink-0">
+        <img src="/assets/image/admin/template.png" alt="profile" class="rounded-lg w-full h-full object-cover" />
+      </div>
+
+      <div class="flex flex-col justify-center sidebar-text min-w-0">
+        <span class="text-sm font-bold text-gray-800 truncate" title="Husnul Fikri Averus"> Husnul Fikri Averus </span>
+
+        <span class="text-xs text-gray-400 truncate" title="111202412345@mhs.dinus.ac.id">
+          111202412345@mhs.dinus.ac.id
+        </span>
+      </div>
+    </div>
+
+    <button
+      id="toggle-sidebar"
+      class="text-gray-500 hover:text-gray-700 focus:outline-none p-1 rounded-md transition-colors shrink-0"
+    >
+      <span id="icon-collapse"><Icon name="collapse" class="w-[22px] h-[20px]" /></span>
+      <span id="icon-expand" class="hidden"><Icon name="expand" class="w-[22px] h-[20px]" /></span>
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-4 space-y-6 scrollbar-hide">
+    {
+      menuGroups.map((group) => (
+        <div>
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 sidebar-header">{group.header}</p>
+          <ul class="space-y-1">
+            {group.items.map((item) => (
+              <SidebarItem item={item} />
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="p-4 border-t border-gray-100 space-y-1">
+    <ul class="space-y-1">
+      {bottomItems.map((item) => <SidebarItem item={item} />)}
+    </ul>
+  </div>
+</aside>
+
+<script>
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("toggle-sidebar");
+  const iconCollapse = document.getElementById("icon-collapse");
+  const iconExpand = document.getElementById("icon-expand");
+
+  function setSidebarState(isCollapsed: boolean) {
+    if (isCollapsed) {
+      sidebar?.classList.remove("w-64");
+      sidebar?.classList.add("w-20");
+      sidebar?.setAttribute("data-collapsed", "true");
+      iconCollapse?.classList.add("hidden");
+      iconExpand?.classList.remove("hidden");
+    } else {
+      sidebar?.classList.remove("w-20");
+      sidebar?.classList.add("w-64");
+      sidebar?.setAttribute("data-collapsed", "false");
+      iconExpand?.classList.add("hidden");
+      iconCollapse?.classList.remove("hidden");
+    }
+    localStorage.setItem("sidebar-collapsed", String(isCollapsed));
+  }
+
+  toggleBtn?.addEventListener("click", () => {
+    const isCollapsed = sidebar?.getAttribute("data-collapsed") === "true";
+    setSidebarState(!isCollapsed);
+  });
+
+  const savedState = localStorage.getItem("sidebar-collapsed") === "true";
+  setSidebarState(savedState);
+
+  const submenuToggles = document.querySelectorAll(".submenu-toggle");
+  submenuToggles.forEach((toggle) => {
+    toggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      const button = e.currentTarget as HTMLElement;
+      const parent = button.closest(".menu-item-with-submenu");
+      const wrapper = parent?.querySelector(".submenu-wrapper");
+      const arrow = button.querySelector(".submenu-arrow");
+
+      if (wrapper?.classList.contains("grid-rows-[0fr]")) {
+        wrapper.classList.replace("grid-rows-[0fr]", "grid-rows-[1fr]");
+        arrow?.classList.add("rotate-180");
+      } else {
+        wrapper?.classList.replace("grid-rows-[1fr]", "grid-rows-[0fr]");
+        arrow?.classList.remove("rotate-180");
+      }
+    });
+  });
+</script>
+
+<style is:global>
+  /* Saat Terbuka: Lebar transisi 0.3s, Opasitas di-delay dikit supaya masuknya belakangan */
+  #sidebar .sidebar-text,
+  #sidebar .brand-wrapper {
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 1;
+    width: 100%;
+    margin-left: 0.75rem;
+    transition:
+      width 0.3s ease-in-out,
+      margin-left 0.3s ease-in-out,
+      opacity 0.3s ease-in-out 0.1s;
+  }
+
+  #sidebar .brand-wrapper {
+    max-width: 200px;
+    margin-left: 0;
+  }
+
+  #sidebar .sidebar-header {
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 1;
+    max-height: 20px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  #sidebar .submenu-arrow {
+    overflow: hidden;
+    opacity: 1;
+    width: 1rem;
+    transition:
+      width 0.3s ease-in-out,
+      opacity 0.3s ease-in-out 0.1s,
+      transform 0.3s ease-in-out;
+  }
+
+  #sidebar .submenu-list {
+    padding-left: 0.5rem;
+    transition: padding-left 0.3s ease-in-out;
+  }
+
+  /* --- MODE TERTUTUP (COLLAPSED) --- */
+
+  /* Saat Ditutup: Opasitas menghilang SANGAT CEPAT (0.1s) tanpa delay, biar teksnya gak kelihatan kegencet */
+  #sidebar[data-collapsed="true"] .sidebar-text,
+  #sidebar[data-collapsed="true"] .brand-wrapper,
+  #sidebar[data-collapsed="true"] .submenu-arrow {
+    opacity: 0;
+    width: 0;
+    margin-left: 0;
+    transition:
+      width 0.3s ease-in-out,
+      margin-left 0.3s ease-in-out,
+      opacity 0.1s ease-in-out;
+  }
+
+  #sidebar[data-collapsed="true"] .brand-wrapper {
+    max-width: 0;
+  }
+
+  #sidebar[data-collapsed="true"] .sidebar-header {
+    max-height: 1px;
+    margin: 0.5rem 0.75rem;
+    background-color: #e5e7eb;
+    color: transparent;
+  }
+
+  #sidebar[data-collapsed="true"] .submenu-list {
+    padding-left: 0;
+  }
+
+  /* TOOLTIP LOGIC */
+  #sidebar .simple-tooltip {
+    display: none;
+  }
+  #sidebar[data-collapsed="true"] .simple-tooltip {
+    display: block;
+  }
+</style>
