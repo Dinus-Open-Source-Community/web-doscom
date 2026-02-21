@@ -13,8 +13,6 @@ import (
 )
 
 type PengurusHandler struct {
-	// Model          *model.PengurusModel
-	// GalleryService *service.GalleryService
 	Service *service.PengurusService
 }
 
@@ -226,7 +224,7 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 		respList = append(respList, model.PengurusResponse{
 			ID:       p.ID,
 			URLAsset: p.URLAsset,
-			Email:    "",
+			Email:    p.Email,
 			Divisi:   p.Divisi,
 			Name:     p.Name,
 			Position: p.Position,

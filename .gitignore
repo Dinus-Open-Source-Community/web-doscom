@@ -15,6 +15,7 @@
 /go.work.sum
 /.cache/
 *.log
+BackEnd/storage
 
 # ====================================
 # 🔑 Environment & sensitive files

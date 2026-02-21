@@ -27,9 +27,7 @@ type BlogModel struct {
 // Blog represents a blog post
 type Blog struct {
 	ID          int       `gorm:"primaryKey" json:"id"`
-	GalleryID   int       `json:"id_asset"`
 	WorkID      int       `json:"id_work"`
-	ActivityID  int       `json:"id_activity"`
 	PengurusID  int       `json:"id_pengurus"`
 	Kategori    string    `json:"kategori"`
 	Title       string    `json:"title"`
@@ -43,16 +41,16 @@ type Blog struct {
 
 // RegisterBlog is used for creating a new blog
 type RegisterBlog struct {
-	Title       string    `json:"title" binding:"required"`
-	GalleryID   int       `json:"id_asset" binding:"required"`
-	Slug        string    `json:"slug" binding:"required"`
-	Content     string    `json:"content" binding:"required"`
-	Kategori    string    `json:"kategori" binding:"required,kategori"`
-	PublishedAt time.Time `json:"published_at" binding:"required"`
-	IsPublished bool      `json:"is_published" binding:"required"`
-	WorkID      int       `json:"id_work" binding:"required"`
-	ActivityID  int       `json:"id_activity" binding:"required"`
-	PengurusID  int       `json:"id_pengurus" binding:"required"`
+	ExistingID  []string  `form:"existingID_image" binding:"required"`
+	Title       string    `form:"title" binding:"required"`
+	GalleryID   int       `form:"id_asset" binding:"required"`
+	Slug        string    `form:"slug" binding:"required"`
+	Content     string    `form:"content" binding:"required"`
+	Kategori    string    `form:"kategori" binding:"required,kategori"`
+	PublishedAt time.Time `form:"published_at" binding:"required"`
+	IsPublished bool      `form:"is_published" binding:"required"`
+	WorkID      int       `form:"id_work" binding:"required"`
+	PengurusID  int       `form:"id_pengurus" binding:"required"`
 }
 
 // BlogPatch is used for updating a blog
@@ -128,9 +126,7 @@ func (m *BlogModel) UpdateBlog(id int, input BlogPatch) (*Blog, error) {
 	blog.Title = pathValue(input.Title, blog.Title)
 	blog.Content = pathValue(input.Content, blog.Content)
 	blog.Slug = pathValue(input.Slug, blog.Slug)
-	blog.GalleryID = pathValue(input.GalleryID, blog.GalleryID)
 	blog.WorkID = pathValue(input.WorkID, blog.WorkID)
-	blog.ActivityID = pathValue(input.ActivityID, blog.ActivityID)
 	blog.PengurusID = pathValue(input.PengurusID, blog.PengurusID)
 	blog.Kategori = pathValue(input.Kategori, blog.Kategori)
 	blog.PublishedAt = pathValue(input.PublishedAt, blog.PublishedAt)

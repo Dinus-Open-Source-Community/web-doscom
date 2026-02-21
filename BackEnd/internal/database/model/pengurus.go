@@ -79,6 +79,17 @@ type PengurusResponse struct {
 }
 
 // Untuk create/register pengurus
+// type RegisterPengurusRequest struct {
+// 	UserID   int    `form:"id_user"`
+// 	URLAsset string `form:"url_asset"`
+// 	Email    string `form:"email"`
+// 	Divisi   string `form:"divisi" binding:"required,divisi"`
+// 	Name     string `form:"name" binding:"required" validate:"min=2,max=150"`
+// 	Position string `form:"position" binding:"required,position"`
+// 	Sosmed   string `form:"sosmed" binding:"omitempty,socialurl"`
+// 	Period   string `form:"period" binding:"required" validate:"max=50"`
+// }
+
 type RegisterPengurusRequest struct {
 	UserID   int    `form:"id_user"`
 	URLAsset string `form:"url_asset"`
@@ -86,7 +97,7 @@ type RegisterPengurusRequest struct {
 	Divisi   string `form:"divisi" binding:"required,divisi"`
 	Name     string `form:"name" binding:"required" validate:"min=2,max=150"`
 	Position string `form:"position" binding:"required,position"`
-	Sosmed   string `form:"sosmed" binding:"omitempty,socialurl"`
+	Sosmed   string `form:"sosmed" binding:"omitempty,sosmed"`
 	Period   string `form:"period" binding:"required" validate:"max=50"`
 }
 
