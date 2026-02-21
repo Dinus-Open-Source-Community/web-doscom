@@ -21,7 +21,7 @@ const { item } = Astro.props;
           <span class="w-8 flex justify-center shrink-0">
             <Icon name={item.icon} />
           </span>
-          <span class="sidebar-text grow text-left font-semibold">{item.name}</span>
+          <span class="sidebar-text grow text-left font-semibold text-sm">{item.name}</span>
           <Icon name="chevron-down" class="w-4 h-4 transition-transform duration-300 submenu-arrow shrink-0" />
         </button>
 
@@ -35,9 +35,9 @@ const { item } = Astro.props;
                     class="w-full flex items-center px-2 py-2 text-sm text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors group/subitem relative"
                   >
                     <span class="w-8 flex justify-center shrink-0 opacity-70">
-                      <Icon name={subitem.icon} class="w-4 h-4" />
+                      <Icon name={subitem.icon} class="w-4 h-4 " />
                     </span>
-                    <span class="sidebar-text grow text-left font-semibold">{subitem.name}</span>
+                    <span class="sidebar-text grow text-left font-semibold text-sm">{subitem.name}</span>
 
                     <div class="simple-tooltip absolute left-full ml-4 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover/subitem:opacity-100 group-hover/subitem:visible transition-all duration-200 z-50 pointer-events-none">
                       {subitem.name}
@@ -60,7 +60,7 @@ const { item } = Astro.props;
         <span class="w-8 flex justify-center shrink-0">
           <Icon name={item.icon} />
         </span>
-        <span class="sidebar-text grow text-left font-semibold">{item.name}</span>
+        <span class="sidebar-text grow text-left font-semibold text-sm">{item.name}</span>
 
         <div class="simple-tooltip absolute left-full ml-4 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-200 z-50 pointer-events-none">
           {item.name}
