@@ -14,6 +14,7 @@ interface Card {
 		| 'division';
 	category: string[] | string;
 	tags?: string[];
+	slug?: string;
 }
 
 const {
@@ -25,6 +26,7 @@ const {
 	category,
 	tags = [],
 	index = 0,
+	slug = '',
 } = Astro.props;
 ---
 
@@ -172,9 +174,9 @@ const {
 				<Button
 					variant="primary"
 					size="default"
-					class="font-poppins text-sm font-medium   text-white shadow-md shadow-white/50 transition hover:shadow-none lg:text-xl"
+					class="font-poppins text-sm font-medium text-white shadow-md shadow-white/50 transition hover:shadow-none lg:text-xl"
 				>
-					Read More
+					<a href={`/division/${slug}`}>Read More</a>
 				</Button>
 			</div>
 		</div>
