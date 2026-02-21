@@ -12,7 +12,6 @@ func RegisterPengurusRoutes(rg *gin.RouterGroup, pengurusHandler *handler.Pengur
 	p := rg.Group("/pengurus")
 	// public api
 	{
-		p.GET("/:id", pengurusHandler.GetPengurus)
 		p.GET("/", pengurusHandler.GetAllPengurus)
 	}
 
@@ -20,6 +19,7 @@ func RegisterPengurusRoutes(rg *gin.RouterGroup, pengurusHandler *handler.Pengur
 	pengurusAuth := p.Group("/")
 	pengurusAuth.Use(auth.AuthMiddleware("ANGGOTA", "KOOR", "BPH", "ADMIN"))
 	{
+		p.GET("/:id", pengurusHandler.GetPengurus)
 		pengurusAuth.POST("/", pengurusHandler.CreatePengurus)
 		pengurusAuth.PUT("/:id", pengurusHandler.UpdatePengurus)
 	}

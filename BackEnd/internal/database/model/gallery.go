@@ -51,6 +51,13 @@ type GalleryResponse struct {
 	AssetUrl    string `json:"asset_url"`
 }
 
+type GalleryUpdate struct {
+	GalleryName *string `json:"gallery_name" binding:"omitempty"`
+	GalleryType *string `json:"gallery_type" binding:"omitempty"`
+	Description *string `json:"description" binding:"omitempty"`
+	EventDate   *string `json:"event_date" binding:"omitempty"`
+}
+
 func (Gallery) TableName() string {
 	return "gallery"
 }
@@ -83,6 +90,48 @@ func (g *GalleryModel) GetGalleryByType(galleryType string, page, limit, offset 
 		Count(&total)
 
 	return GalleryData, total, nil
+}
+
+// get gallery by id
+func (g *GalleryModel) GetGalleryByID(id int) (*Gallery, error) {
+	var gallery Gallery
+	if err := g.DB.First(&gallery, id).Error; err != nil {
+		return nil, err
+	}
+
+	return &gallery, nil
+}
+
+// get all gallery
+func (g *GalleryModel) GetAllGallery(page, limit, offset int) ([]*Gallery, int64, error) {
+	var GalleryData []*Gallery
+	// take data per page
+	if err := g.DB.
+		Offset(offset).
+		Limit(limit).
+		Find(&GalleryData).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var total int64
+	// hitung total data
+	g.DB.Model(&Gallery{}).
+		Count(&total)
+
+	return GalleryData, total, nil
+}
+
+// update gallery
+func (g *GalleryModel) UpdateGallery(id int, patch GalleryUpdate) (*Gallery, error) {
+	var gallery Gallery
+	// find gallery by id
+	if err := g.DB.First(&gallery, id).Error; err != nil {
+		return nil, err
+	}
+	if err := g.DB.Model(&gallery).Updates(patch).Error; err != nil {
+		return nil, err
+	}
+	return &gallery, nil
 }
 
 // delete gallery by id

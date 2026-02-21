@@ -1,5 +1,5 @@
 definitions:
-  model.GalleryResponse:
+  web_doscom_internal_database_model.GalleryResponse:
     properties:
       asset_url:
         type: string
@@ -18,7 +18,7 @@ definitions:
       mime_type:
         type: string
     type: object
-  model.LoginRequest:
+  web_doscom_internal_database_model.LoginRequest:
     properties:
       email:
         type: string
@@ -28,7 +28,7 @@ definitions:
     - email
     - password
     type: object
-  model.PengurusPatch:
+  web_doscom_internal_database_model.PengurusPatch:
     properties:
       divisi:
         type: string
@@ -48,7 +48,7 @@ definitions:
       url_asset:
         type: string
     type: object
-  model.PengurusResponse:
+  web_doscom_internal_database_model.PengurusResponse:
     properties:
       divisi:
         type: string
@@ -67,7 +67,7 @@ definitions:
       url_asset:
         type: string
     type: object
-  model.RegisterRequest:
+  web_doscom_internal_database_model.RegisterRequest:
     properties:
       email:
         type: string
@@ -83,7 +83,7 @@ definitions:
     - email
     - fullname
     type: object
-  model.UserPatch:
+  web_doscom_internal_database_model.UserPatch:
     properties:
       email:
         type: string
@@ -92,7 +92,7 @@ definitions:
       username:
         type: string
     type: object
-  model.UserResponse:
+  web_doscom_internal_database_model.UserResponse:
     properties:
       email:
         type: string
@@ -121,7 +121,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.UserResponse'
+              $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -144,7 +144,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.RegisterRequest'
+          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -186,7 +186,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.UserResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -219,14 +219,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.UserPatch'
+          $ref: '#/definitions/web_doscom_internal_database_model.UserPatch'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.UserResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -255,7 +255,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.RegisterRequest'
+          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -287,13 +287,90 @@ paths:
       summary: Create superadmin user
       tags:
       - Super_Admin
+  /api/v1/blogs/:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create blog dengan upload gambar baru dan/atau memilih gambar yang
+        sudah ada
+      parameters:
+      - description: Judul Blog
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Slug Blog
+        in: formData
+        name: slug
+        required: true
+        type: string
+      - description: Konten Blog
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: Kategori Blog
+        in: formData
+        name: kategori
+        required: true
+        type: string
+      - description: Tanggal publish (format RFC3339)
+        in: formData
+        name: published_at
+        type: string
+      - description: Status publish
+        in: formData
+        name: is_published
+        type: boolean
+      - description: ID Work
+        in: formData
+        name: id_work
+        required: true
+        type: integer
+      - description: ID Pengurus
+        in: formData
+        name: id_pengurus
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Blog created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new blog
+      tags:
+      - Blog
   /api/v1/gallery/:
     get:
       consumes:
       - application/json
       description: Mengambil data gallery berdasarkan tipe tertentu
       parameters:
-      - description: 'Gallery type (misal: event, pengurus, dokumentasi)'
+      - description: Gallery type (fun, proker, achievment, work, activity, blog,
+          pengurus, etc)
         in: query
         name: type
         required: true
@@ -367,7 +444,7 @@ paths:
         "200":
           description: Successfully insert data
           schema:
-            $ref: '#/definitions/model.GalleryResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.GalleryResponse'
         "400":
           description: Bad request
           schema:
@@ -429,7 +506,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.UserResponse'
+              $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -452,7 +529,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.RegisterRequest'
+          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -494,7 +571,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.UserResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -527,14 +604,14 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.UserPatch'
+          $ref: '#/definitions/web_doscom_internal_database_model.UserPatch'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.UserResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -563,7 +640,7 @@ paths:
         name: login
         required: true
         schema:
-          $ref: '#/definitions/model.LoginRequest'
+          $ref: '#/definitions/web_doscom_internal_database_model.LoginRequest'
       produces:
       - application/json
       responses:
@@ -641,7 +718,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.PengurusResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -701,7 +778,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.PengurusResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "400":
           description: Bad Request
           schema:
@@ -736,7 +813,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.PengurusResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "400":
           description: Bad Request
           schema:
@@ -770,7 +847,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.PengurusResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "400":
           description: Bad Request
           schema:
@@ -809,14 +886,14 @@ paths:
         name: pengurus
         required: true
         schema:
-          $ref: '#/definitions/model.PengurusPatch'
+          $ref: '#/definitions/web_doscom_internal_database_model.PengurusPatch'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.PengurusResponse'
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "400":
           description: Bad Request
           schema:
