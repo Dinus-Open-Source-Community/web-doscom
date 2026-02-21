@@ -1,0 +1,245 @@
+---
+import { Grid, Search, Gear, ChevronRight } from "../../../assets/icons";
+---
+
+<div
+  id="search-modal-backdrop"
+  class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] hidden items-start justify-center pt-[15vh] px-4 opacity-0 transition-opacity duration-300"
+>
+  <div
+    id="search-modal-content"
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 flex flex-col border border-gray-100"
+  >
+    <div class="relative flex items-center px-4 py-4 border-b border-gray-100 bg-gray-50/50">
+      <span class="w-5 h-5 text-cyan-600 shrink-0" set:html={Search} />
+
+      <input
+        id="search-modal-input"
+        type="text"
+        placeholder="Search for pages, articles, users..."
+        class="w-full pl-4 pr-14 text-lg text-gray-800 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
+        autocomplete="off"
+      />
+
+      <button
+        id="close-search-modal"
+        class="absolute right-4 text-[10px] font-bold text-gray-500 border border-gray-200 rounded px-2 py-1 bg-white hover:bg-gray-100 hover:text-red-500 transition-colors uppercase tracking-wider"
+      >
+        ESC
+      </button>
+    </div>
+
+    <div class="max-h-[60vh] overflow-y-auto p-2 space-y-4 scrollbar-hide">
+      <div class="pt-2">
+        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">Pages & Navigation</p>
+        <ul class="space-y-1">
+          <li>
+            <a
+              href="#"
+              class="group/result flex items-center justify-between px-3 py-3 rounded-xl hover:bg-cyan-50 text-gray-600 hover:text-cyan-700 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <div class="bg-gray-100 group-hover/result:bg-white p-2 rounded-lg transition-colors">
+                  <span class="[&>svg]:w-4 [&>svg]:h-4" set:html={Grid} />
+                </div>
+                <span class="font-medium text-sm">Dashboard Admin</span>
+              </div>
+              <span
+                class="w-4 h-4 opacity-0 -translate-x-2 group-hover/result:opacity-100 group-hover/result:translate-x-0 transition-all duration-300 [&>svg]:w-full [&>svg]:h-full"
+                set:html={ChevronRight}
+              />
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              class="group/result flex items-center justify-between px-3 py-3 rounded-xl hover:bg-cyan-50 text-gray-600 hover:text-cyan-700 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <div class="bg-gray-100 group-hover/result:bg-white p-2 rounded-lg transition-colors">
+                  <span class="[&>svg]:w-4 [&>svg]:h-4" set:html={Gear} />
+                </div>
+                <span class="font-medium text-sm">Website Settings</span>
+              </div>
+              <span
+                class="w-4 h-4 opacity-0 -translate-x-2 group-hover/result:opacity-100 group-hover/result:translate-x-0 transition-all duration-300 [&>svg]:w-full [&>svg]:h-full"
+                set:html={ChevronRight}
+              />
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="pt-2 border-t border-gray-100">
+        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">Core Team</p>
+        <ul class="space-y-1">
+          <li>
+            <a
+              href="#"
+              data-color="emerald"
+              class="group/result flex items-center justify-between px-3 py-3 rounded-xl hover:bg-emerald-50 text-gray-600 hover:text-emerald-700 transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <img
+                  src="/assets/image/admin/template.png"
+                  class="w-8 h-8 rounded-full object-cover border border-emerald-100"
+                  alt="profile"
+                />
+                <div class="flex flex-col">
+                  <span class="font-bold text-sm text-gray-800 group-hover/result:text-emerald-800"
+                    >Husnul Fikri Averus</span
+                  >
+                  <span class="text-xs text-gray-400">Web Development</span>
+                </div>
+              </div>
+              <span
+                class="w-4 h-4 opacity-0 -translate-x-2 group-hover/result:opacity-100 group-hover/result:translate-x-0 transition-all duration-300 [&>svg]:w-full [&>svg]:h-full"
+                set:html={ChevronRight}
+              />
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="flex items-center justify-center gap-4 px-4 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400"
+    >
+      <span class="flex items-center gap-1"
+        ><kbd class="bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm">↑</kbd><kbd
+          class="bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm">↓</kbd
+        > to navigate</span
+      >
+      <span class="flex items-center gap-1"
+        ><kbd class="bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm">Enter</kbd> to select</span
+      >
+    </div>
+  </div>
+</div>
+
+<script>
+  const triggerBtn = document.getElementById("trigger-search-modal");
+  const backdrop = document.getElementById("search-modal-backdrop");
+  const content = document.getElementById("search-modal-content");
+  const closeBtn = document.getElementById("close-search-modal");
+  const input = document.getElementById("search-modal-input");
+
+  let currentIndex: number = -1;
+
+  function getResultItems(): HTMLElement[] {
+    return Array.from(document.querySelectorAll("#search-modal-content a.group\\/result")) as HTMLElement[];
+  }
+
+  function updateFocus(items: HTMLElement[]): void {
+    items.forEach((item: HTMLElement, index: number) => {
+      if (index === currentIndex) {
+        item.classList.add("keyboard-active");
+        item.scrollIntoView({ block: "nearest" });
+      } else {
+        item.classList.remove("keyboard-active");
+      }
+    });
+  }
+
+  function handleKeydown(e: KeyboardEvent): void {
+    if (backdrop?.classList.contains("hidden")) return;
+
+    const items = getResultItems();
+    if (items.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      currentIndex = (currentIndex + 1) % items.length;
+      updateFocus(items);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      currentIndex = (currentIndex - 1 + items.length) % items.length;
+      updateFocus(items);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (currentIndex >= 0 && items[currentIndex]) {
+        items[currentIndex].click();
+        closeSearch();
+      }
+    }
+  }
+
+  function openSearch(): void {
+    backdrop?.classList.remove("hidden");
+    backdrop?.classList.add("flex");
+    currentIndex = -1;
+    updateFocus(getResultItems());
+
+    setTimeout(() => {
+      backdrop?.classList.remove("opacity-0");
+      content?.classList.remove("opacity-0", "scale-95");
+      input?.focus();
+      document.body.style.overflow = "hidden";
+    }, 10);
+  }
+
+  function closeSearch(): void {
+    backdrop?.classList.add("opacity-0");
+    content?.classList.add("opacity-0", "scale-95");
+
+    setTimeout(() => {
+      backdrop?.classList.add("hidden");
+      backdrop?.classList.remove("flex");
+      document.body.style.overflow = "";
+      if (input) (input as HTMLInputElement).value = "";
+    }, 300);
+  }
+
+  triggerBtn?.addEventListener("click", openSearch);
+  closeBtn?.addEventListener("click", closeSearch);
+  backdrop?.addEventListener("click", (e: MouseEvent) => {
+    if (e.target === backdrop) closeSearch();
+  });
+
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "Escape" && !backdrop?.classList.contains("hidden")) {
+      closeSearch();
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+
+      if (backdrop?.classList.contains("hidden")) {
+        openSearch();
+      } else {
+        closeSearch();
+      }
+    }
+
+    handleKeydown(e);
+  });
+</script>
+
+<style>
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .group\/result.keyboard-active {
+    background-color: #ecfeff;
+    color: #0e7490;
+  }
+
+  .group\/result.keyboard-active svg:last-child {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .group\/result.keyboard-active .bg-gray-100 {
+    background-color: white;
+  }
+
+  .group\/result[data-color="emerald"].keyboard-active {
+    background-color: #ecfdf5;
+    color: #047857;
+  }
+</style>

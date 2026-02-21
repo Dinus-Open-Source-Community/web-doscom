@@ -3,45 +3,47 @@ import Icon from "../ui/Icon.astro";
 import SidebarItem from "./SidebarItem.astro";
 
 const menuGroups = [
+  // contoh struktur menu, bisa kamu sesuaikan dengan kebutuhanmu
+  // {
+  //   header: "DASHBOARD",
+  //   items: [
+  //     {
+  //       name: "Dashboard",
+  //       icon: "grid",
+  //       href: "#",
+  //       active: true,
+  //       submenu: [
+  //         { name: "Overview", href: "/admin/dashboard", icon: "chart" },
+  //         { name: "Analytics", href: "/admin/analytics", icon: "pie" },
+  //         { name: "Reports", href: "/admin/reports", icon: "doc" },
+  //       ],
+  //     },
+  //     { name: "Sales", icon: "dollar", href: "/admin/sales", active: false },
+  //   ],
+  // },
+
   {
-    header: "DASHBOARD",
+    header: "Main",
+    items: [{ name: "Dashboard", icon: "grid", href: "#", active: true }],
+  },
+  {
+    header: "Account",
     items: [
-      {
-        name: "Dashboard",
-        icon: "grid",
-        href: "#",
-        active: true,
-        submenu: [
-          { name: "Overview", href: "/admin/dashboard", icon: "chart" },
-          { name: "Analytics", href: "/admin/analytics", icon: "pie" },
-          { name: "Reports", href: "/admin/reports", icon: "doc" },
-        ],
-      },
-      { name: "Sales", icon: "dollar", href: "/admin/sales", active: false },
+      { name: "Super Admin", icon: "super-admin", href: "#", active: false },
+      { name: "BPH", icon: "admin", href: "#", active: false },
+      { name: "Core Team", icon: "core-team", href: "#", active: false },
     ],
   },
   {
-    header: "COMMUNICATION",
+    header: "Activity",
     items: [
-      { name: "Messages", icon: "chat", href: "/admin/messages", active: false },
-      {
-        name: "Team",
-        icon: "users",
-        href: "#",
-        active: false,
-        submenu: [
-          { name: "Members", href: "/admin/team/members", icon: "user" },
-          { name: "Permissions", href: "/admin/team/permissions", icon: "key" },
-        ],
-      },
+      { name: "Blog", icon: "blog", href: "#", active: false },
+      { name: "Gallery", icon: "gallery", href: "#", active: false },
     ],
   },
   {
-    header: "SETTINGS",
-    items: [
-      { name: "Access Control", icon: "lock", href: "/admin/access", active: false },
-      { name: "Settings", icon: "cog", href: "/admin/settings", active: false },
-    ],
+    header: "Control",
+    items: [{ name: "Profile", icon: "profile", href: "#", active: false }],
   },
 ];
 
