@@ -1,6 +1,18 @@
 ---
-import Icon from "../ui/Icon.astro";
 import SidebarItem from "./SidebarItem.astro";
+import {
+  Grid,
+  SuperAdmin,
+  Admin,
+  CoreTeam,
+  Blog,
+  Gallery,
+  Profile,
+  Help,
+  Logout,
+  Collapse,
+  Expand,
+} from "../../assets/icons";
 
 const menuGroups = [
   // contoh struktur menu, bisa kamu sesuaikan dengan kebutuhanmu
@@ -9,13 +21,13 @@ const menuGroups = [
   //   items: [
   //     {
   //       name: "Dashboard",
-  //       icon: "grid",
+  //       icon: Grid,
   //       href: "#",
   //       active: true,
   //       submenu: [
-  //         { name: "Overview", href: "/admin/dashboard", icon: "chart" },
-  //         { name: "Analytics", href: "/admin/analytics", icon: "pie" },
-  //         { name: "Reports", href: "/admin/reports", icon: "doc" },
+  //         { name: "Overview", href: "/admin/dashboard", icon: <replace with import svg(capitalize)> },
+  //         { name: "Analytics", href: "/admin/analytics", icon: <replace with import svg(capitalize)> },
+  //         { name: "Reports", href: "/admin/reports", icon: <replace with import svg(capitalize)> },
   //       ],
   //     },
   //     { name: "Sales", icon: "dollar", href: "/admin/sales", active: false },
@@ -24,32 +36,32 @@ const menuGroups = [
 
   {
     header: "Main",
-    items: [{ name: "Dashboard", icon: "grid", href: "#", active: true }],
+    items: [{ name: "Dashboard", icon: Grid, href: "#", active: true }],
   },
   {
     header: "Account",
     items: [
-      { name: "Super Admin", icon: "super-admin", href: "#", active: false },
-      { name: "BPH", icon: "admin", href: "#", active: false },
-      { name: "Core Team", icon: "core-team", href: "#", active: false },
+      { name: "Super Admin", icon: SuperAdmin, href: "#", active: false },
+      { name: "BPH", icon: Admin, href: "#", active: false },
+      { name: "Core Team", icon: CoreTeam, href: "#", active: false },
     ],
   },
   {
     header: "Activity",
     items: [
-      { name: "Blog", icon: "blog", href: "#", active: false },
-      { name: "Gallery", icon: "gallery", href: "#", active: false },
+      { name: "Blog", icon: Blog, href: "#", active: false },
+      { name: "Gallery", icon: Gallery, href: "#", active: false },
     ],
   },
   {
     header: "Control",
-    items: [{ name: "Profile", icon: "profile", href: "#", active: false }],
+    items: [{ name: "Profile", icon: Profile, href: "#", active: false }],
   },
 ];
 
 const bottomItems = [
-  { name: "Help", icon: "help", href: "/admin/help" },
-  { name: "Log out", icon: "logout", href: "/logout" },
+  { name: "Help", icon: Help, href: "/admin/help" },
+  { name: "Log out", icon: Logout, href: "/logout" },
 ];
 ---
 
@@ -77,24 +89,34 @@ const bottomItems = [
       id="toggle-sidebar"
       class="text-gray-500 hover:text-gray-700 focus:outline-none p-1 rounded-md transition-colors shrink-0"
     >
-      <span id="icon-collapse"><Icon name="collapse" class="w-[22px] h-[20px]" /></span>
-      <span id="icon-expand" class="hidden"><Icon name="expand" class="w-[22px] h-[20px]" /></span>
+      <span id="icon-collapse">
+        <span set:html={Collapse} class="[&>svg]:w-[22px] [&>svg]:h-[20px]" />
+      </span>
+      <span id="icon-expand" class="hidden"><span set:html={Expand} class="[&>svg]:w-[22px] [&>svg]:h-[20px]" /></span>
     </button>
   </div>
 
-  <div class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-4 space-y-6 scrollbar-hide">
-    {
-      menuGroups.map((group) => (
-        <div>
-          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 sidebar-header">{group.header}</p>
-          <ul class="space-y-1">
-            {group.items.map((item) => (
-              <SidebarItem item={item} />
-            ))}
-          </ul>
-        </div>
-      ))
-    }
+  <div class="flex-1 relative w-full">
+    <div
+      class="absolute top-0 bottom-0 left-0 -right-[250px] pr-[250px] overflow-y-auto overflow-x-hidden pointer-events-none no-scrollbar"
+    >
+      <div class="py-4 px-4 space-y-6 pointer-events-auto w-full min-h-full">
+        {
+          menuGroups.map((group) => (
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 sidebar-header">
+                {group.header}
+              </p>
+              <ul class="space-y-1">
+                {group.items.map((item) => (
+                  <SidebarItem item={item} />
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
   </div>
 
   <div class="p-4 border-t border-gray-100 space-y-1">
@@ -156,14 +178,13 @@ const bottomItems = [
 </script>
 
 <style is:global>
-  /* Saat Terbuka: Lebar transisi 0.3s, Opasitas di-delay dikit supaya masuknya belakangan */
   #sidebar .sidebar-text,
   #sidebar .brand-wrapper {
     white-space: nowrap;
     overflow: hidden;
     opacity: 1;
     width: 100%;
-    margin-left: 0.75rem;
+    margin-left: 0.5rem;
     transition:
       width 0.3s ease-in-out,
       margin-left 0.3s ease-in-out,
@@ -199,8 +220,6 @@ const bottomItems = [
   }
 
   /* --- MODE TERTUTUP (COLLAPSED) --- */
-
-  /* Saat Ditutup: Opasitas menghilang SANGAT CEPAT (0.1s) tanpa delay, biar teksnya gak kelihatan kegencet */
   #sidebar[data-collapsed="true"] .sidebar-text,
   #sidebar[data-collapsed="true"] .brand-wrapper,
   #sidebar[data-collapsed="true"] .submenu-arrow {
