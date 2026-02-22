@@ -1,25 +1,32 @@
 ---
-import { Search } from "../../../assets/icons";
+import { Search } from '../../../assets/icons'
 ---
 
-<button id="trigger-search-modal" class="relative w-80 group text-left focus:outline-none shrink-0">
-  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+<button
+  id="trigger-search-modal"
+  class="group relative w-80 shrink-0 text-left focus:outline-none"
+>
+  <div
+    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5"
+  >
     <span
-      class="w-4 h-4 text-gray-400 group-hover:text-cyan-500 transition-colors [&>svg]:w-full [&>svg]:h-full"
+      class="h-4 w-4 text-gray-400 transition-colors group-hover:text-cyan-500 [&>svg]:h-full [&>svg]:w-full"
       set:html={Search}
     />
   </div>
 
   <div
-    class="block w-full pl-10 pr-12 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-400 group-hover:border-cyan-400 group-hover:ring-4 group-hover:ring-cyan-500/10 transition-all duration-300 shadow-sm"
+    class="block w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-12 pl-10 text-sm text-gray-400 shadow-sm transition-all duration-300 group-hover:border-cyan-400 group-hover:ring-4 group-hover:ring-cyan-500/10"
   >
     Quick search...
   </div>
 
-  <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+  <div
+    class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3"
+  >
     <span
       id="os-shortcut-key"
-      class="text-[10px] font-bold text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-gray-50 uppercase tracking-widest group-hover:border-cyan-200 group-hover:text-cyan-500 transition-colors"
+      class="rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-bold tracking-widest text-gray-400 uppercase transition-colors group-hover:border-cyan-200 group-hover:text-cyan-500"
     >
       Ctrl K
     </span>
