@@ -123,8 +123,14 @@ import { Grid, Search, Gear, ChevronRight } from "../../../assets/icons";
   const content = document.getElementById("search-modal-content");
   const closeBtn = document.getElementById("close-search-modal");
   const input = document.getElementById("search-modal-input");
+  const shortcutSpan = document.getElementById("os-shortcut-key");
+  const isMac = typeof window !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
 
   let currentIndex: number = -1;
+
+  if (isMac && shortcutSpan) {
+    shortcutSpan.textContent = "⌘ K";
+  }
 
   function getResultItems(): HTMLElement[] {
     return Array.from(document.querySelectorAll("#search-modal-content a.group\\/result")) as HTMLElement[];
