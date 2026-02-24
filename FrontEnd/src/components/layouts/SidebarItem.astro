@@ -1,45 +1,58 @@
 ---
-import Icon from "../ui/Icon.astro";
+import { ChevronDown } from '../../assets/icons'
 
 interface Props {
-  item: any;
+  item: any
 }
 
-const { item } = Astro.props;
+const { item } = Astro.props
 ---
 
-<li class="relative group/item">
+<li class="group/item relative">
   {
     item.submenu ? (
       <div class="menu-item-with-submenu">
         <button
           class:list={[
-            "w-full flex items-center px-2 py-2.5 rounded-lg transition-colors duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 cursor-pointer submenu-toggle",
-            item.active ? "bg-blue-50 text-blue-600" : "",
+            'submenu-toggle flex w-full cursor-pointer items-center rounded-lg px-2 py-2.5 transition-colors duration-200',
+            item.active
+              ? 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100/70'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
           ]}
         >
-          <span class="w-8 flex justify-center shrink-0">
-            <Icon name={item.icon} />
+          <span class="flex w-8 shrink-0 justify-center">
+            <span class="[&>svg]:h-full [&>svg]:w-full" set:html={item.icon} />
           </span>
-          <span class="sidebar-text grow text-left font-semibold text-sm">{item.name}</span>
-          <Icon name="chevron-down" class="w-4 h-4 transition-transform duration-300 submenu-arrow shrink-0" />
+          <span class="sidebar-text grow text-left text-sm font-semibold">
+            {item.name}
+          </span>
+
+          <span
+            set:html={ChevronDown}
+            class="submenu-arrow shrink-0 transition-transform duration-300 [&>svg]:h-4 [&>svg]:w-4"
+          />
         </button>
 
         <div class="submenu-wrapper grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out">
           <div class="overflow-hidden">
-            <ul class="submenu-list space-y-1 mt-1">
+            <ul class="submenu-list mt-1 space-y-1">
               {item.submenu.map((subitem: any) => (
                 <li>
                   <a
                     href={subitem.href}
-                    class="w-full flex items-center px-2 py-2 text-sm text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-50 transition-colors group/subitem relative"
+                    class="group/subitem relative flex w-full items-center rounded-lg px-2 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900"
                   >
-                    <span class="w-8 flex justify-center shrink-0 opacity-70">
-                      <Icon name={subitem.icon} class="w-4 h-4 " />
+                    <span class="flex w-8 shrink-0 justify-center opacity-70">
+                      <span
+                        class="[&>svg]:h-full [&>svg]:w-full"
+                        set:html={subitem.icon}
+                      />
                     </span>
-                    <span class="sidebar-text grow text-left font-semibold text-sm">{subitem.name}</span>
+                    <span class="sidebar-text grow text-left text-sm font-semibold">
+                      {subitem.name}
+                    </span>
 
-                    <div class="simple-tooltip absolute left-full ml-4 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover/subitem:opacity-100 group-hover/subitem:visible transition-all duration-200 z-50 pointer-events-none">
+                    <div class="simple-tooltip pointer-events-none invisible absolute left-full z-50 ml-4 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-all duration-200 group-hover/subitem:visible group-hover/subitem:opacity-100">
                       {subitem.name}
                     </div>
                   </a>
@@ -53,17 +66,25 @@ const { item } = Astro.props;
       <a
         href={item.href}
         class:list={[
-          "w-full flex items-center px-2 py-2.5 rounded-lg transition-colors duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-          item.active ? "bg-blue-50 text-blue-600" : "",
+          'flex w-full items-center rounded-lg px-2 py-2.5 transition-colors duration-200',
+          item.active
+            ? 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100/70'
+            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
         ]}
       >
-        <span class="w-8 flex justify-center shrink-0">
-          <Icon name={item.icon} />
+        <span class="flex w-8 shrink-0 justify-center">
+          <span class="[&>svg]:h-4 [&>svg]:w-4" set:html={item.icon} />
         </span>
-        <span class="sidebar-text grow text-left font-semibold text-sm">{item.name}</span>
-
-        <div class="simple-tooltip absolute left-full ml-4 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover/item:opacity-100 group-hover/item:visible transition-all duration-200 z-50 pointer-events-none">
+        <span class="sidebar-text grow text-left text-sm font-semibold">
           {item.name}
+        </span>
+
+        <div class="simple-tooltip pointer-events-none invisible absolute left-full z-50 ml-3 -translate-x-2 opacity-0 transition-all duration-300 ease-out group-hover/item:visible group-hover/item:translate-x-0 group-hover/item:opacity-100">
+          <div class="relative rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white shadow-lg">
+            <div class="absolute top-1/2 -left-1 -z-10 h-2 w-2 -translate-y-1/2 rotate-45 bg-gray-900" />
+
+            <span class="relative z-10">{item.name}</span>
+          </div>
         </div>
       </a>
     )
