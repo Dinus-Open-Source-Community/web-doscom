@@ -1,0 +1,61 @@
+---
+import HeaderDivision from '../../components/pages/division/HeaderDivision.astro';
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import Section1 from '../../components/pages/division/slug/Section1.astro';
+import Section2 from '../../components/pages/division/slug/Section2.astro';
+
+export async function getStaticPaths() {
+  const mockDivisions = [
+    { 
+      slug: 'bph', 
+      name: 'Division Badan Pengurus Harian', 
+      description: 'Manajemen organisasi dan koordinasi antar divisi.' 
+    },
+    { 
+      slug: 'pm', 
+      name: 'Division Projek Manager', 
+      description: 'Sistem manajemen proyek dan koordinasi tim.' 
+    },
+    { 
+      slug: 'pemro', 
+      name: 'Division Pemrograman', 
+      description: 'Pengembangan perangkat lunak dan pemrograman.' 
+    },
+    { 
+      slug: 'jaringan', 
+      name: 'Division Jaringan', 
+      description: 'Manajemen jaringan dan infrastruktur komputer.' 
+    },
+    { 
+      slug: 'data', 
+      name: 'Division Data', 
+      description: 'Pengumpulan, pengolahan, dan analisis data.' 
+    },
+    { 
+      slug: 'crevmed', 
+      name: 'Division Creative Media', 
+      description: 'tim yang bertanggung jawab untuk menghasilkan konten-konten kreatif dan menarik secara visual maupun audio untuk berbagai platform, seperti media sosial, website, dan media lainnya.' 
+    },
+  ];
+
+  return mockDivisions.map((div) => ({
+    params: { slug: div.slug },
+    props: { divisionData: div },
+  }));
+}
+
+
+const { divisionData } = Astro.props;
+---
+
+<PublicLayout title={divisionData.name}>
+  <section class="bg-white">
+     <HeaderDivision
+      title={divisionData.name}
+      description={divisionData.description}
+      backgroundImage="/assets/photos/header-division.jpg"
+    />
+    <Section1/>
+    <Section2/>
+  </section>
+</PublicLayout>

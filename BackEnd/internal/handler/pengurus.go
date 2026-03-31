@@ -11,6 +11,11 @@ import (
 )
 
 type PengurusHandler struct {
+<<<<<<< HEAD
+=======
+	// Model          *model.PengurusModel
+	// GalleryService *service.GalleryService
+>>>>>>> master
 	Service        *service.PengurusService
 	StorageService *service.StorageService
 }
@@ -19,6 +24,20 @@ func NewPengurusHandler(pengurusService *service.PengurusService, storageService
 	return &PengurusHandler{
 		Service:        pengurusService,
 		StorageService: storageService,
+<<<<<<< HEAD
+=======
+	}
+}
+
+// set position by role
+func (PengurusHandler) SetPositionByrole(position string) (string, error) {
+	// set Divisi
+	var validPosition string
+	if model.ValidPosition[position] {
+		validPosition = position
+	} else {
+		return "", fmt.Errorf("Role not valid, koe sopo cok")
+>>>>>>> master
 	}
 }
 
@@ -65,6 +84,7 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	}
 
 	file, err := fileHeader.Open()
+<<<<<<< HEAD
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to open file",
@@ -92,9 +112,100 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
 			"message": "Failed to create data pengurus, server error",
+=======
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to open file",
 		})
+		return
+	}
+	defer file.Close()
+
+	// Upload to MinIO with pengurus category
+	fileURL, err := h.StorageService.UploadFile(
+		c.Request.Context(),
+		file,
+		fileHeader,
+		"pengurus",
+		uint(user_ID),
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to upload file: " + err.Error(),
+		})
+		return
 	}
 
+	// Auto-assign position for kor and anggota
+	position, err := h.SetPositionByrole(input.Position)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+>>>>>>> master
+		})
+		return
+	}
+
+<<<<<<< HEAD
+=======
+	// check user_id
+	switch {
+	case strings.HasPrefix(user_role, "_ang"):
+		input.UserID = user_ID
+		input.Email = email_user
+	case strings.HasPrefix(user_role, "Kor_"), strings.HasPrefix(user_role, "BPH"):
+		if input.UserID == 0 && input.Email == "" {
+			input.UserID = user_ID
+			input.Email = email_user
+		}
+	case strings.HasPrefix(user_role, "Super_Admin"):
+		if input.UserID == 0 && input.Email == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "User_id & Email must be given",
+			})
+			return
+		}
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user_id",
+		})
+		return
+	}
+
+	// Handle sosmed field - database constraint requires specific values
+	sosmedValue := input.Sosmed
+	if sosmedValue == "" {
+		sosmedValue = "instagram" // Default value to satisfy database constraint
+	}
+
+	pengurus := &model.Pengurus{
+		UserID:   input.UserID,
+		URLAsset: fileURL,
+		Email:    input.Email,
+		Divisi:   input.Divisi,
+		Name:     input.Name,
+		Position: position,
+		Sosmed:   sosmedValue,
+		Period:   input.Period,
+	}
+
+	if err := h.Service.PengurusModel.InsertPengurus(pengurus); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp := model.PengurusResponse{
+		ID:       pengurus.ID,
+		URLAsset: pengurus.URLAsset,
+		Email:    pengurus.Email,
+		Divisi:   pengurus.Divisi,
+		Name:     pengurus.Name,
+		Position: pengurus.Position,
+		Sosmed:   pengurus.Sosmed,
+		Period:   pengurus.Period,
+	}
+
+>>>>>>> master
 	c.JSON(http.StatusCreated, gin.H{
 		"message":  "Pengurus created successfully",
 		"pengurus": pengurusDataResponse,
@@ -169,7 +280,11 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 	for _, p := range pengurusList {
 		respList = append(respList, model.PengurusResponse{
 			ID:       p.ID,
+<<<<<<< HEAD
 			PhotoURL: p.PhotoURL,
+=======
+			URLAsset: p.URLAsset,
+>>>>>>> master
 			Email:    "",
 			Divisi:   p.Divisi,
 			Name:     p.Name,

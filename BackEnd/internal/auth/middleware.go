@@ -89,7 +89,11 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		// If no Authorization header, try to get token from cookie
 		if tokenString == "" {
 			var err error
+<<<<<<< HEAD
 			tokenString, err = c.Cookie("RefreshToken")
+=======
+			tokenString, err = c.Cookie("AccessToken")
+>>>>>>> master
 			if err != nil {
 				c.JSON(http.StatusUnauthorized, gin.H{
 					"error": "Authentication required. Please provide a valid token in Authorization header or cookie",

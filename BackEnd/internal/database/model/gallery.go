@@ -41,6 +41,7 @@ type CreateGallery struct {
 }
 
 type GalleryResponse struct {
+<<<<<<< HEAD
 	ID           int       `json:"id"`
 	IDUsers      int       `json:"id_users"`
 	FileUploadID int       `json:"file_upload_id"`
@@ -49,6 +50,16 @@ type GalleryResponse struct {
 	Description  string    `json:"description"`
 	EventDate    time.Time `json:"event_date"`
 	FileURL      string    `json:"file_url"`
+=======
+	ID          int    `json:"id"`
+	GalleryName string `json:"gallery_name"`
+	GalleryType string `json:"gallery_type"`
+	Description string `json:"description"`
+	EventDate   string `json:"event_date"`
+	FileSize    int64  `json:"file_size"`
+	MimeType    string `json:"mime_type"`
+	AssetUrl    string `json:"asset_url"`
+>>>>>>> master
 }
 
 func (Gallery) TableName() string {

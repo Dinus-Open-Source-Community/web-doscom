@@ -1,10 +1,13 @@
 package service
 
 import (
+<<<<<<< HEAD
 	"context"
 	"fmt"
 	"mime/multipart"
 	"time"
+=======
+>>>>>>> master
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/utils"
 
@@ -13,6 +16,7 @@ import (
 )
 
 type BlogService struct {
+<<<<<<< HEAD
 	DB           *gorm.DB
 	BlogModel    *model.BlogModel
 	BlogGallery  *model.BlogGalleryModel
@@ -403,4 +407,11 @@ func (m *BlogService) DeleteBlogByID(
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return nil
+=======
+	Model *model.BlogModel
+}
+
+func NewBlogService(m *model.BlogModel) *BlogService {
+	return &BlogService{Model: m}
+>>>>>>> master
 }

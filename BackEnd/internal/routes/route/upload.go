@@ -13,9 +13,17 @@ func RegisterUploadRoutes(rg *gin.RouterGroup, storageHandler *handler.StorageHa
 	upload.Use(auth.AuthMiddleware()) // Protect all upload endpoints with JWT authentication
 	{
 		// Upload image endpoint
+<<<<<<< HEAD
 		// upload.POST("/image", storageHandler.UploadImage)
 		// Delete file endpoint
 		upload.DELETE("/file", storageHandler.DeleteFile)
+=======
+		upload.POST("/image", storageHandler.UploadImage)
+
+		// Delete file endpoint
+		upload.DELETE("/file", storageHandler.DeleteFile)
+
+>>>>>>> master
 		// List files endpoint
 		upload.GET("/files", storageHandler.ListFiles)
 	}

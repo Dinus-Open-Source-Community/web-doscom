@@ -7,6 +7,7 @@ import (
 )
 
 type Models struct {
+<<<<<<< HEAD
 	Users        model.UserModel
 	Works        model.WorkModel
 	Blogs        model.BlogModel
@@ -15,6 +16,14 @@ type Models struct {
 	Pengurus     model.PengurusModel
 	FileUploads  model.FileUploadModel
 	RefreshToken model.RefreshTokenModel
+=======
+	Users       model.UserModel
+	Works       model.WorkModel
+	Blogs       model.BlogModel
+	Gallery     model.GalleryModel
+	Pengurus    model.PengurusModel
+	FileUploads model.FileUploadModel
+>>>>>>> master
 }
 
 func NewModel(db *gorm.DB) Models {
@@ -26,8 +35,11 @@ func NewModel(db *gorm.DB) Models {
 		Gallery:     model.GalleryModel{DB: db},
 		Pengurus:    model.PengurusModel{DB: db},
 		FileUploads: model.FileUploadModel{DB: db},
+<<<<<<< HEAD
 		RefreshToken: model.RefreshTokenModel{
 			DB: db,
 		},
+=======
+>>>>>>> master
 	}
 }

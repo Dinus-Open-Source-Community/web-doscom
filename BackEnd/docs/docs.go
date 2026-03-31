@@ -36,7 +36,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/web_doscom_internal_database_model.UserResponse"
+                                "$ref": "#/definitions/model.UserResponse"
                             }
                         }
                     },
@@ -75,7 +75,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.RegisterRequest"
+                            "$ref": "#/definitions/model.RegisterRequest"
                         }
                     }
                 ],
@@ -135,7 +135,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.RegisterRequest"
+                            "$ref": "#/definitions/model.RegisterRequest"
                         }
                     }
                 ],
@@ -205,7 +205,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.UserResponse"
+                            "$ref": "#/definitions/model.UserResponse"
                         }
                     },
                     "400": {
@@ -259,7 +259,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.UserPatch"
+                            "$ref": "#/definitions/model.UserPatch"
                         }
                     }
                 ],
@@ -267,7 +267,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.UserResponse"
+                            "$ref": "#/definitions/model.UserResponse"
                         }
                     },
                     "400": {
@@ -312,7 +312,72 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
+<<<<<<< HEAD
                                 "$ref": "#/definitions/web_doscom_internal_database_model.Blog"
+=======
+                                "$ref": "#/definitions/model.Blog"
+>>>>>>> master
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+<<<<<<< HEAD
+            }
+        },
+        "/api/v1/blogs/": {
+=======
+            },
+>>>>>>> master
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new blog post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Create new blog",
+                "parameters": [
+                    {
+                        "description": "Blog data",
+                        "name": "blog",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.RegisterBlog"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.Blog"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     },
@@ -328,86 +393,81 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/blogs/": {
-            "post": {
+        "/api/v1/blogs/kategori/{kategori}": {
+            "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "BearerAuth": []
                     }
                 ],
-                "description": "Create blog dengan upload gambar baru dan/atau memilih gambar yang sudah ada",
-                "consumes": [
-                    "multipart/form-data"
-                ],
+                "description": "Get all blogs specific to a category",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Blog"
                 ],
-                "summary": "Create a new blog",
+                "summary": "List blogs by category",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Judul Blog",
-                        "name": "title",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Slug Blog",
-                        "name": "slug",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Konten Blog",
-                        "name": "content",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Kategori Blog",
+                        "description": "Category name",
                         "name": "kategori",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Tanggal publish (format RFC3339)",
-                        "name": "published_at",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Status publish",
-                        "name": "is_published",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "ID Work",
-                        "name": "id_work",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "ID Pengurus",
-                        "name": "id_pengurus",
-                        "in": "formData",
+                        "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Blog created successfully",
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Blog"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/blogs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed information of a blog",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Get blog by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Blog ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Blog"
                         }
                     },
                     "400": {
@@ -419,8 +479,114 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update existing blog post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Update blog",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Blog ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update data",
+                        "name": "blog",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.BlogPatch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Blog"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a blog post",
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Delete blog",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Blog ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -628,7 +794,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Gallery type (fun, proker, achievment, work, activity, blog, pengurus, etc)",
+                        "description": "Gallery type (misal: event, pengurus, dokumentasi)",
                         "name": "type",
                         "in": "query",
                         "required": true
@@ -729,7 +895,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successfully uploaded to MinIO",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.GalleryResponse"
+                            "$ref": "#/definitions/model.GalleryResponse"
                         }
                     },
                     "400": {
@@ -835,7 +1001,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/web_doscom_internal_database_model.UserResponse"
+                                "$ref": "#/definitions/model.UserResponse"
                             }
                         }
                     },
@@ -874,7 +1040,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.RegisterRequest"
+                            "$ref": "#/definitions/model.RegisterRequest"
                         }
                     }
                 ],
@@ -937,7 +1103,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.UserResponse"
+                            "$ref": "#/definitions/model.UserResponse"
                         }
                     },
                     "400": {
@@ -991,7 +1157,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.UserPatch"
+                            "$ref": "#/definitions/model.UserPatch"
                         }
                     }
                 ],
@@ -999,7 +1165,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.UserResponse"
+                            "$ref": "#/definitions/model.UserResponse"
                         }
                     },
                     "400": {
@@ -1043,7 +1209,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.LoginRequest"
+                            "$ref": "#/definitions/model.LoginRequest"
                         }
                     }
                 ],
@@ -1166,7 +1332,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+                            "$ref": "#/definitions/model.PengurusResponse"
                         }
                     },
                     "500": {
@@ -1256,7 +1422,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+                            "$ref": "#/definitions/model.PengurusResponse"
                         }
                     },
                     "400": {
@@ -1311,7 +1477,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+                            "$ref": "#/definitions/model.PengurusResponse"
                         }
                     },
                     "400": {
@@ -1374,7 +1540,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.PengurusPatch"
+                            "$ref": "#/definitions/model.PengurusPatch"
                         }
                     }
                 ],
@@ -1382,7 +1548,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+                            "$ref": "#/definitions/model.PengurusResponse"
                         }
                     },
                     "400": {
@@ -1435,7 +1601,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+                            "$ref": "#/definitions/model.PengurusResponse"
                         }
                     },
                     "400": {
@@ -1490,7 +1656,11 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+<<<<<<< HEAD
                             "$ref": "#/definitions/internal_handler.DeleteFileRequest"
+=======
+                            "$ref": "#/definitions/handler.DeleteFileRequest"
+>>>>>>> master
                         }
                     },
                     {
@@ -1596,7 +1766,11 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
+<<<<<<< HEAD
                             "$ref": "#/definitions/internal_handler.ListFilesResponse"
+=======
+                            "$ref": "#/definitions/handler.ListFilesResponse"
+>>>>>>> master
                         }
                     },
                     "401": {
@@ -1711,6 +1885,7 @@ const docTemplate = `{
                     }
                 }
             }
+<<<<<<< HEAD
         },
         "/auth/refresh": {
             "post": {
@@ -1744,6 +1919,12 @@ const docTemplate = `{
     },
     "definitions": {
         "internal_handler.DeleteFileRequest": {
+=======
+        }
+    },
+    "definitions": {
+        "handler.DeleteFileRequest": {
+>>>>>>> master
             "type": "object",
             "required": [
                 "file_name"
@@ -1754,7 +1935,11 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
         "internal_handler.DeleteFileResponse": {
+=======
+        "handler.DeleteFileResponse": {
+>>>>>>> master
             "type": "object",
             "properties": {
                 "message": {
@@ -1765,7 +1950,11 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
         "internal_handler.ListFilesResponse": {
+=======
+        "handler.ListFilesResponse": {
+>>>>>>> master
             "type": "object",
             "properties": {
                 "count": {
@@ -1785,7 +1974,11 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
         "internal_handler.UploadImageResponse": {
+=======
+        "handler.UploadImageResponse": {
+>>>>>>> master
             "type": "object",
             "properties": {
                 "file_name": {
@@ -1802,6 +1995,7 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
         "multipart.FileHeader": {
             "type": "object",
             "properties": {
@@ -1827,6 +2021,9 @@ const docTemplate = `{
             }
         },
         "web_doscom_internal_database_model.Blog": {
+=======
+        "model.Blog": {
+>>>>>>> master
             "type": "object",
             "properties": {
                 "content": {
@@ -1838,6 +2035,15 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+<<<<<<< HEAD
+=======
+                "id_activity": {
+                    "type": "integer"
+                },
+                "id_asset": {
+                    "type": "integer"
+                },
+>>>>>>> master
                 "id_pengurus": {
                     "type": "integer"
                 },
@@ -1865,7 +2071,11 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
         "web_doscom_internal_database_model.BlogPatch": {
+=======
+        "model.BlogPatch": {
+>>>>>>> master
             "type": "object",
             "properties": {
                 "content": {
@@ -1900,7 +2110,11 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
         "web_doscom_internal_database_model.GalleryResponse": {
+=======
+        "model.GalleryResponse": {
+>>>>>>> master
             "type": "object",
             "properties": {
                 "description": {
@@ -1926,7 +2140,7 @@ const docTemplate = `{
                 }
             }
         },
-        "web_doscom_internal_database_model.LoginRequest": {
+        "model.LoginRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -1941,7 +2155,7 @@ const docTemplate = `{
                 }
             }
         },
-        "web_doscom_internal_database_model.PengurusPatch": {
+        "model.PengurusPatch": {
             "type": "object",
             "properties": {
                 "divisi": {
@@ -1966,7 +2180,7 @@ const docTemplate = `{
                 }
             }
         },
-        "web_doscom_internal_database_model.PengurusResponse": {
+        "model.PengurusResponse": {
             "type": "object",
             "properties": {
                 "divisi": {
@@ -2021,7 +2235,54 @@ const docTemplate = `{
                 }
             }
         },
-        "web_doscom_internal_database_model.RegisterRequest": {
+        "model.RegisterBlog": {
+            "type": "object",
+            "required": [
+                "content",
+                "id_activity",
+                "id_asset",
+                "id_pengurus",
+                "id_work",
+                "is_published",
+                "kategori",
+                "published_at",
+                "slug",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "id_activity": {
+                    "type": "integer"
+                },
+                "id_asset": {
+                    "type": "integer"
+                },
+                "id_pengurus": {
+                    "type": "integer"
+                },
+                "id_work": {
+                    "type": "integer"
+                },
+                "is_published": {
+                    "type": "boolean"
+                },
+                "kategori": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.RegisterRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -2045,7 +2306,7 @@ const docTemplate = `{
                 }
             }
         },
-        "web_doscom_internal_database_model.UserPatch": {
+        "model.UserPatch": {
             "type": "object",
             "properties": {
                 "email": {
@@ -2059,7 +2320,7 @@ const docTemplate = `{
                 }
             }
         },
-        "web_doscom_internal_database_model.UserResponse": {
+        "model.UserResponse": {
             "type": "object",
             "properties": {
                 "email": {

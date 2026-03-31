@@ -30,6 +30,7 @@ type BlogModel struct {
 
 // Blog represents a blog post
 type Blog struct {
+<<<<<<< HEAD
 	ID           int            `gorm:"primaryKey" json:"id"`
 	AuthorID     int            `json:"author_id"`
 	Title        string         `json:"title"`
@@ -52,10 +53,26 @@ type RequestBlog struct {
 	ThumbnailURL string     `json:"thumbnail_url"`
 	PublishedAt  *time.Time `json:"published_at"`
 	Status       string     `json:"status" default:"draft"`
+=======
+	ID          int       `gorm:"primaryKey" json:"id"`
+	GalleryID   int       `json:"id_asset"`
+	WorkID      int       `json:"id_work"`
+	ActivityID  int       `json:"id_activity"`
+	PengurusID  int       `json:"id_pengurus"`
+	Kategori    string    `json:"kategori"`
+	Title       string    `json:"title"`
+	Slug        string    `json:"slug" gorm:"unique"`
+	Content     string    `json:"content"`
+	PublishedAt time.Time `json:"published_at"`
+	IsPublished bool      `json:"is_published" default:"FALSE"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+>>>>>>> master
 }
 
 // RegisterBlog is used for creating a new blog
 type RegisterBlog struct {
+<<<<<<< HEAD
 	ExistingID  []int      `form:"existingID_image"`
 	Title       string     `form:"title" binding:"required"`
 	Slug        string     `form:"slug" binding:"required"`
@@ -63,6 +80,18 @@ type RegisterBlog struct {
 	Kategori    []string   `form:"kategori" binding:"required,kategori"`
 	PublishedAt *time.Time `form:"published_at"`
 	Status      string     `form:"status" default:"draft"`
+=======
+	Title       string    `json:"title" binding:"required"`
+	GalleryID   int       `json:"id_asset" binding:"required"`
+	Slug        string    `json:"slug" binding:"required"`
+	Content     string    `json:"content" binding:"required"`
+	Kategori    string    `json:"kategori" binding:"required,kategori"`
+	PublishedAt time.Time `json:"published_at" binding:"required"`
+	IsPublished bool      `json:"is_published" binding:"required"`
+	WorkID      int       `json:"id_work" binding:"required"`
+	ActivityID  int       `json:"id_activity" binding:"required"`
+	PengurusID  int       `json:"id_pengurus" binding:"required"`
+>>>>>>> master
 }
 
 // BlogPatch is used for updating a blog
@@ -218,8 +247,26 @@ func (m *BlogModel) UpdateBlogPartial(id int, data map[string]any) (*Blog, error
 		Error; err != nil {
 		return nil, err
 	}
+<<<<<<< HEAD
 
 	return &updateBlog, nil
+=======
+	blog.Title = pathValue(input.Title, blog.Title)
+	blog.Content = pathValue(input.Content, blog.Content)
+	blog.Slug = pathValue(input.Slug, blog.Slug)
+	blog.GalleryID = pathValue(input.GalleryID, blog.GalleryID)
+	blog.WorkID = pathValue(input.WorkID, blog.WorkID)
+	blog.ActivityID = pathValue(input.ActivityID, blog.ActivityID)
+	blog.PengurusID = pathValue(input.PengurusID, blog.PengurusID)
+	blog.Kategori = pathValue(input.Kategori, blog.Kategori)
+	blog.PublishedAt = pathValue(input.PublishedAt, blog.PublishedAt)
+	blog.IsPublished = pathValue(input.IsPublished, blog.IsPublished)
+	blog.UpdatedAt = time.Now()
+	if err := m.DB.Save(&blog).Error; err != nil {
+		return nil, err
+	}
+	return &blog, nil
+>>>>>>> master
 }
 
 // DeleteBlog deletes a blog record by ID
@@ -231,6 +278,7 @@ func (m *BlogModel) DeleteBlog(ctx context.Context, tx *gorm.DB, id int) error {
 }
 
 // GetBlogsByKategori returns all blogs by kategori
+<<<<<<< HEAD
 func (m *BlogModel) GetBlogsByKategori(ctx context.Context, kategori []string, limit, offset int) ([]BlogThumbnail, int, error) {
 	var blogs []BlogThumbnail
 
@@ -252,4 +300,12 @@ func (m *BlogModel) GetBlogsByKategori(ctx context.Context, kategori []string, l
 	}
 
 	return blogs, int(totalData), nil
+=======
+func (m *BlogModel) GetBlogsByKategori(kategori string) ([]Blog, error) {
+	var blogs []Blog
+	if err := m.DB.Where("kategori = ?", kategori).Order("created_at DESC").Find(&blogs).Error; err != nil {
+		return nil, err
+	}
+	return blogs, nil
+>>>>>>> master
 }

@@ -1,12 +1,18 @@
 package model
 
 import (
+<<<<<<< HEAD
 	"context"
 	"mime/multipart"
 	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+=======
+	"time"
+
+	"gorm.io/gorm"
+>>>>>>> master
 )
 
 type FileUpload struct {
@@ -22,6 +28,7 @@ type FileUpload struct {
 	UpdatedAt        time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
+<<<<<<< HEAD
 type FileUploadResponse struct {
 	ID               uint   `json:"id"`
 	UserID           uint   `json:"user_id"`
@@ -40,11 +47,14 @@ type UploadFileRequest struct {
 	UserID     uint
 }
 
+=======
+>>>>>>> master
 type FileUploadModel struct {
 	DB *gorm.DB
 }
 
 // Create saves a new file upload record
+<<<<<<< HEAD
 func (m *FileUploadModel) CreateMetaData(fileUpload *FileUpload) (*FileUploadResponse, error) {
 	if err := m.DB.Create(fileUpload).Error; err != nil {
 		return nil, err
@@ -82,6 +92,10 @@ func (m *FileUploadModel) CreateMetaDataMultiple(ctx context.Context, fileUpload
 	}
 
 	return response, nil
+=======
+func (m *FileUploadModel) Create(fileUpload *FileUpload) error {
+	return m.DB.Create(fileUpload).Error
+>>>>>>> master
 }
 
 // GetByID retrieves a file upload by ID
@@ -115,6 +129,7 @@ func (m *FileUploadModel) GetByUserAndCategory(userID uint, category string) ([]
 	return fileUploads, err
 }
 
+<<<<<<< HEAD
 func (m *FileUploadModel) UpdateFileUploadPartial(oldFileUrl string, data map[string]any) error {
 	return m.DB.
 		Model(&FileUpload{}).
@@ -147,6 +162,8 @@ func (m *FileUploadModel) UpdateFileUpload(userID int, fileUpload *FileUpload) (
 	return &updatedMetadata, nil
 }
 
+=======
+>>>>>>> master
 // Delete removes a file upload record
 func (m *FileUploadModel) Delete(id uint) error {
 	return m.DB.Where("id = ?", id).Delete(&FileUpload{}).Error

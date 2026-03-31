@@ -1,0 +1,277 @@
+---
+import { Grid, Search, Gear, ChevronRight } from '../../../assets/icons'
+---
+
+<div
+  id="search-modal-backdrop"
+  class="fixed inset-0 z-[100] hidden items-start justify-center bg-gray-900/40 px-4 pt-[15vh] opacity-0 backdrop-blur-sm transition-opacity duration-300"
+>
+  <div
+    id="search-modal-content"
+    class="flex w-full max-w-2xl scale-95 transform flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white opacity-0 shadow-2xl transition-all duration-300"
+  >
+    <div
+      class="relative flex items-center border-b border-gray-100 bg-gray-50/50 px-4 py-4"
+    >
+      <span class="h-5 w-5 shrink-0 text-cyan-600" set:html={Search} />
+
+      <input
+        id="search-modal-input"
+        type="text"
+        placeholder="Search for pages, articles, users..."
+        class="w-full border-none bg-transparent pr-14 pl-4 text-lg text-gray-800 placeholder-gray-400 focus:ring-0 focus:outline-none"
+        autocomplete="off"
+      />
+
+      <button
+        id="close-search-modal"
+        class="absolute right-4 rounded border border-gray-200 bg-white px-2 py-1 text-[10px] font-bold tracking-wider text-gray-500 uppercase transition-colors hover:bg-gray-100 hover:text-red-500"
+      >
+        ESC
+      </button>
+    </div>
+
+    <div class="scrollbar-hide max-h-[60vh] space-y-4 overflow-y-auto p-2">
+      <div class="pt-2">
+        <p
+          class="mb-2 px-3 text-[11px] font-bold tracking-wider text-gray-400 uppercase"
+        >
+          Pages & Navigation
+        </p>
+        <ul class="space-y-1">
+          <li>
+            <a
+              href="#"
+              class="group/result flex items-center justify-between rounded-xl px-3 py-3 text-gray-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="rounded-lg bg-gray-100 p-2 transition-colors group-hover/result:bg-white"
+                >
+                  <span class="[&>svg]:h-4 [&>svg]:w-4" set:html={Grid} />
+                </div>
+                <span class="text-sm font-medium">Dashboard Admin</span>
+              </div>
+              <span
+                class="h-4 w-4 -translate-x-2 opacity-0 transition-all duration-300 group-hover/result:translate-x-0 group-hover/result:opacity-100 [&>svg]:h-full [&>svg]:w-full"
+                set:html={ChevronRight}
+              />
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              class="group/result flex items-center justify-between rounded-xl px-3 py-3 text-gray-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="rounded-lg bg-gray-100 p-2 transition-colors group-hover/result:bg-white"
+                >
+                  <span class="[&>svg]:h-4 [&>svg]:w-4" set:html={Gear} />
+                </div>
+                <span class="text-sm font-medium">Website Settings</span>
+              </div>
+              <span
+                class="h-4 w-4 -translate-x-2 opacity-0 transition-all duration-300 group-hover/result:translate-x-0 group-hover/result:opacity-100 [&>svg]:h-full [&>svg]:w-full"
+                set:html={ChevronRight}
+              />
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="border-t border-gray-100 pt-2">
+        <p
+          class="mb-2 px-3 text-[11px] font-bold tracking-wider text-gray-400 uppercase"
+        >
+          Core Team
+        </p>
+        <ul class="space-y-1">
+          <li>
+            <a
+              href="#"
+              data-color="emerald"
+              class="group/result flex items-center justify-between rounded-xl px-3 py-3 text-gray-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              <div class="flex items-center gap-3">
+                <img
+                  src="/assets/image/admin/template.png"
+                  class="h-8 w-8 rounded-full border border-emerald-100 object-cover"
+                  alt="profile"
+                />
+                <div class="flex flex-col">
+                  <span
+                    class="text-sm font-bold text-gray-800 group-hover/result:text-emerald-800"
+                    >Husnul Fikri Averus</span
+                  >
+                  <span class="text-xs text-gray-400">Web Development</span>
+                </div>
+              </div>
+              <span
+                class="h-4 w-4 -translate-x-2 opacity-0 transition-all duration-300 group-hover/result:translate-x-0 group-hover/result:opacity-100 [&>svg]:h-full [&>svg]:w-full"
+                set:html={ChevronRight}
+              />
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="flex items-center justify-center gap-4 border-t border-gray-100 bg-gray-50 px-4 py-3 text-xs text-gray-400"
+    >
+      <span class="flex items-center gap-1"
+        ><kbd
+          class="rounded border border-gray-200 bg-white px-1.5 py-0.5 shadow-sm"
+          >↑</kbd
+        ><kbd
+          class="rounded border border-gray-200 bg-white px-1.5 py-0.5 shadow-sm"
+          >↓</kbd
+        > to navigate</span
+      >
+      <span class="flex items-center gap-1"
+        ><kbd
+          class="rounded border border-gray-200 bg-white px-1.5 py-0.5 shadow-sm"
+          >Enter</kbd
+        > to select</span
+      >
+    </div>
+  </div>
+</div>
+
+<script>
+  const triggerBtn = document.getElementById('trigger-search-modal')
+  const backdrop = document.getElementById('search-modal-backdrop')
+  const content = document.getElementById('search-modal-content')
+  const closeBtn = document.getElementById('close-search-modal')
+  const input = document.getElementById('search-modal-input')
+  const shortcutSpan = document.getElementById('os-shortcut-key')
+  const isMac =
+    typeof window !== 'undefined' &&
+    /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
+
+  let currentIndex: number = -1
+
+  if (isMac && shortcutSpan) {
+    shortcutSpan.textContent = '⌘ K'
+  }
+
+  function getResultItems(): HTMLElement[] {
+    return Array.from(
+      document.querySelectorAll('#search-modal-content a.group\\/result')
+    ) as HTMLElement[]
+  }
+
+  function updateFocus(items: HTMLElement[]): void {
+    items.forEach((item: HTMLElement, index: number) => {
+      if (index === currentIndex) {
+        item.classList.add('keyboard-active')
+        item.scrollIntoView({ block: 'nearest' })
+      } else {
+        item.classList.remove('keyboard-active')
+      }
+    })
+  }
+
+  function handleKeydown(e: KeyboardEvent): void {
+    if (backdrop?.classList.contains('hidden')) return
+
+    const items = getResultItems()
+    if (items.length === 0) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      currentIndex = (currentIndex + 1) % items.length
+      updateFocus(items)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      currentIndex = (currentIndex - 1 + items.length) % items.length
+      updateFocus(items)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (currentIndex >= 0 && items[currentIndex]) {
+        items[currentIndex].click()
+        closeSearch()
+      }
+    }
+  }
+
+  function openSearch(): void {
+    backdrop?.classList.remove('hidden')
+    backdrop?.classList.add('flex')
+    currentIndex = -1
+    updateFocus(getResultItems())
+
+    setTimeout(() => {
+      backdrop?.classList.remove('opacity-0')
+      content?.classList.remove('opacity-0', 'scale-95')
+      input?.focus()
+      document.body.style.overflow = 'hidden'
+    }, 10)
+  }
+
+  function closeSearch(): void {
+    backdrop?.classList.add('opacity-0')
+    content?.classList.add('opacity-0', 'scale-95')
+
+    setTimeout(() => {
+      backdrop?.classList.add('hidden')
+      backdrop?.classList.remove('flex')
+      document.body.style.overflow = ''
+      if (input) (input as HTMLInputElement).value = ''
+    }, 300)
+  }
+
+  triggerBtn?.addEventListener('click', openSearch)
+  closeBtn?.addEventListener('click', closeSearch)
+  backdrop?.addEventListener('click', (e: MouseEvent) => {
+    if (e.target === backdrop) closeSearch()
+  })
+
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && !backdrop?.classList.contains('hidden')) {
+      closeSearch()
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault()
+
+      if (backdrop?.classList.contains('hidden')) {
+        openSearch()
+      } else {
+        closeSearch()
+      }
+    }
+
+    handleKeydown(e)
+  })
+</script>
+
+<style>
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .group\/result.keyboard-active {
+    background-color: #ecfeff;
+    color: #0e7490;
+  }
+
+  .group\/result.keyboard-active svg:last-child {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .group\/result.keyboard-active .bg-gray-100 {
+    background-color: white;
+  }
+
+  .group\/result[data-color='emerald'].keyboard-active {
+    background-color: #ecfdf5;
+    color: #047857;
+  }
+</style>
