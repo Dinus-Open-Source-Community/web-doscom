@@ -30,7 +30,6 @@ type BlogModel struct {
 
 // Blog represents a blog post
 type Blog struct {
-<<<<<<< HEAD
 	ID           int            `gorm:"primaryKey" json:"id"`
 	AuthorID     int            `json:"author_id"`
 	Title        string         `json:"title"`
@@ -53,21 +52,6 @@ type RequestBlog struct {
 	ThumbnailURL string     `json:"thumbnail_url"`
 	PublishedAt  *time.Time `json:"published_at"`
 	Status       string     `json:"status" default:"draft"`
-=======
-	ID          int       `gorm:"primaryKey" json:"id"`
-	GalleryID   int       `json:"id_asset"`
-	WorkID      int       `json:"id_work"`
-	ActivityID  int       `json:"id_activity"`
-	PengurusID  int       `json:"id_pengurus"`
-	Kategori    string    `json:"kategori"`
-	Title       string    `json:"title"`
-	Slug        string    `json:"slug" gorm:"unique"`
-	Content     string    `json:"content"`
-	PublishedAt time.Time `json:"published_at"`
-	IsPublished bool      `json:"is_published" default:"FALSE"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
->>>>>>> master
 }
 
 // RegisterBlog is used for creating a new blog

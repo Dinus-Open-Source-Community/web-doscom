@@ -305,11 +305,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-<<<<<<< HEAD
                                 "$ref": "#/definitions/web_doscom_internal_database_model.Blog"
-=======
-                                "$ref": "#/definitions/model.Blog"
->>>>>>> master
                             }
                         }
                     },
@@ -323,13 +319,9 @@
                         }
                     }
                 }
-<<<<<<< HEAD
             }
         },
         "/api/v1/blogs/": {
-=======
-            },
->>>>>>> master
             "post": {
                 "security": [
                     {
@@ -1649,11 +1641,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-<<<<<<< HEAD
                             "$ref": "#/definitions/internal_handler.DeleteFileRequest"
-=======
-                            "$ref": "#/definitions/handler.DeleteFileRequest"
->>>>>>> master
                         }
                     },
                     {
@@ -1759,11 +1747,7 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-<<<<<<< HEAD
                             "$ref": "#/definitions/internal_handler.ListFilesResponse"
-=======
-                            "$ref": "#/definitions/handler.ListFilesResponse"
->>>>>>> master
                         }
                     },
                     "401": {
@@ -1878,7 +1862,6 @@
                     }
                 }
             }
-<<<<<<< HEAD
         },
         "/auth/refresh": {
             "post": {
@@ -1912,12 +1895,6 @@
     },
     "definitions": {
         "internal_handler.DeleteFileRequest": {
-=======
-        }
-    },
-    "definitions": {
-        "handler.DeleteFileRequest": {
->>>>>>> master
             "type": "object",
             "required": [
                 "file_name"
@@ -1928,11 +1905,7 @@
                 }
             }
         },
-<<<<<<< HEAD
         "internal_handler.DeleteFileResponse": {
-=======
-        "handler.DeleteFileResponse": {
->>>>>>> master
             "type": "object",
             "properties": {
                 "message": {
@@ -1943,11 +1916,7 @@
                 }
             }
         },
-<<<<<<< HEAD
         "internal_handler.ListFilesResponse": {
-=======
-        "handler.ListFilesResponse": {
->>>>>>> master
             "type": "object",
             "properties": {
                 "count": {
@@ -1967,11 +1936,7 @@
                 }
             }
         },
-<<<<<<< HEAD
         "internal_handler.UploadImageResponse": {
-=======
-        "handler.UploadImageResponse": {
->>>>>>> master
             "type": "object",
             "properties": {
                 "file_name": {
@@ -1988,7 +1953,6 @@
                 }
             }
         },
-<<<<<<< HEAD
         "multipart.FileHeader": {
             "type": "object",
             "properties": {
@@ -2014,9 +1978,6 @@
             }
         },
         "web_doscom_internal_database_model.Blog": {
-=======
-        "model.Blog": {
->>>>>>> master
             "type": "object",
             "properties": {
                 "content": {
@@ -2028,15 +1989,6 @@
                 "id": {
                     "type": "integer"
                 },
-<<<<<<< HEAD
-=======
-                "id_activity": {
-                    "type": "integer"
-                },
-                "id_asset": {
-                    "type": "integer"
-                },
->>>>>>> master
                 "id_pengurus": {
                     "type": "integer"
                 },
@@ -2064,11 +2016,7 @@
                 }
             }
         },
-<<<<<<< HEAD
         "web_doscom_internal_database_model.BlogPatch": {
-=======
-        "model.BlogPatch": {
->>>>>>> master
             "type": "object",
             "properties": {
                 "content": {
@@ -2103,11 +2051,7 @@
                 }
             }
         },
-<<<<<<< HEAD
         "web_doscom_internal_database_model.GalleryResponse": {
-=======
-        "model.GalleryResponse": {
->>>>>>> master
             "type": "object",
             "properties": {
                 "description": {

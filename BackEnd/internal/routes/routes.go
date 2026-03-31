@@ -33,7 +33,6 @@ func Routes(app *config.Application) http.Handler {
 		// Initialize storage service if MinIO is available
 		var storageService *service.StorageService
 		if app.MinioClient != nil {
-<<<<<<< HEAD
 			// storageService = service.NewStorageService(app.MinioClient, app.DB)
 			storageService = service.NewStorageService(
 				app.MinioClient,
@@ -48,27 +47,17 @@ func Routes(app *config.Application) http.Handler {
 		}
 
 		galleryService := service.NewGalleryService(&app.Model.Gallery, storageService)
-=======
-			storageService = service.NewStorageService(app.MinioClient, app.DB)
-		}
-
-		galleryService := service.NewGalleryService(&app.Model.Gallery)
->>>>>>> master
 		galleryHandler := handler.NewUploadHandler(galleryService, storageService)
 
 		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
 		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
 
-<<<<<<< HEAD
 		blogService := service.NewBlogService(
 			app.DB,
 			&app.Model.Blogs,
 			&app.Model.BlogGallery,
 			galleryService,
 		)
-=======
-		blogService := service.NewBlogService(&app.Model.Blogs)
->>>>>>> master
 		blogHandler := handler.NewBlogHandler(blogService)
 
 		// Register upload routes if MinIO is available

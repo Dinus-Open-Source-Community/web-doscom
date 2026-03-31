@@ -15,13 +15,10 @@ type GalleryService struct {
 	Storage *StorageService
 }
 
-<<<<<<< HEAD
 func NewGalleryService(m *model.GalleryModel, s *StorageService) *GalleryService {
 	return &GalleryService{Model: m, Storage: s}
 }
 
-=======
->>>>>>> master
 const (
 	maxUploadSize = 20 << 20 // 20mb
 	maxFileSize   = 5 << 20  // 5mb
@@ -35,7 +32,6 @@ type validateFile struct {
 	kategori   string
 }
 
-<<<<<<< HEAD
 func ParseYearRange(startYear, endYear string) (*time.Time, *time.Time, error) {
 	// parse from string to time
 	start, err := time.Parse("2006", startYear)
@@ -156,19 +152,6 @@ func (m *GalleryService) GetAllGalleryByDate(
 		dateStart = nil
 		dateEnd = nil
 	}
-=======
-func NewGalleryService(m *model.GalleryModel) *GalleryService {
-	return &GalleryService{Model: m}
-}
-
-// wrapper for insert gallery
-func (m *GalleryService) InsertGallery(gallery *model.Gallery) (*model.Gallery, error) {
-	return m.Model.InsertGallery(gallery)
-}
-
-// wrapper for get gallery by type
-func (m *GalleryService) GetAllGalleryByType(tipe string, limit, offset, page int) ([]*model.GalleryResponse, int64, error) {
->>>>>>> master
 
 	var response []*model.GalleryResponse
 	galleries, count, err := m.Model.GetAllGalleryAndByYear(
@@ -203,8 +186,6 @@ func (m *GalleryService) GetAllGalleryByType(tipe string, limit, offset, page in
 func (m *GalleryService) DeleteGallery(id int) error {
 	return m.Model.DeleteGallery(id)
 }
-<<<<<<< HEAD
-=======
 
 // check if file is valid or not
 func isValidFile(file multipart.File) (bool, string) {
@@ -502,4 +483,3 @@ func (m *GalleryService) UploadInsertSingleImage(files *multipart.FileHeader) (*
 		AssetUrl:    upload.AssetUrl,
 	}, nil
 }
->>>>>>> master

@@ -1,32 +1,20 @@
 basePath: /
 definitions:
-<<<<<<< HEAD
   internal_handler.DeleteFileRequest:
-=======
-  handler.DeleteFileRequest:
->>>>>>> master
     properties:
       file_name:
         type: string
     required:
     - file_name
     type: object
-<<<<<<< HEAD
   internal_handler.DeleteFileResponse:
-=======
-  handler.DeleteFileResponse:
->>>>>>> master
     properties:
       message:
         type: string
       success:
         type: boolean
     type: object
-<<<<<<< HEAD
   internal_handler.ListFilesResponse:
-=======
-  handler.ListFilesResponse:
->>>>>>> master
     properties:
       count:
         type: integer
@@ -39,11 +27,7 @@ definitions:
       success:
         type: boolean
     type: object
-<<<<<<< HEAD
   internal_handler.UploadImageResponse:
-=======
-  handler.UploadImageResponse:
->>>>>>> master
     properties:
       file_name:
         type: string
@@ -54,7 +38,6 @@ definitions:
       success:
         type: boolean
     type: object
-<<<<<<< HEAD
   multipart.FileHeader:
     properties:
       filename:
@@ -72,9 +55,6 @@ definitions:
       type: array
     type: object
   web_doscom_internal_database_model.Blog:
-=======
-  model.Blog:
->>>>>>> master
     properties:
       content:
         type: string
@@ -82,13 +62,6 @@ definitions:
         type: string
       id:
         type: integer
-<<<<<<< HEAD
-=======
-      id_activity:
-        type: integer
-      id_asset:
-        type: integer
->>>>>>> master
       id_pengurus:
         type: integer
       id_work:
@@ -107,11 +80,7 @@ definitions:
       updated_at:
         type: string
     type: object
-<<<<<<< HEAD
   web_doscom_internal_database_model.BlogPatch:
-=======
-  model.BlogPatch:
->>>>>>> master
     properties:
       content:
         type: string
@@ -134,11 +103,7 @@ definitions:
       title:
         type: string
     type: object
-<<<<<<< HEAD
   web_doscom_internal_database_model.GalleryResponse:
-=======
-  model.GalleryResponse:
->>>>>>> master
     properties:
       description:
         type: string
@@ -476,7 +441,6 @@ paths:
   /api/v1/blogs:
     get:
       description: Get all blog posts
-<<<<<<< HEAD
       produces:
       - application/json
       responses:
@@ -542,8 +506,6 @@ paths:
         name: id_pengurus
         required: true
         type: integer
-=======
->>>>>>> master
       produces:
       - application/json
       responses:
@@ -1413,11 +1375,7 @@ paths:
         name: request
         required: true
         schema:
-<<<<<<< HEAD
           $ref: '#/definitions/internal_handler.DeleteFileRequest'
-=======
-          $ref: '#/definitions/handler.DeleteFileRequest'
->>>>>>> master
       - description: File name to delete
         in: body
         name: request
@@ -1491,11 +1449,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-<<<<<<< HEAD
             $ref: '#/definitions/internal_handler.ListFilesResponse'
-=======
-            $ref: '#/definitions/handler.ListFilesResponse'
->>>>>>> master
         "401":
           description: Unauthorized
           schema:
@@ -1578,7 +1532,6 @@ paths:
       tags:
       - upload
       - Upload
-<<<<<<< HEAD
   /auth/refresh:
     post:
       consumes:
@@ -1599,8 +1552,6 @@ paths:
       summary: Refresh access token
       tags:
       - Auth
-=======
->>>>>>> master
 securityDefinitions:
   BearerAuth:
     in: header

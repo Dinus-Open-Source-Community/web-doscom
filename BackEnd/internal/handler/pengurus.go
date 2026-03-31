@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/service"
@@ -11,11 +13,6 @@ import (
 )
 
 type PengurusHandler struct {
-<<<<<<< HEAD
-=======
-	// Model          *model.PengurusModel
-	// GalleryService *service.GalleryService
->>>>>>> master
 	Service        *service.PengurusService
 	StorageService *service.StorageService
 }
@@ -24,8 +21,6 @@ func NewPengurusHandler(pengurusService *service.PengurusService, storageService
 	return &PengurusHandler{
 		Service:        pengurusService,
 		StorageService: storageService,
-<<<<<<< HEAD
-=======
 	}
 }
 
@@ -37,7 +32,6 @@ func (PengurusHandler) SetPositionByrole(position string) (string, error) {
 		validPosition = position
 	} else {
 		return "", fmt.Errorf("Role not valid, koe sopo cok")
->>>>>>> master
 	}
 }
 
@@ -84,7 +78,6 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	}
 
 	file, err := fileHeader.Open()
-<<<<<<< HEAD
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to open file",
@@ -112,42 +105,10 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
 			"message": "Failed to create data pengurus, server error",
-=======
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to open file",
-		})
-		return
-	}
-	defer file.Close()
-
-	// Upload to MinIO with pengurus category
-	fileURL, err := h.StorageService.UploadFile(
-		c.Request.Context(),
-		file,
-		fileHeader,
-		"pengurus",
-		uint(user_ID),
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to upload file: " + err.Error(),
 		})
 		return
 	}
 
-	// Auto-assign position for kor and anggota
-	position, err := h.SetPositionByrole(input.Position)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
->>>>>>> master
-		})
-		return
-	}
-
-<<<<<<< HEAD
-=======
 	// check user_id
 	switch {
 	case strings.HasPrefix(user_role, "_ang"):
@@ -205,7 +166,6 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 		Period:   pengurus.Period,
 	}
 
->>>>>>> master
 	c.JSON(http.StatusCreated, gin.H{
 		"message":  "Pengurus created successfully",
 		"pengurus": pengurusDataResponse,
@@ -280,11 +240,7 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 	for _, p := range pengurusList {
 		respList = append(respList, model.PengurusResponse{
 			ID:       p.ID,
-<<<<<<< HEAD
 			PhotoURL: p.PhotoURL,
-=======
-			URLAsset: p.URLAsset,
->>>>>>> master
 			Email:    "",
 			Divisi:   p.Divisi,
 			Name:     p.Name,

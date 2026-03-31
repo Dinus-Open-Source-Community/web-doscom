@@ -12,7 +12,6 @@ func RegisterBlogRoutes(rg *gin.RouterGroup, blogHandler *handler.BlogHandler) {
 	// public routes
 	publickRoutes := rg.Group("/blogs")
 	{
-<<<<<<< HEAD
 		// get blog by id
 		publickRoutes.GET("/:id", blogHandler.GetBlogByID)
 		// get all blog and blog by kategori
@@ -33,14 +32,5 @@ func RegisterBlogRoutes(rg *gin.RouterGroup, blogHandler *handler.BlogHandler) {
 		privateRoutes.PUT("/:id", blogHandler.Update)
 		// delete blog by id
 		privateRoutes.DELETE("/:id", blogHandler.Delete)
-=======
-		blogRoutes.POST("", blogHandler.Create)      // create new blog
-		blogRoutes.GET("/:id", blogHandler.Get)      // get blog by id
-		blogRoutes.GET("", blogHandler.List)         // get all blog
-		blogRoutes.PUT("/:id", blogHandler.Update)   // update blog by id
-		blogRoutes.PATCH("/:id", blogHandler.Update) // update blog by id
-		blogRoutes.GET("/kategori/:kategori", blogHandler.ListByKategori)
-		blogRoutes.DELETE("/:id", blogHandler.Delete)
->>>>>>> master
 	}
 }

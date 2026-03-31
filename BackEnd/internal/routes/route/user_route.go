@@ -28,15 +28,7 @@ func UserControllerRoute(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 		admin.POST("/superadmin", UserHandler.SuperAdminCreateSuperAdmin)
 	}
 
-<<<<<<< HEAD
 	koor := user.Group("/koor")
-=======
-}
-
-// route for koor only
-func UserControllerKoor(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
-	koor := r.Group("/koor")
->>>>>>> master
 	koor.Use(auth.AuthMiddleware("KOOR", "BPH"))
 	{
 		// all the routes here

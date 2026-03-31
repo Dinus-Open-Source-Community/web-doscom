@@ -2,14 +2,11 @@ package handler
 
 import (
 	"net/http"
-<<<<<<< HEAD
-=======
-	"path/filepath"
->>>>>>> master
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"web_doscom/internal/service"
+
+	"github.com/gin-gonic/gin"
 )
 
 type StorageHandler struct {
@@ -62,7 +59,6 @@ type UploadImageResponse struct {
 // @Failure      500  {object}  map[string]string       "Upload failed"
 // @Security     BearerAuth
 // @Router       /api/v1/upload/image [post]
-<<<<<<< HEAD
 // func (h *StorageHandler) UploadImage(c *gin.Context) {
 // 	var req UploadImageRequest
 // 	ctx := c.Request.Context()
@@ -141,80 +137,6 @@ type UploadImageResponse struct {
 // 		FileName: filepath.Base(fileURL),
 // 	})
 // }
-=======
-func (h *StorageHandler) UploadImage(c *gin.Context) {
-	var req UploadImageRequest
-
-	// Bind form data
-	if err := c.ShouldBind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, UploadImageResponse{
-			Success: false,
-			Message: "Invalid request: " + err.Error(),
-		})
-		return
-	}
-
-	// Get user_id from JWT context
-	userIDInterface, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, UploadImageResponse{
-			Success: false,
-			Message: "User not authenticated",
-		})
-		return
-	}
-
-	userID, ok := userIDInterface.(int)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, UploadImageResponse{
-			Success: false,
-			Message: "Invalid user ID type context",
-		})
-		return
-	}
-
-	userIDUint := uint(userID)
-
-
-	// Get file from form
-	fileHeader, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, UploadImageResponse{
-			Success: false,
-			Message: "File is required",
-		})
-		return
-	}
-
-	// Open file
-	file, err := fileHeader.Open()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, UploadImageResponse{
-			Success: false,
-			Message: "Failed to open file",
-		})
-		return
-	}
-	defer file.Close()
-
-	// Upload file to MinIO with user ID
-	fileURL, err := h.storageService.UploadFile(c.Request.Context(), file, fileHeader, req.Category, uint(userIDUint))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, UploadImageResponse{
-			Success: false,
-			Message: "Failed to upload file: " + err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, UploadImageResponse{
-		Success:  true,
-		Message:  "File uploaded successfully",
-		FileURL:  fileURL,
-		FileName: filepath.Base(fileURL),
-	})
-}
->>>>>>> master
 
 // DeleteFileRequest represents the delete request
 type DeleteFileRequest struct {

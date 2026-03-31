@@ -82,7 +82,6 @@ type PengurusResponse struct {
 
 // Untuk create/register pengurus
 type RegisterPengurusRequest struct {
-<<<<<<< HEAD
 	UserID   int                   `form:"id_user"`
 	PhotoURL *multipart.FileHeader `form:"photo_url"`
 	Email    string                `form:"email"`
@@ -91,16 +90,6 @@ type RegisterPengurusRequest struct {
 	Position string                `form:"position" binding:"required,position"`
 	Sosmed   string                `form:"sosmed" binding:"omitempty,socialurl"`
 	Period   string                `form:"period" binding:"required" validate:"max=50"`
-=======
-	UserID   int    `form:"id_user"`
-	URLAsset string `form:"url_asset"`
-	Email    string `form:"email"`
-	Divisi   string `form:"divisi" binding:"required,divisi"`
-	Name     string `form:"name" binding:"required" validate:"min=2,max=150"`
-	Position string `form:"position" binding:"required,position"`
-	Sosmed   string `form:"sosmed" binding:"omitempty,socialurl"`
-	Period   string `form:"period" binding:"required" validate:"max=50"`
->>>>>>> master
 }
 
 // Untuk update/patch pengurus

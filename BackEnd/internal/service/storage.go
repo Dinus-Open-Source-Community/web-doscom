@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-<<<<<<< HEAD
 	"slices"
 	"strings"
 	"time"
@@ -19,29 +18,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"golang.org/x/sync/errgroup"
-=======
-	"strings"
-	"time"
-
-	"github.com/google/uuid"
-	"github.com/minio/minio-go/v7"
-	"gorm.io/gorm"
-	"web_doscom/internal/config"
-	"web_doscom/internal/database/model"
->>>>>>> master
 )
 
 type StorageService struct {
 	minioClient *config.MinioClient
-<<<<<<< HEAD
-	fileUpload  *model.FileUploadModel
-}
-
-func NewStorageService(minioClient *config.MinioClient, fileUploadModel *model.FileUploadModel) *StorageService {
-	return &StorageService{
-		minioClient: minioClient,
-		fileUpload:  fileUploadModel,
-=======
 	db          *gorm.DB
 }
 
@@ -49,7 +29,6 @@ func NewStorageService(minioClient *config.MinioClient, db *gorm.DB) *StorageSer
 	return &StorageService{
 		minioClient: minioClient,
 		db:          db,
->>>>>>> master
 	}
 }
 
@@ -57,11 +36,7 @@ func NewStorageService(minioClient *config.MinioClient, db *gorm.DB) *StorageSer
 var AllowedImageExtensions = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
 
 // MaxFileSize defines maximum file size (10MB)
-<<<<<<< HEAD
-const MaxFileSize = 5 * 1024 * 1024
-=======
 const MaxFileSize = 10 * 1024 * 1024
->>>>>>> master
 
 // ValidateImageFile validates file extension, size, and actual content
 func (s *StorageService) ValidateImageFile(fileHeader *multipart.FileHeader) error {
@@ -72,17 +47,7 @@ func (s *StorageService) ValidateImageFile(fileHeader *multipart.FileHeader) err
 
 	// Check file extension
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-<<<<<<< HEAD
 	isValid := slices.Contains(AllowedImageExtensions, ext)
-=======
-	isValid := false
-	for _, allowedExt := range AllowedImageExtensions {
-		if ext == allowedExt {
-			isValid = true
-			break
-		}
-	}
->>>>>>> master
 
 	if !isValid {
 		return fmt.Errorf("invalid file extension. Allowed: %v", AllowedImageExtensions)
@@ -104,19 +69,11 @@ func (s *StorageService) ValidateImageFile(fileHeader *multipart.FileHeader) err
 
 	// Detect content type
 	contentType := http.DetectContentType(buffer[:n])
-<<<<<<< HEAD
 
 	// Allow image types and SVG (which is detected as text/xml)
 	if !strings.HasPrefix(contentType, "image/") &&
 		contentType != "text/xml; charset=utf-8" &&
 		contentType != "text/plain; charset=utf-8" { // SVG can be detected as text
-=======
-	
-	// Allow image types and SVG (which is detected as text/xml)
-	if !strings.HasPrefix(contentType, "image/") && 
-	   contentType != "text/xml; charset=utf-8" && 
-	   contentType != "text/plain; charset=utf-8" { // SVG can be detected as text
->>>>>>> master
 		return fmt.Errorf("file is not a valid image (detected type: %s)", contentType)
 	}
 
@@ -129,7 +86,6 @@ func (s *StorageService) ValidateImageFile(fileHeader *multipart.FileHeader) err
 }
 
 // UploadFile uploads a file to MinIO and saves metadata to database
-<<<<<<< HEAD
 func (s *StorageService) UploadFile(
 	ctx context.Context,
 	file multipart.File,
@@ -139,12 +95,6 @@ func (s *StorageService) UploadFile(
 	// Validate file
 	if err := s.ValidateImageFile(fileHeader); err != nil {
 		return nil, err
-=======
-func (s *StorageService) UploadFile(ctx context.Context, file multipart.File, fileHeader *multipart.FileHeader, folder string, userID uint) (string, error) {
-	// Validate file
-	if err := s.ValidateImageFile(fileHeader); err != nil {
-		return "", err
->>>>>>> master
 	}
 
 	// Generate unique filename
@@ -169,11 +119,7 @@ func (s *StorageService) UploadFile(ctx context.Context, file multipart.File, fi
 		},
 	)
 	if err != nil {
-<<<<<<< HEAD
 		return nil, fmt.Errorf("failed to upload file: %w", err)
-=======
-		return "", fmt.Errorf("failed to upload file: %w", err)
->>>>>>> master
 	}
 
 	// Generate file URL using public URL from environment
@@ -182,26 +128,16 @@ func (s *StorageService) UploadFile(ctx context.Context, file multipart.File, fi
 		// Fallback to internal URL if not set
 		publicURL = fmt.Sprintf("http://%s", s.minioClient.Client.EndpointURL().Host)
 	}
-<<<<<<< HEAD
 
 	fileURL := fmt.Sprintf("%s/%s/%s",
-=======
-	
-	fileURL := fmt.Sprintf("%s/%s/%s", 
->>>>>>> master
 		publicURL,
 		s.minioClient.BucketName,
 		storedFilename,
 	)
 
-<<<<<<< HEAD
-	// return metadata to be saved in database
-	fileUpload := &model.FileUpload{
-=======
 	// Save metadata to database
 	fileUpload := &model.FileUpload{
 		UserID:           userID,
->>>>>>> master
 		Category:         folder,
 		OriginalFilename: fileHeader.Filename,
 		StoredFilename:   storedFilename,
@@ -210,7 +146,6 @@ func (s *StorageService) UploadFile(ctx context.Context, file multipart.File, fi
 		FileURL:          fileURL,
 	}
 
-<<<<<<< HEAD
 	return fileUpload, nil
 }
 
@@ -311,15 +246,6 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 	}
 
 	return urlFileUpload, idFileUpload, nil
-=======
-	if err := s.db.Create(fileUpload).Error; err != nil {
-		// If database save fails, try to delete the uploaded file
-		s.minioClient.Client.RemoveObject(ctx, s.minioClient.BucketName, storedFilename, minio.RemoveObjectOptions{})
-		return "", fmt.Errorf("failed to save file metadata: %w", err)
-	}
-
-	return fileURL, nil
->>>>>>> master
 }
 
 // DeleteFile deletes a file from MinIO
@@ -337,7 +263,6 @@ func (s *StorageService) DeleteFile(ctx context.Context, filename string) error 
 	return nil
 }
 
-<<<<<<< HEAD
 func (s *StorageService) UpdateFile(
 	ctx context.Context,
 	oldfilename string,
@@ -364,8 +289,6 @@ func (s *StorageService) UpdateFile(
 	return updatedMetadata.FileURL, nil
 }
 
-=======
->>>>>>> master
 // GetPresignedURL generates a presigned URL for private file access
 func (s *StorageService) GetPresignedURL(ctx context.Context, filename string, expiry time.Duration) (string, error) {
 	url, err := s.minioClient.Client.PresignedGetObject(
