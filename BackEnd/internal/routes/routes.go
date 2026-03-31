@@ -19,30 +19,46 @@ func Routes(app *config.Application) http.Handler {
 	v1 := g.Group("api/v1")
 	// Tambahkan route lain di sini
 	{
+		// auth
+		authService := auth.NewAuthService(&app.Model.Users, &app.Model.RefreshToken)
+		authHandler := auth.NewUserauth(authService)
 
-		authHandler := auth.NewUserauth(&app.Model.Users)
+		// user
+		userService := service.NewUserService(&app.Model.Users)
+		userHandler := handler.NewUserHandler(userService)
+
+		// work
 		workHandler := handler.NewWorkHandler(&app.Model.Works)
-		userHandler := handler.NewUserHandler(&app.Model.Users)
 
-		// gallery
-		galleryService := service.NewGalleryService(&app.Model.Gallery)
-		galleryHandler := handler.NewUploadHandler(galleryService, storageService)
-
-		// pengurus
-		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
-		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
-
-		blogService := service.NewBlogService(&app.Model.Blogs)
-		blogHandler := handler.NewBlogHandler(blogService)
-
+		// Initialize storage service if MinIO is available
+		var storageService *service.StorageService
+		if app.MinioClient != nil {
+			// storageService = service.NewStorageService(app.MinioClient, app.DB)
+			storageService = service.NewStorageService(
+				app.MinioClient,
+				&app.Model.FileUploads,
+			)
+		}
+		// storageHandler := handler.NewStorageHandler(storageService)
 		// Register upload routes if MinIO is available
 		if storageService != nil {
 			storageHandler := handler.NewStorageHandler(storageService)
 			routes.RegisterUploadRoutes(v1, storageHandler)
 		}
 
-		// blog
-		blogService := service.NewBlogService(&app.Model.Blogs, &app.Model.BlogGallery, galleryService)
+		galleryService := service.NewGalleryService(&app.Model.Gallery, storageService)
+		galleryHandler := handler.NewUploadHandler(galleryService, storageService)
+
+		// pengurus
+		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
+		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
+
+		blogService := service.NewBlogService(
+			app.DB,
+			&app.Model.Blogs,
+			&app.Model.BlogGallery,
+			galleryService,
+		)
 		blogHandler := handler.NewBlogHandler(blogService)
 
 		routes.AuthRoutes(v1, authHandler)

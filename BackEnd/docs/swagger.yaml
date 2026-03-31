@@ -1,13 +1,115 @@
+basePath: /
 definitions:
+  internal_handler.DeleteFileRequest:
+    properties:
+      file_name:
+        type: string
+    required:
+    - file_name
+    type: object
+  internal_handler.DeleteFileResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  internal_handler.ListFilesResponse:
+    properties:
+      count:
+        type: integer
+      files:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  internal_handler.UploadImageResponse:
+    properties:
+      file_name:
+        type: string
+      file_url:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  multipart.FileHeader:
+    properties:
+      filename:
+        type: string
+      header:
+        $ref: '#/definitions/textproto.MIMEHeader'
+      size:
+        format: int64
+        type: integer
+    type: object
+  textproto.MIMEHeader:
+    additionalProperties:
+      items:
+        type: string
+      type: array
+    type: object
+  web_doscom_internal_database_model.Blog:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      id_pengurus:
+        type: integer
+      id_work:
+        type: integer
+      is_published:
+        default: false
+        type: boolean
+      kategori:
+        type: string
+      published_at:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  web_doscom_internal_database_model.BlogPatch:
+    properties:
+      content:
+        type: string
+      id_activity:
+        type: integer
+      id_asset:
+        type: integer
+      id_pengurus:
+        type: integer
+      id_work:
+        type: integer
+      is_published:
+        type: boolean
+      kategori:
+        type: string
+      published_at:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+    type: object
   web_doscom_internal_database_model.GalleryResponse:
     properties:
-      asset_url:
-        type: string
       description:
         type: string
       event_date:
         type: string
-      file_size:
+      file_upload_id:
         type: integer
       gallery_name:
         type: string
@@ -15,8 +117,8 @@ definitions:
         type: string
       id:
         type: integer
-      mime_type:
-        type: string
+      id_users:
+        type: integer
     type: object
   web_doscom_internal_database_model.LoginRequest:
     properties:
@@ -25,8 +127,8 @@ definitions:
       password:
         type: string
     required:
-      - email
-      - password
+    - email
+    - password
     type: object
   web_doscom_internal_database_model.PengurusPatch:
     properties:
@@ -34,19 +136,16 @@ definitions:
         type: string
       email:
         type: string
-      name:
-        maxLength: 150
-        minLength: 2
-        type: string
       period:
         maxLength: 50
         type: string
       position:
+        description: condition just for koor and super_admin
         type: string
       sosmed:
         type: string
       url_asset:
-        type: string
+        $ref: '#/definitions/multipart.FileHeader'
     type: object
   web_doscom_internal_database_model.PengurusResponse:
     properties:
@@ -60,11 +159,29 @@ definitions:
         type: string
       period:
         type: string
+      photo_url:
+        type: string
       position:
         type: string
       sosmed:
         type: string
-      url_asset:
+    type: object
+  web_doscom_internal_database_model.RefreshTokenErrorResponse:
+    properties:
+      error:
+        example: token expired
+        type: string
+      message:
+        example: refresh token invalid or expired
+        type: string
+    type: object
+  web_doscom_internal_database_model.RefreshTokenSuccessResponse:
+    properties:
+      message:
+        example: refresh token success
+        type: string
+      token:
+        example: new_access_token_here
         type: string
     type: object
   web_doscom_internal_database_model.RegisterRequest:
@@ -80,8 +197,8 @@ definitions:
       username:
         type: string
     required:
-      - email
-      - fullname
+    - email
+    - fullname
     type: object
   web_doscom_internal_database_model.UserPatch:
     properties:
@@ -115,13 +232,13 @@ paths:
     get:
       description: Mendapatkan daftar semua user
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: "#/definitions/web_doscom_internal_database_model.UserResponse"
+              $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -130,23 +247,23 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get all users
       tags:
-        - Super_Admin
+      - Super_Admin
     post:
       consumes:
-        - application/json
+      - application/json
       description: Membuat user baru
       parameters:
-        - description: Email, FullName, Role
-          in: body
-          name: user
-          required: true
-          schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.RegisterRequest"
+      - description: Email, FullName, Role
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -167,26 +284,26 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Create new user
       tags:
-        - Super_Admin
+      - Super_Admin
   /api/v1/admin/{id}:
     get:
       description: Mendapatkan user berdasarkan ID
       parameters:
-        - description: User ID
-          in: path
-          name: id
-          required: true
-          type: integer
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.UserResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -200,33 +317,33 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get user by ID
       tags:
-        - Super_Admin
+      - Super_Admin
     put:
       consumes:
-        - application/json
+      - application/json
       description: Mengupdate data user berdasarkan ID
       parameters:
-        - description: User ID
-          in: path
-          name: id
-          required: true
-          type: integer
-        - description: User info
-          in: body
-          name: user
-          required: true
-          schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.UserPatch"
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.UserPatch'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.UserResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -240,24 +357,24 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Update user
       tags:
-        - Super_Admin
+      - Super_Admin
   /api/v1/admin/superadmin:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Membuat user dengan role superadmin (hanya untuk admin/superadmin)
       parameters:
-        - description: User info
-          in: body
-          name: user
-          required: true
-          schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.RegisterRequest"
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
@@ -283,58 +400,80 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Create superadmin user
       tags:
-        - Super_Admin
+      - Super_Admin
+  /api/v1/blogs:
+    get:
+      description: Get all blog posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/web_doscom_internal_database_model.Blog'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all blogs
+      tags:
+      - Blog
   /api/v1/blogs/:
     post:
       consumes:
-        - multipart/form-data
-      description:
-        Create blog dengan upload gambar baru dan/atau memilih gambar yang
+      - multipart/form-data
+      description: Create blog dengan upload gambar baru dan/atau memilih gambar yang
         sudah ada
       parameters:
-        - description: Judul Blog
-          in: formData
-          name: title
-          required: true
-          type: string
-        - description: Slug Blog
-          in: formData
-          name: slug
-          required: true
-          type: string
-        - description: Konten Blog
-          in: formData
-          name: content
-          required: true
-          type: string
-        - description: Kategori Blog
-          in: formData
-          name: kategori
-          required: true
-          type: string
-        - description: Tanggal publish (format RFC3339)
-          in: formData
-          name: published_at
-          type: string
-        - description: Status publish
-          in: formData
-          name: is_published
-          type: boolean
-        - description: ID Work
-          in: formData
-          name: id_work
-          required: true
-          type: integer
-        - description: ID Pengurus
-          in: formData
-          name: id_pengurus
-          required: true
-          type: integer
+      - description: Judul Blog
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Slug Blog
+        in: formData
+        name: slug
+        required: true
+        type: string
+      - description: Konten Blog
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: Kategori Blog
+        in: formData
+        name: kategori
+        required: true
+        type: string
+      - description: Tanggal publish (format RFC3339)
+        in: formData
+        name: published_at
+        type: string
+      - description: Status publish
+        in: formData
+        name: is_published
+        type: boolean
+      - description: ID Work
+        in: formData
+        name: id_work
+        required: true
+        type: integer
+      - description: ID Pengurus
+        in: formData
+        name: id_pengurus
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Blog created successfully
@@ -360,33 +499,139 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Create a new blog
       tags:
-        - Blog
+      - Blog
+  /api/v1/blogs/{id}:
+    delete:
+      description: Delete a blog post
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete blog
+      tags:
+      - Blog
+    get:
+      description: Get detailed information of a blog
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_doscom_internal_database_model.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get blog by ID
+      tags:
+      - Blog
+    put:
+      consumes:
+      - application/json
+      description: Update existing blog post
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.BlogPatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_doscom_internal_database_model.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update blog
+      tags:
+      - Blog
   /api/v1/gallery/:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Mengambil data gallery berdasarkan tipe tertentu
       parameters:
-        - description:
-            Gallery type (fun, proker, achievment, work, activity, blog,
-            pengurus, etc)
-          in: query
-          name: type
-          required: true
-          type: string
-        - description: Page number
-          in: query
-          name: page
-          type: integer
-        - description: Page limit
-          in: query
-          name: limit
-          type: integer
+      - description: Gallery type (fun, proker, achievment, work, activity, blog,
+          pengurus, etc)
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page limit
+        in: query
+        name: limit
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Successfully fetch gallery data
@@ -406,49 +651,47 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get Gallery By Type
       tags:
-        - Gallery
+      - Gallery
     post:
       consumes:
-        - multipart/form-data
-      description:
-        Upload multiple images or videos to MinIO storage with metadata.
+      - multipart/form-data
+      description: Upload multiple images or videos to MinIO storage with metadata.
         All files stored in MinIO bucket 'doscom-uploads/gallery'.
       parameters:
-        - description:
-            Type of gallery (fun, proker, achievment, work, activity, blog,
-            pengurus, etc)
-          in: formData
-          name: gallery_type
-          required: true
-          type: string
-        - description: Description of gallery
-          in: formData
-          name: description
-          required: true
-          type: string
-        - description: Event date (YYYY-MM-DD)
-          in: formData
-          name: event_date
-          required: true
-          type: string
-        - collectionFormat: csv
-          description: Upload multiple image/video files
-          in: formData
-          items:
-            type: file
-          name: files
-          required: true
-          type: array
+      - description: Type of gallery (fun, proker, achievment, work, activity, blog,
+          pengurus, etc)
+        in: formData
+        name: gallery_type
+        required: true
+        type: string
+      - description: Description of gallery
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Event date (YYYY-MM-DD)
+        in: formData
+        name: event_date
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Upload multiple image/video files
+        in: formData
+        items:
+          type: file
+        name: files
+        required: true
+        type: array
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Successfully uploaded to MinIO
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.GalleryResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.GalleryResponse'
         "400":
           description: Bad request - missing fields or invalid files
           schema:
@@ -468,23 +711,23 @@ paths:
               type: string
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Upload gallery images/videos
       tags:
-        - Gallery
+      - Gallery
   /api/v1/gallery/{id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete gallery data dan file nya berdasarkan ID
       parameters:
-        - description: Gallery ID
-          in: path
-          name: id
-          required: true
-          type: integer
+      - description: Gallery ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Successfully delete Gallery
@@ -502,21 +745,21 @@ paths:
             additionalProperties: true
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Delete gallery by ID
       tags:
-        - Gallery
+      - Gallery
   /api/v1/koor/:
     get:
       description: Mendapatkan daftar semua user
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: "#/definitions/web_doscom_internal_database_model.UserResponse"
+              $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -525,23 +768,23 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get all users
       tags:
-        - Koor
+      - Koor
     post:
       consumes:
-        - application/json
+      - application/json
       description: Membuat user baru
       parameters:
-        - description: Email, FullName
-          in: body
-          name: user
-          required: true
-          schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.RegisterRequest"
+      - description: Email, FullName
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -562,26 +805,26 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Create new user
       tags:
-        - Koor
+      - Koor
   /api/v1/koor/{id}:
     get:
       description: Mendapatkan user berdasarkan ID
       parameters:
-        - description: User ID
-          in: path
-          name: id
-          required: true
-          type: integer
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.UserResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -595,33 +838,33 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get user by ID
       tags:
-        - Koor
+      - Koor
     put:
       consumes:
-        - application/json
+      - application/json
       description: Mengupdate data user berdasarkan ID
       parameters:
-        - description: User ID
-          in: path
-          name: id
-          required: true
-          type: integer
-        - description: User info
-          in: body
-          name: user
-          required: true
-          schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.UserPatch"
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.UserPatch'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.UserResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -635,24 +878,24 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Update user
       tags:
-        - Koor
+      - Koor
   /api/v1/login:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Login untuk user dengan role Admin atau Super_Admin
       parameters:
-        - description: Login credentials
-          in: body
-          name: login
-          required: true
-          schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.LoginRequest"
+      - description: Login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.LoginRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Login berhasil, kembalikan token JWT
@@ -680,14 +923,14 @@ paths:
             type: object
       summary: Admin login
       tags:
-        - Auth
+      - Auth
   /api/v1/logout:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Logout user
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -708,27 +951,27 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Logout user
       tags:
-        - Auth
+      - Auth
   /api/v1/pengurus/:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Mengambil semua data penguru
       parameters:
-        - description: Filter by divisi (optional)
-          in: query
-          name: divisi
-          type: string
+      - description: Filter by divisi (optional)
+        in: query
+        name: divisi
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -736,66 +979,63 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get all Pengurus
       tags:
-        - Pengurus
+      - Pengurus
     post:
       consumes:
-        - multipart/form-data
-      description:
-        Create pengurus with profile picture upload to MinIO. All files
+      - multipart/form-data
+      description: Create pengurus with profile picture upload to MinIO. All files
         uploaded to MinIO bucket.
       parameters:
-        - description: Profile Picture (image file)
-          in: formData
-          name: file
-          required: true
-          type: file
-        - description: User ID (optional, auto-filled for non-admin)
-          in: formData
-          name: id_user
-          type: integer
-        - description: Email (optional, auto-filled for non-admin)
-          in: formData
-          name: email
-          type: string
-        - description: "Divisi - Valid values: bph, pemro, jaringan, medcrev, data"
-          in: formData
-          name: divisi
-          required: true
-          type: string
-        - description: Name (2-150 characters)
-          in: formData
-          name: name
-          required: true
-          type: string
-        - description:
-            "Position - Valid values: ketum, sdm, pr, pm, pm_ang, sekum,
-            bendum, sek_ang, ben_ang, kor_pemro, kor_jaringan, kor_medcrev, kor_data,
-            anggota, pemro_ang, jaringan_ang, medcrev_ang, data_ang"
-          in: formData
-          name: position
-          required: true
-          type: string
-        - description:
-            "Social Media Platform (optional) - Valid values: instagram,
-            linkedin, github. Leave empty for default 'instagram'"
-          in: formData
-          name: sosmed
-          type: string
-        - description: Period (YYYY-MM-DD format)
-          in: formData
-          name: period
-          required: true
-          type: string
+      - description: Profile Picture (image file)
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: User ID (optional, auto-filled for non-admin)
+        in: formData
+        name: id_user
+        type: integer
+      - description: Email (optional, auto-filled for non-admin)
+        in: formData
+        name: email
+        type: string
+      - description: 'Divisi - Valid values: bph, pemro, jaringan, medcrev, data'
+        in: formData
+        name: divisi
+        required: true
+        type: string
+      - description: Name (2-150 characters)
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: 'Position - Valid values: ketum, sdm, pr, pm, pm_ang, sekum,
+          bendum, sek_ang, ben_ang, kor_pemro, kor_jaringan, kor_medcrev, kor_data,
+          anggota, pemro_ang, jaringan_ang, medcrev_ang, data_ang'
+        in: formData
+        name: position
+        required: true
+        type: string
+      - description: 'Social Media Platform (optional) - Valid values: instagram,
+          linkedin, github. Leave empty for default ''instagram'''
+        in: formData
+        name: sosmed
+        type: string
+      - description: Period (YYYY-MM-DD format)
+        in: formData
+        name: period
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "400":
           description: Validation error - check divisi, position, or sosmed values
           schema:
@@ -809,28 +1049,28 @@ paths:
               type: string
             type: object
       security:
-        - BearerAuth: []
+      - BearerAuth: []
       summary: Create new pengurus
       tags:
-        - Pengurus
+      - Pengurus
   /api/v1/pengurus/{id}:
     delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete data pengurus berdasarkan ID
       parameters:
-        - description: Pengurus ID
-          in: path
-          name: id
-          required: true
-          type: integer
+      - description: Pengurus ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "400":
           description: Bad Request
           schema:
@@ -844,27 +1084,27 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Delete Pengurus
       tags:
-        - Pengurus
+      - Pengurus
     get:
       consumes:
-        - application/json
+      - application/json
       description: Mengambil data pengurus berdasarkan ID
       parameters:
-        - description: Pengurus ID
-          in: path
-          name: id
-          required: true
-          type: integer
+      - description: Pengurus ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "400":
           description: Bad Request
           schema:
@@ -884,33 +1124,33 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Get Pengurus by ID
       tags:
-        - Pengurus
+      - Pengurus
     put:
       consumes:
-        - application/json
+      - application/json
       description: Update data pengurus berdasarkan ID
       parameters:
-        - description: Pengurus ID
-          in: path
-          name: id
-          required: true
-          type: integer
-        - description: Pengurus info
-          in: body
-          name: pengurus
-          required: true
-          schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.PengurusPatch"
+      - description: Pengurus ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Pengurus info
+        in: body
+        name: pengurus
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.PengurusPatch'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/web_doscom_internal_database_model.PengurusResponse"
+            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
         "400":
           description: Bad Request
           schema:
@@ -924,36 +1164,36 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
+      - ApiKeyAuth: []
       summary: Update Pengurus
       tags:
-        - Pengurus
+      - Pengurus
   /api/v1/upload/file:
     delete:
       consumes:
-        - application/json
-        - application/json
+      - application/json
+      - application/json
       description: |-
         Delete a file from MinIO storage
         Delete an uploaded file from MinIO storage
       parameters:
-        - description: Delete request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/handler.DeleteFileRequest"
-        - description: File name to delete
-          in: body
-          name: request
-          required: true
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+      - description: Delete request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.DeleteFileRequest'
+      - description: File name to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
       produces:
-        - application/json
-        - application/json
+      - application/json
+      - application/json
       responses:
         "200":
           description: File deleted successfully
@@ -980,33 +1220,33 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
-        - BearerAuth: []
+      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Delete file from MinIO
       tags:
-        - upload
-        - Upload
+      - upload
+      - Upload
   /api/v1/upload/files:
     get:
       consumes:
-        - application/json
-        - application/json
+      - application/json
+      - application/json
       description: |-
         List all files in a specific category folder
         List all files in a specific category from MinIO
       parameters:
-        - description: Category (gallery, blog, work, pengurus)
-          in: query
-          name: category
-          required: true
-          type: string
-        - description: Category to filter (gallery, blog, work, pengurus)
-          in: query
-          name: category
-          type: string
+      - description: Category (gallery, blog, work, pengurus)
+        in: query
+        name: category
+        required: true
+        type: string
+      - description: Category to filter (gallery, blog, work, pengurus)
+        in: query
+        name: category
+        type: string
       produces:
-        - application/json
-        - application/json
+      - application/json
+      - application/json
       responses:
         "200":
           description: Files retrieved successfully
@@ -1016,7 +1256,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: "#/definitions/handler.ListFilesResponse"
+            $ref: '#/definitions/internal_handler.ListFilesResponse'
         "401":
           description: Unauthorized
           schema:
@@ -1030,44 +1270,44 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
-        - BearerAuth: []
+      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: List files from MinIO
       tags:
-        - upload
-        - Upload
+      - upload
+      - Upload
   /api/v1/upload/image:
     post:
       consumes:
-        - multipart/form-data
-        - multipart/form-data
+      - multipart/form-data
+      - multipart/form-data
       description: |-
         Upload an image file to MinIO storage
         Upload an image file to MinIO object storage with category
       parameters:
-        - description: Image file
-          in: formData
-          name: file
-          required: true
-          type: file
-        - description: Category (gallery, blog, work, pengurus)
-          in: formData
-          name: category
-          required: true
-          type: string
-        - description: Image file to upload
-          in: formData
-          name: file
-          required: true
-          type: file
-        - description: Category (gallery, blog, work, pengurus)
-          in: formData
-          name: category
-          required: true
-          type: string
+      - description: Image file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Category (gallery, blog, work, pengurus)
+        in: formData
+        name: category
+        required: true
+        type: string
+      - description: Image file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Category (gallery, blog, work, pengurus)
+        in: formData
+        name: category
+        required: true
+        type: string
       produces:
-        - application/json
-        - application/json
+      - application/json
+      - application/json
       responses:
         "200":
           description: File uploaded successfully
@@ -1093,14 +1333,34 @@ paths:
               type: string
             type: object
       security:
-        - ApiKeyAuth: []
-        - BearerAuth: []
+      - ApiKeyAuth: []
+      - BearerAuth: []
       summary: Upload image to MinIO
       tags:
-        - upload
-        - Upload
+      - upload
+      - Upload
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generate new access token using refresh token stored in HTTP-only
+        cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_doscom_internal_database_model.RefreshTokenSuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/web_doscom_internal_database_model.RefreshTokenErrorResponse'
+      summary: Refresh access token
+      tags:
+      - Auth
 securityDefinitions:
-  ApiKeyAuth:
+  BearerAuth:
     in: header
     name: Authorization
     type: apiKey

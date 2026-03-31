@@ -12,10 +12,10 @@ import (
 )
 
 var RoleGroups = map[string][]string{
-	"KOOR":    {"Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH"},
-	"ADMIN":   {"Super_Admin"},
+	"KOOR":    {"KoorPemro", "KoorJaringan", "KoorData", "KoorMedcrev", "BPH"},
+	"ADMIN":   {"SuperAdmin"},
 	"BPH":     {"BPH"},
-	"ANGGOTA": {"pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"},
+	"ANGGOTA": {"pemroAnggota", "jaringanAnggota", "medcrevAnggota", "dataAnggota", "BPHAnggota"},
 }
 
 func ValidateAuth(tokenString string) (*Claims, error) {
@@ -23,7 +23,7 @@ func ValidateAuth(tokenString string) (*Claims, error) {
 	// parse the token
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method mbot: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return []byte(os.Getenv("JWT_SECRET")), nil
@@ -89,7 +89,7 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		// If no Authorization header, try to get token from cookie
 		if tokenString == "" {
 			var err error
-			tokenString, err = c.Cookie("AccessToken")
+			tokenString, err = c.Cookie("RefreshToken")
 			if err != nil {
 				c.JSON(http.StatusUnauthorized, gin.H{
 					"error": "Authentication required. Please provide a valid token in Authorization header or cookie",
@@ -111,8 +111,8 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		// Set user info in context
 		c.Set("user_id", claims.UserId)
-		c.Set("email", claims.Email)
-		c.Set("username", claims.Username)
+		// c.Set("email", claims.Email)
+		// c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
 
 		// Check role if specified

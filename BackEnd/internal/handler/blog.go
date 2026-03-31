@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"math"
 	"net/http"
 	"strconv"
 
@@ -40,24 +41,12 @@ func NewBlogHandler(m *service.BlogService) *BlogHandler {
 // @Router /api/v1/blogs/ [post]
 func (h *BlogHandler) CreateBlog(c *gin.Context) {
 	user_role := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
+	ctx := c.Request.Context()
 
-	existingID := c.PostFormArray("existingID_image")
-	existingIDS := make([]int, 0, len(existingID))
-	for _, v := range existingID {
-		id, err := strconv.Atoi(v)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "harus integer",
-			})
-			return
-		}
-
-		existingIDS = append(existingIDS, id)
-	}
-
-	if user_role != "Kor_Medcrev" {
+	if user_role != "KoorMedcrev" {
 		c.JSON(http.StatusForbidden, gin.H{
-			"error": "Unauthorized, koe rak dhion wok",
+			"error": "you are allowed but not allowed now",
 		})
 		return
 	}
@@ -77,65 +66,35 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 	}
 
 	files := form.File["files"]
-	if len(files) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No files uploaded",
-		})
-		return
-	}
 
-	// insert foto -> multiple file
-	blog := &model.Blog{
+	blogInput := &model.RequestBlog{
+		AuthorID:    userID,
 		Title:       input.Title,
 		Slug:        input.Slug,
 		Content:     input.Content,
 		Kategori:    input.Kategori,
 		PublishedAt: input.PublishedAt,
-		IsPublished: input.IsPublished,
-		WorkID:      input.WorkID,
-		PengurusID:  input.PengurusID,
+		Status:      input.Status,
 	}
 
-	if err := h.Service.BlogModel.InsertBlog(blog); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to insert data",
-		})
-		return
-	}
-
-	// insert gallery and blog_gallery
-	blogGallery, err := h.Service.CreateBlogImage(blog.ID, existingIDS, files)
+	// service insert blog
+	blogResponse, err := h.Service.CreateBlogImage(
+		ctx,
+		blogInput,
+		input.ExistingID,
+		files,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to insert data",
+			"error":   err.Error(),
+			"message": "Failed to insert data",
 		})
-		return
 	}
 
 	// response
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Blog input is valid",
-		"data":    blogGallery,
-	})
-}
-
-// Create Blog (validation only, no DB insert)
-func (h *BlogHandler) Create(c *gin.Context) {
-	var input model.Blog
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Insert using service model
-	if err := h.Service.Model.InsertBlog(&input); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create blog: " + err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Blog created successfully",
-		"blog":    input,
+		"message": "successfully create blog",
+		"data":    blogResponse,
 	})
 }
 
@@ -148,13 +107,33 @@ func (h *BlogHandler) Create(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Security BearerAuth
 // @Router /api/v1/blogs [get]
-func (h *BlogHandler) List(c *gin.Context) {
-	blogs, err := h.Service.GetAllBlogs()
+func (h *BlogHandler) GetAllBlogs(c *gin.Context) {
+	// role := c.MustGet("role").(string)
+	ctx := c.Request.Context()
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset := (page - 1) * limit
+
+	// service blog
+	blogs, totalData, err := h.Service.GetAllBlogs(ctx, page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "Failed to fetch blog data",
+		})
 	}
-	c.JSON(http.StatusOK, blogs)
+
+	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+	currentPage := (offset / limit) + 1
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "Succsess get all blogs",
+		"data":        blogs,
+		"totalPage":   totalPage,
+		"currentPage": currentPage,
+	})
+
 }
 
 // Get Blog by ID godoc
@@ -168,18 +147,25 @@ func (h *BlogHandler) List(c *gin.Context) {
 // @Failure 404 {object} map[string]string
 // @Security BearerAuth
 // @Router /api/v1/blogs/{id} [get]
-func (h *BlogHandler) Get(c *gin.Context) {
+func (h *BlogHandler) GetBlogByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
+
 	blog, err := h.Service.GetBlogByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "blog not found"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "blog not found",
+		})
 		return
 	}
-	c.JSON(http.StatusOK, blog)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "blog found successfully",
+		"blog":    blog,
+	})
 }
 
 // Update Blog godoc
@@ -197,59 +183,160 @@ func (h *BlogHandler) Get(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/blogs/{id} [put]
 func (h *BlogHandler) Update(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	ctx := c.Request.Context()
+	idBlog, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id blog"})
 		return
 	}
-	var patch model.BlogPatch
-	if err := c.ShouldBindJSON(&patch); err != nil {
+
+	userID := c.MustGet("user_id").(int)
+	userRole := c.MustGet("role").(string)
+	if userRole != "KoorMedcrev" {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "you are not allowed to access this resource",
+		})
+		return
+	}
+
+	var dataPatch model.BlogPatch
+	if err := c.ShouldBindJSON(&dataPatch); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	updatedBlog, err := h.Service.UpdateBlog(id, patch)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, updatedBlog)
-}
 
-// UpdateKategori updates the kategori of a blog by id
-func (h *BlogHandler) UpdateKategori(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	form, err := c.MultipartForm()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read file",
+		})
 		return
 	}
-	var req struct {
-		Kategori string `json:"kategori" binding:"required,kategori"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	patch := model.BlogPatch{Kategori: &req.Kategori}
-	updatedBlog, err := h.Service.UpdateBlog(id, patch)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "Kategori updated", "blog": updatedBlog})
-}
 
-// ListByKategori returns blogs filtered by kategori
-func (h *BlogHandler) ListByKategori(c *gin.Context) {
-	kategori := c.Param("kategori")
-	blogs, err := h.Service.GetBlogsByKategori(kategori)
+	files := form.File["files"]
+
+	// call service update blog
+	blogResponse, err := h.Service.UpdateBlog(
+		ctx,
+		idBlog,
+		userID,
+		&dataPatch,
+		files,
+	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "Failed to update blog, something went wrong",
+		})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "List blogs by kategori",
-		"kategori": kategori,
-		"blogs":    blogs,
+		"message": "successfully update blog",
+		"data":    blogResponse,
+	})
+}
+
+// get all blogs and get blog by kategory
+func (h *BlogHandler) ListByKategori(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	offset := (page - 1) * limit
+
+	kategoriArray, exists := c.GetQueryArray("kategori")
+	if exists && len(kategoriArray) > 3 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "max 3 kategory allowed",
+		})
+		return
+	}
+
+	var (
+		blogs     []model.BlogThumbnail
+		totalData int
+		err       error
+	)
+
+	if exists {
+		blogs, totalData, err = h.Service.GetBlogByKategori(
+			ctx,
+			kategoriArray,
+			limit,
+			offset,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   err.Error(),
+				"message": "failed to fetch data",
+			})
+			return
+		}
+	} else {
+		blogs, totalData, err = h.Service.GetAllBlogs(
+			ctx,
+			page,
+			limit,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   err.Error(),
+				"message": "failed to fetch data",
+			})
+			return
+		}
+	}
+
+	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+	currentPage := (offset / limit) + 1
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "successfully fetch data",
+		"blogs":       blogs,
+		"totalPage":   totalPage,
+		"currentPage": currentPage,
+	})
+}
+
+// admin handler
+func (h *BlogHandler) ListBlogs(c *gin.Context) {
+	ctx := c.Request.Context()
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("page", "10"))
+	offset := (page - 1) * limit
+
+	kategoriArray, exists := c.GetQueryArray("kategory")
+	if exists && len(kategoriArray) > 3 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "max 3 kategory allowed",
+		})
+		return
+	}
+
+	// call service
+	blogs, totalData, err := h.Service.GetAllBlogsForAdmin(
+		ctx,
+		kategoriArray,
+		offset,
+		limit,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "terjadi kesalahan ketika mengambil data",
+		})
+		return
+	}
+
+	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+	currentPage := (offset / limit) + 1
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "successfully fetch data",
+		"blogs":       blogs,
+		"totalPage":   totalPage,
+		"currentPage": currentPage,
 	})
 }
 
@@ -264,14 +351,38 @@ func (h *BlogHandler) ListByKategori(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/blogs/{id} [delete]
 func (h *BlogHandler) Delete(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	if err := h.Service.DeleteBlog(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	allowedRoles := map[string]bool{
+		"KoorMedcrev": true,
+		"SuperAdmin":  true,
+	}
+
+	// check user
+	if !allowedRoles[userRole] {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "you're not allowed brotherr",
+		})
 		return
 	}
-	c.Status(http.StatusNoContent)
+
+	// call service deleteblogid
+	if err := h.Service.DeleteBlogByID(ctx, id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "terjadi kesalahan ketika menghapus data :)",
+		})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, gin.H{
+		"message": "successfully delete data",
+	})
 }
