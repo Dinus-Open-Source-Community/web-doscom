@@ -9,22 +9,26 @@ import (
 
 // route for super admin only
 func UserControllerRoute(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
-	admin := r.Group("/admin")
-	admin.Use(auth.AuthMiddleware("ADMIN")) // protected using middleware only superadmin can access
+	user := r.Group("/user")
+	// protected using middleware only superadmin can access
+	admin := user.Group("/admin")
+	admin.Use(auth.AuthMiddleware("ADMIN"))
 	{
-		admin.POST("/", UserHandler.SuperAdminCreateUser)                 // create new users
-		admin.GET("/:id", UserHandler.SuperAdminGetUser)                  // get users by id
-		admin.GET("/", UserHandler.SuperAdminGetAllUser)                  // get all users
-		admin.PUT("/:id", UserHandler.SuperAdminUpdateUser)               // update user by id
-		admin.DELETE("/:id", UserHandler.SuperAdminDeleteUser)            // delete user by id
-		admin.POST("/superadmin", UserHandler.SuperAdminCreateSuperAdmin) // create superadmin
+		// create new users
+		admin.POST("/", UserHandler.SuperAdminCreateUser)
+		// get users by id
+		admin.GET("/:id", UserHandler.SuperAdmin   GetUser)
+		// get all users
+		admin.GET("/", UserHandler.SuperAdminGetAllUser)
+		// update user by id
+		admin.PUT("/:id", UserHandler.SuperAdminUpdateUser)
+		// delete user by id
+		admin.DELETE("/:id", UserHandler.SuperAdminDeleteUser)
+		// create superadmin
+		admin.POST("/superadmin", UserHandler.SuperAdminCreateSuperAdmin)
 	}
 
-}
-
-// route for koor only
-func UserControllerKoor(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
-	koor := r.Group("/koor")
+	koor := user.Group("/koor")
 	koor.Use(auth.AuthMiddleware("KOOR", "BPH"))
 	{
 		// all the routes here
@@ -34,4 +38,6 @@ func UserControllerKoor(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 		koor.GET("/", UserHandler.KoorGetAllUser)       // get all users
 		koor.GET("/:id", UserHandler.KoorGetUser)       // get user by id
 	}
+
 }
+

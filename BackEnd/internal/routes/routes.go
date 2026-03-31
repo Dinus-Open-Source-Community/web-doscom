@@ -19,24 +19,45 @@ func Routes(app *config.Application) http.Handler {
 	v1 := g.Group("api/v1")
 	// Tambahkan route lain di sini
 	{
+		// auth
+		authService := auth.NewAuthService(&app.Model.Users, &app.Model.RefreshToken)
+		authHandler := auth.NewUserauth(authService)
 
-		authHandler := auth.NewUserauth(&app.Model.Users)
+		// user
+		userService := service.NewUserService(&app.Model.Users)
+		userHandler := handler.NewUserHandler(userService)
+
+		// work
 		workHandler := handler.NewWorkHandler(&app.Model.Works)
-		userHandler := handler.NewUserHandler(&app.Model.Users)
 
 		// Initialize storage service if MinIO is available
 		var storageService *service.StorageService
 		if app.MinioClient != nil {
-			storageService = service.NewStorageService(app.MinioClient, app.DB)
+			// storageService = service.NewStorageService(app.MinioClient, app.DB)
+			storageService = service.NewStorageService(
+				app.MinioClient,
+				&app.Model.FileUploads,
+			)
+		}
+		// storageHandler := handler.NewStorageHandler(storageService)
+		// Register upload routes if MinIO is available
+		if storageService != nil {
+			storageHandler := handler.NewStorageHandler(storageService)
+			routes.RegisterUploadRoutes(v1, storageHandler)
 		}
 
-		galleryService := service.NewGalleryService(&app.Model.Gallery)
+		galleryService := service.NewGalleryService(&app.Model.Gallery, storageService)
 		galleryHandler := handler.NewUploadHandler(galleryService, storageService)
 
 		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
 		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
 
-		blogService := service.NewBlogService(&app.Model.Blogs)
+		blogService := service.NewBlogService(
+			app.DB,
+			&app.Model.Blogs,
+			&app.Model.BlogGallery,
+			galleryService,
+		)
 		blogHandler := handler.NewBlogHandler(blogService)
 
 		// Register upload routes if MinIO is available

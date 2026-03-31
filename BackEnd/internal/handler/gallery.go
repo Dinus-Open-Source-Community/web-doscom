@@ -1,10 +1,8 @@
 package handler
 
 import (
-	"math"
 	"net/http"
 	"strconv"
-	"time"
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/service"
 
@@ -41,6 +39,10 @@ func NewUploadHandler(galleryService *service.GalleryService, storageService *se
 // @Tags Gallery
 // @Router /api/v1/gallery/ [post]
 func (m *GalleryHandler) InsertGallery(c *gin.Context) {
+	userID := c.MustGet("user_id").(int)
+	userRole := c.MustGet("user_role").(string)
+	ctx := c.Request.Context()
+
 	var input model.CreateGallery
 	if c.ShouldBind(&input) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -49,19 +51,14 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 		return
 	}
 
-	// Get user ID from context (set by auth middleware)
-	userIDVal, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not authenticated",
-		})
-		return
+	allowedRole := map[string]bool{
+		"KoorMedcrev": true,
+		"SuperAdmin":  true,
 	}
 
-	userID, ok := userIDVal.(int)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user ID type",
+	if !allowedRole[userRole] {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You're not allowed broo",
 		})
 		return
 	}
@@ -81,61 +78,56 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 		})
 		return
 	}
+	if len(files) > 5 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Max upload 5 file",
+		})
+		return
+	}
 
-	// Upload files to MinIO
-	result := []*model.Gallery{}
-	for _, fileHeader := range files {
-		file, err := fileHeader.Open()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Failed to open file: " + err.Error(),
-			})
-			return
-		}
-		defer file.Close()
-
-		// Upload to MinIO with gallery category
-		fileURL, err := m.StorageService.UploadFile(
-			c.Request.Context(),
-			file,
-			fileHeader,
-			"gallery",
-			uint(userID),
-		)
+	galleryData := &model.GalleryInsert{
+		IDUsers:     userID,
+		GalleryName: input.GalleryName,
+		GalleryType: input.GalleryType,
+		Description: input.Description,
+		EventDate:   input.EventDate,
+	}
+	fileUploadData := make([]*model.UploadFileRequest, len(files))
+	for i, fileHeader := range files {
+		fileContent, err := fileHeader.Open()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to upload file: " + err.Error(),
+				"error":   err.Error(),
+				"message": "failed while opening file upload",
 			})
 			return
 		}
+		defer fileContent.Close()
 
-		// Insert to database
-		fileUpload := &model.Gallery{
-			GalleryName: fileHeader.Filename,
-			GalleryType: input.GalleryType,
-			Description: input.Description,
-			EventDate:   input.EventDate,
-			FileSize:    fileHeader.Size,
-			MimeType:    fileHeader.Header.Get("Content-Type"),
-			AssetUrl:    fileURL,
-			Kategori:    "image",
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+		fileUploadData[i] = &model.UploadFileRequest{
+			FileHeader: fileHeader,
+			File:       fileContent,
+			Folder:     "gallery",
+			UserID:     uint(userID),
 		}
+	}
 
-		uploadedGallery, err := m.GalleryService.InsertGallery(fileUpload)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to insert data",
-			})
-			return
-		}
-		result = append(result, uploadedGallery)
+	galleryResponse, err := m.GalleryService.UploadAndInsertGalleryMultiple(
+		ctx,
+		galleryData,
+		fileUploadData,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "failed to insert and upload gallery",
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Successfully insert data",
-		"data":    result,
+		"data":    galleryResponse,
 	})
 }
 
@@ -155,44 +147,73 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Failed to fetch gallery data"
 // @Security ApiKeyAuth
 // @Router /api/v1/gallery/ [get]
-func (m *GalleryHandler) GetGalleryByType(c *gin.Context) {
+// func (m *GalleryHandler) GetGalleryByType(c *gin.Context) {
+//
+// 	// filtered by type
+// 	galleryType := c.Query("type")
+//
+// 	// pagination
+// 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+// 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+// 	offset := (page - 1) * limit
+//
+// 	// get all gallery by type
+// 	GalleryList, count, err := m.GalleryService.GetAllGalleryByDate(
+// 		galleryType,
+// 		page,
+// 		limit,
+// 		offset,
+// 	)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{
+// 			"error":   err.Error(),
+// 			"message": "Failed to fetch gallery data",
+// 		})
+// 		return
+// 	}
+//
+// 	totalPages := int(math.Ceil(float64(count) / float64(limit)))
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message": "Successfully fetch gallery data",
+// 		"data":    GalleryList,
+// 		"metadata": gin.H{
+// 			"page":        page,
+// 			"limit":       limit,
+// 			"total_items": count,
+// 			"total_pages": totalPages,
+// 		},
+// 	})
+// }
 
-	// filtered by type
-	tipe := c.Query("type")
+func (m *GalleryHandler) GetAllGalleryByYear(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	// pagination
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	offset := (page - 1) * limit
-	// get role
-	// role := c.MustGet("role").(string)
 
-	// if role != "Kor_Medcrev" {
-	// c.JSON(http.StatusUnauthorized, gin.H{
-	// "error": "Unauthorized, koe sopo wok",
-	// })
-	// return
-	// }
+	startYear := c.Query("start_year")
+	endYear := c.Query("end_year")
 
-	// get all gallery by type
-	GalleryList, count, err := m.GalleryService.GetAllGalleryByType(tipe, page, limit, offset)
+	// call service
+	galleryList, totalPages, currentPage, err := m.GalleryService.GetAllGalleryByDate(
+		ctx,
+		startYear, endYear,
+		limit, offset,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch gallery data",
+			"error":   err.Error(),
+			"message": "failed to get data gallery, some issue at backend :))",
 		})
 		return
 	}
 
-	totalPages := int(math.Ceil(float64(count) / float64(limit)))
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully fetch gallery data",
-		"data":    GalleryList,
-		"metadata": gin.H{
-			"page":        page,
-			"limit":       limit,
-			"total_items": count,
-			"total_pages": totalPages,
-		},
+		"message":     "Successfully get data",
+		"totalPages":  totalPages,
+		"currentPage": currentPage,
+		"gallery":     galleryList,
 	})
 }
 
@@ -231,80 +252,80 @@ func (m *GalleryHandler) DeleteGallery(c *gin.Context) {
 }
 
 // insert photo profile
-func (m *GalleryHandler) InsertProfilePic(c *gin.Context) {
-	// Get user ID from context
-	userIDVal, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not authenticated",
-		})
-		return
-	}
-
-	userID, ok := userIDVal.(int)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user ID type",
-		})
-		return
-	}
-
-	fileHeader, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read file",
-		})
-		return
-	}
-
-	file, err := fileHeader.Open()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to open file",
-		})
-		return
-	}
-	defer file.Close()
-
-	// Upload to MinIO with pengurus category
-	fileURL, err := m.StorageService.UploadFile(
-		c.Request.Context(),
-		file,
-		fileHeader,
-		"pengurus",
-		uint(userID),
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	// Insert to database
-	fileUpload := &model.Gallery{
-		GalleryName: fileHeader.Filename,
-		GalleryType: "pengurus",
-		Description: "foto Profile",
-		EventDate:   time.Now().Format("2006-01-02"),
-		FileSize:    fileHeader.Size,
-		MimeType:    fileHeader.Header.Get("Content-Type"),
-		AssetUrl:    fileURL,
-		Kategori:    "image",
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
-
-	upload, err := m.GalleryService.InsertGallery(fileUpload)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to insert data",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully insert data",
-		"data":    upload,
-	})
-}
+// func (m *GalleryHandler) InsertProfilePic(c *gin.Context) {
+// 	// Get user ID from context
+// 	userIDVal, exists := c.Get("user_id")
+// 	if !exists {
+// 		c.JSON(http.StatusUnauthorized, gin.H{
+// 			"error": "User not authenticated",
+// 		})
+// 		return
+// 	}
+//
+// 	userID, ok := userIDVal.(int)
+// 	if !ok {
+// 		c.JSON(http.StatusBadRequest, gin.H{
+// 			"error": "Invalid user ID type",
+// 		})
+// 		return
+// 	}
+//
+// 	fileHeader, err := c.FormFile("file")
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{
+// 			"error": "Failed to read file",
+// 		})
+// 		return
+// 	}
+//
+// 	file, err := fileHeader.Open()
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{
+// 			"error": "Failed to open file",
+// 		})
+// 		return
+// 	}
+// 	defer file.Close()
+//
+// 	// Upload to MinIO with pengurus category
+// 	fileURL, err := m.StorageService.UploadFile(
+// 		c.Request.Context(),
+// 		file,
+// 		fileHeader,
+// 		"pengurus",
+// 		uint(userID),
+// 	)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{
+// 			"error": err.Error(),
+// 		})
+// 		return
+// 	}
+//
+// 	// Insert to database
+// 	fileUpload := &model.Gallery{
+// 		GalleryName: fileHeader.Filename,
+// 		GalleryType: "pengurus",
+// 		Description: "foto Profile",
+// 		EventDate:   time.Now().Format("2006-01-02"),
+// 		FileSize:    fileHeader.Size,
+// 		MimeType:    fileHeader.Header.Get("Content-Type"),
+// 		AssetUrl:    fileURL,
+// 		Kategori:    "image",
+// 		CreatedAt:   time.Now(),
+// 		UpdatedAt:   time.Now(),
+// 	}
+//
+// 	upload, err := m.GalleryService.InsertGallery(fileUpload)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{
+// 			"error": "Failed to insert data",
+// 		})
+// 		return
+// 	}
+//
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message": "Successfully insert data",
+// 		"data":    upload,
+// 	})
+// }

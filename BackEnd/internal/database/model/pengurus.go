@@ -1,12 +1,15 @@
 package model
 
 import (
+	"context"
 	"fmt"
+	"mime/multipart"
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Validasi sesuai SQL
@@ -23,20 +26,19 @@ var ValidPosition = map[string]bool{
 	"sdm":          true,
 	"pr":           true,
 	"pm":           true,
-	"pm_ang":       true,
+	"pmAng":        true,
+	"KoorPemro":    true,
+	"KoorJaringan": true,
+	"KoorMedcrev":  true,
+	"KoorData":     true,
 	"sekum":        true,
 	"bendum":       true,
-	"sek_ang":      true,
-	"ben_ang":      true,
-	"kor_pemro":    true,
-	"kor_jaringan": true,
-	"kor_medcrev":  true,
-	"kor_data":     true,
-	"anggota":      true,
-	"pemro_ang":    true,
-	"jaringan_ang": true,
-	"medcrev_ang":  true,
-	"data_ang":     true,
+	"sekAng":       true,
+	"bendAng":      true,
+	"PemroAng":     true,
+	"JaringanAng":  true,
+	"MedcrevAng":   true,
+	"DataAng":      true,
 }
 
 // "BPH":          true,
@@ -54,10 +56,10 @@ type PengurusModel struct {
 type Pengurus struct {
 	ID        int       `gorm:"primaryKey" json:"id"`
 	UserID    int       `gorm:"column:id_user" json:"id_user"`
-	URLAsset  string    `gorm:"column:urlasset" json:"url_asset"`
+	PhotoURL  string    `gorm:"column:photo_url" json:"url_asset"`
+	Name      string    `json:"name"`
 	Email     string    `gorm:"uniqueIndex" json:"email"`
 	Divisi    string    `gorm:"column:divisi" json:"divisi"`
-	Name      string    `json:"name"`
 	Position  string    `json:"position"`
 	Sosmed    string    `json:"sosmed"`
 	Period    string    `json:"period"`
@@ -69,7 +71,7 @@ type Pengurus struct {
 // UserID   int       `json:"id_user"`
 type PengurusResponse struct {
 	ID       int    `json:"id"`
-	URLAsset string `json:"url_asset"`
+	PhotoURL string `json:"photo_url"`
 	Email    string `json:"email"`
 	Divisi   string `json:"divisi"`
 	Name     string `json:"name"`
@@ -80,25 +82,25 @@ type PengurusResponse struct {
 
 // Untuk create/register pengurus
 type RegisterPengurusRequest struct {
-	UserID   int    `form:"id_user"`
-	URLAsset string `form:"url_asset"`
-	Email    string `form:"email"`
-	Divisi   string `form:"divisi" binding:"required,divisi"`
-	Name     string `form:"name" binding:"required" validate:"min=2,max=150"`
-	Position string `form:"position" binding:"required,position"`
-	Sosmed   string `form:"sosmed" binding:"omitempty,socialurl"`
-	Period   string `form:"period" binding:"required" validate:"max=50"`
+	UserID   int                   `form:"id_user"`
+	PhotoURL *multipart.FileHeader `form:"photo_url"`
+	Email    string                `form:"email"`
+	Divisi   string                `form:"divisi" binding:"required,divisi"`
+	Name     string                `form:"name" binding:"required" validate:"min=2,max=150"`
+	Position string                `form:"position" binding:"required,position"`
+	Sosmed   string                `form:"sosmed" binding:"omitempty,socialurl"`
+	Period   string                `form:"period" binding:"required" validate:"max=50"`
 }
 
 // Untuk update/patch pengurus
 type PengurusPatch struct {
-	URLAsset *string `json:"url_asset" binding:"omitempty"`
-	Email    *string `json:"email" binding:"omitempty,email"`
-	Divisi   *string `json:"divisi" binding:"omitempty,divisi"`
-	Name     *string `json:"name" binding:"omitempty" validate:"min=2,max=150"`
-	Position *string `json:"position" binding:"omitempty,position"`
-	Sosmed   *string `json:"sosmed" binding:"omitempty,sosmed"`
-	Period   *string `json:"period" binding:"omitempty" validate:"max=50"`
+	Email    string                `form:"email" binding:"omitempty,email"`
+	Divisi   string                `form:"divisi" binding:"omitempty,divisi"`
+	Name     string                `form:"position" binding:"omitempty,position"`
+	Sosmed   string                `form:"sosmed" binding:"omitempty,sosmed"`
+	Period   string                `form:"period" binding:"omitempty" validate:"max=50"`
+	Position string                `form:"position" binding:"omitempty,position"` // condition just for koor and super_admin
+	PhotoURL *multipart.FileHeader `form:"url_asset" binding:"omitempty"`
 }
 
 // Custom validator
@@ -203,17 +205,58 @@ func (m *PengurusModel) UpdatePengurus(Id int, patch PengurusPatch) (*Pengurus, 
 	return &pengurus, nil
 }
 
-// Delete pengurus
-func (m *PengurusModel) DeletePengurus(id int) error {
-	var pengurus Pengurus
-	if err := m.DB.First(&pengurus, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return err
-		}
-		return err
+func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*PengurusResponse, error) {
+	var updatePengurus Pengurus
+
+	if err := m.DB.Model(&updatePengurus).
+		Clauses(clause.Returning{}).
+		Where("id = ?", id).
+		Updates(data).
+		Error; err != nil {
+		return nil, err
 	}
-	if err := m.DB.Delete(&pengurus).Error; err != nil {
-		return err
+
+	return &PengurusResponse{
+		ID:       updatePengurus.ID,
+		PhotoURL: updatePengurus.PhotoURL,
+		Email:    updatePengurus.Email,
+		Divisi:   updatePengurus.Divisi,
+		Name:     updatePengurus.Name,
+		Position: updatePengurus.Position,
+		Sosmed:   updatePengurus.Sosmed,
+		Period:   updatePengurus.Period,
+	}, nil
+}
+
+// Delete pengurus
+func (m *PengurusModel) DeletePengurus(ctx context.Context, id int) error {
+	result := m.DB.WithContext(ctx).Delete(&Pengurus{}, id)
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete data %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string) ([]PengurusResponse, error) {
+	var dataPengurus []PengurusResponse
+
+	if division == "" {
+		return nil, fmt.Errorf("division required")
+	}
+
+	if err := m.DB.WithContext(ctx).
+		Model(&Pengurus{}).
+		Select("id, photo_url, email, divisi, name, position, sosmed,  period").
+		Where("divisi = ?", division).
+		Order("name ASC").
+		Scan(&dataPengurus).
+		Error; err != nil {
+		return nil, fmt.Errorf("terjadi error ketika ambil data wlee %w", err)
+	}
+
+	return dataPengurus, nil
 }
