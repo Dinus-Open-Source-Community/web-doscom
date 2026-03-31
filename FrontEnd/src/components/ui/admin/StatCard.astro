@@ -1,0 +1,32 @@
+---
+interface Props {
+  title: string
+  value: string | number
+  icon: string
+  colorGradient: string
+  colorBg: string
+  colorText: string
+}
+
+const { title, value, icon, colorGradient, colorBg, colorText } = Astro.props
+---
+
+<div
+  class={`flex gap-4 md:gap-5 items-center justify-start border border-gray-100 rounded-xl px-5 py-4 md:px-7 md:py-5 bg-gradient-to-tl ${colorGradient} to-40% shadow-sm transition-all`}
+>
+  <div class={`${colorBg} p-2.5 md:p-3 rounded-full shrink-0`}>
+    <span
+      class={`${colorText} [&>svg]:h-6 [&>svg]:w-6 md:[&>svg]:h-8 md:[&>svg]:w-8`}
+      set:html={icon}
+    />
+  </div>
+
+  <div class="flex min-w-0 flex-col">
+    <p class="truncate text-2xl font-extrabold text-gray-800 md:text-3xl">
+      {value}
+    </p>
+    <p class="truncate text-xs font-semibold text-gray-500 md:text-sm">
+      {title}
+    </p>
+  </div>
+</div>

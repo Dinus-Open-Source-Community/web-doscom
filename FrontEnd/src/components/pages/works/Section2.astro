@@ -1,0 +1,53 @@
+---
+import Chip from '../../ui/Chip.astro'
+import Card from '../../ui/Card.astro'
+import Pagination from '../../ui/Pagination.astro'
+import arrowIcon from '../../../assets/icon-arrow.svg?raw'
+
+const labels = ['Semua', 'Website', 'Aplikasi', 'Jaringan', 'Data', 'AI', 'Design', 'UI/UX Design']
+const projects = [
+  { title: 'Web Doscom', category: 'Website' },
+  { title: 'Presensi QR', category: 'Aplikasi' },
+  { title: 'Landing Page', category: 'Website' },
+  { title: 'Sistem Keuangan', category: 'System' },
+  { title: 'Game Engine', category: 'Desktop' },
+  { title: 'IoT Dashboard', category: 'Hardware' },
+]
+
+const events = [
+  // 2 Item pertama ini nanti jadi yang BESAR
+  { title: 'Release Party 2025', tags: ['Event', 'Seminar'] },
+  { title: 'Tech Talk 2025', tags: ['Event', 'Sharing'] },
+
+  // Item selanjutnya jadi yang KECIL (Grid 3)
+  { title: 'Workshop React', tags: ['Workshop'] },
+  { title: 'Design System', tags: ['UI/UX'] },
+  { title: 'Golang Backend', tags: ['Backend'] },
+  { title: 'DevOps 101', tags: ['Infra'] },
+  { title: 'Open Source', tags: ['Community'] },
+  { title: 'Hacktoberfest', tags: ['Event'] },
+]
+---
+
+<section class="relative flex min-h-screen justify-center bg-white">
+  <div class="my-12 flex w-full max-w-[96rem] flex-col gap-5">
+    <div class="flex w-full max-w-[96rem] gap-2 font-semibold">
+      {labels.map((label) => <Chip variant="inactive" label={label} />)}
+    </div>
+    <div class="flex flex-col items-center gap-3">
+      <div class="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {
+          projects.map((project) => (
+            <Card
+              variant="projects"
+              title={project.title}
+              category={project.category}
+              image="/assets/photos/works-5.png"
+            />
+          ))
+        }
+      </div>
+      <Pagination />
+    </div>
+  </div>
+</section>

@@ -1,9 +1,70 @@
 ---
-import AdminLayout from "../../layouts/AdminLayout.astro";
+import AdminLayout from '../../layouts/AdminLayout.astro'
+import StatCard from '../../components/ui/admin/StatCard.astro'
+import SearchTrigger from '../../components/ui/admin/SearchTrigger.astro'
+
+import { Code, Team, Article, Image } from '../../assets/icons'
+
+const statsData = [
+  {
+    title: 'Core Team',
+    value: '61',
+    icon: Team,
+    colorGradient: 'from-cyan-400/30 to-cyan-400/0',
+    colorBg: 'bg-cyan-100/70',
+    colorText: 'text-cyan-600',
+  },
+  {
+    title: 'Project',
+    value: '21',
+    icon: Code,
+    colorGradient: 'from-emerald-400/30 to-emerald-400/0',
+    colorBg: 'bg-emerald-100/70',
+    colorText: 'text-emerald-600',
+  },
+  {
+    title: 'Article',
+    value: '56',
+    icon: Article,
+    colorGradient: 'from-fuchsia-400/30 to-fuchsia-400/0',
+    colorBg: 'bg-fuchsia-100/70',
+    colorText: 'text-fuchsia-600',
+  },
+  {
+    title: 'Images',
+    value: '238',
+    icon: Image,
+    colorGradient: 'from-rose-400/30 to-rose-400/0',
+    colorBg: 'bg-rose-100/70',
+    colorText: 'text-rose-600',
+  },
+]
 ---
 
 <AdminLayout title="Dashboard">
-  <section class="mt-[45vh] flex justify-center">
-    <p class="text-7xl">HALAMAN INDEX ADMIN</p>
+  <section class="mt-2 flex flex-col gap-6 px-16">
+    <div class="flex items-center justify-between">
+      <p class="text-xl font-bold text-gray-800">Dashboard</p>
+      <!-- search -->
+      <SearchTrigger />
+    </div>
+
+    <!-- stats card -->
+    <div
+      class="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-10"
+    >
+      {
+        statsData.map(stat => (
+          <StatCard
+            title={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            colorGradient={stat.colorGradient}
+            colorBg={stat.colorBg}
+            colorText={stat.colorText}
+          />
+        ))
+      }
+    </div>
   </section>
 </AdminLayout>

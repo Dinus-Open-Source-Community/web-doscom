@@ -1,0 +1,20 @@
+---
+import CreateImpact from "../../components/CreateImpact.astro";
+import StructureOrga from "../../components/pages/division/StructureOrga.astro";
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import HeaderDivision from "../../components/pages/division/HeaderDivision.astro";
+import CardStructure from "../../components/pages/division/CardStructure.astro";
+---
+
+<PublicLayout title="division">
+  <section class="bg-white">
+    <HeaderDivision
+      title="Division Doscom"
+      description="tim yang bertanggung jawab untuk menghasilkan konten-konten kreatif dan menarik secara visual maupun audio untuk berbagai platform, seperti media sosial, website, dan media lainnya"
+      backgroundImage="/assets/photos/header-division.jpg"
+    />
+    <StructureOrga />
+    <CardStructure />
+    <CreateImpact />
+  </section>
+</PublicLayout>
