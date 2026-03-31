@@ -1,0 +1,48 @@
+---
+import Button from './ui/Button.astro'
+import Card from './ui/Card.astro'
+---
+
+<div class="bg-[var(--color-primary)] w-full h-full">
+    <div class="w-full h-full py-12 flex pl-60">
+        <div class="flex flex-col w-3xl justify-between space-y-6 py-3">
+            <div class="space-y-6">
+                <h1 class="font-jakarta font-semibold text-5xl tracking-tight text-white">Our Recent <br /> Activities</h1>
+                <ul class="font-jakarta font-normal tracking-tight text-white text-3xl leading-relaxed">
+                    <li>Daily Activity</li>
+                    <li>Works</li>
+                    <li>Events</li>
+                    <li>Sharing</li>
+                </ul>
+            </div>
+            <div>
+                <Button variant="primary" size="icon"><img src="/assets/icons/arrowLeftPrimary.svg" alt="arrow left primary" width="26" height="26" /> </Button>
+                <Button variant="primary" size="icon"><img src="/assets/icons/arrowRightPrimary.svg" alt="arrow right primary" width="26" height="26" /></Button>
+            </div>
+        </div>
+
+        <div class="flex gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar snap-x no-scrollbar scroll-smooth">
+            <Card
+                image="/assets/image/realeaseParty.jpg"
+                variant="activities"
+                title="TealinuxOS"
+                desc="Release Party adalah acara peluncuran TeaLinuxOS, distro Linux racikan DOSCOM yang dikembangkan secara terbuka dengan filosofi “Nikmatnya Sebuah Racikan”."
+                category={['Workshop', 'Bootcamp']}
+            />
+            <Card
+                image="/assets/image/du.jpg"
+                variant="activities"
+                title="Doscom University"
+                desc="Doscom University bukanlah universitas fisik, melainkan sebuah program atau acara pelatihan yang diselenggarakan oleh Doscom (Dinus Open Source Community). "
+                category={['Workshop', 'Bootcamp']}
+            />
+            <Card
+                image="/assets/image/tealinux.png"
+                variant="activities"
+                title="Rice Source"
+                desc="An open-source repository for community projects and experiments"
+                category={['Workshop', 'Bootcamp']}
+            />
+        </div>
+    </div>
+</div>

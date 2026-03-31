@@ -1,0 +1,69 @@
+---
+import Button from "../../ui/Button.astro";
+import Input from "../../ui/Input.astro";
+---
+
+<div class="z-10 w-full h-full bg-white py-15">
+  <div class="max-w-7xl w-full h-full gap-5 mx-auto">
+    <div class="w-full flex flex-row justify-between">
+      <div class="flex flex-col gap-y-2">
+        <h1 class="font-bold font-jakarta text-7xl tracking-tight leading-none">
+          Let’s <span class="text-[var(--color-primary)] block"
+            >Collaborate</span
+          >
+          Together
+        </h1>
+
+        <p
+          class="text-[var(--text-secondary)] text-lg mt-6 max-w-xl leading-relaxed"
+        >
+          Siap mempercepat visi Anda? <br class="block" /> Hubungi kami untuk berdiskusi,
+          berkolaborasi, dan <br class="block" /> membangun inovasi berikutnya secara
+          bersama.
+        </p>
+        <div class="flex items-center gap-3 text-xl">
+          <img
+            src="/assets/icons/mail.svg"
+            alt="mail"
+            class="w-5 h-5 md:w-6 md:h-6"
+          />
+          <p>doscom.go@gmail.com</p>
+        </div>
+        <div class="flex items-center gap-3 text-xl">
+          <img
+            src="/assets/icons/phone.svg"
+            alt="phone"
+            class="w-5 h-5 md:w-6 md:h-6"
+          />
+          <p>+62-812-3456-7890</p>
+        </div>
+      </div>
+
+      <form>
+        <div class="flex flex-row gap-5">
+          <Input type="email" placeholder={"Email"} />
+          <Input type="text" placeholder={"No Hp"} />
+        </div>
+        <Input type="text" placeholder={"Subject"} class={"mt-3"} />
+        <Input type="textarea" placeholder={"Message"} class={"mt-3"} />
+        <Button
+          variant="primary"
+          size="full"
+          class="font-jakarta font-semibold text-xl tracking-tighter px-6 py-4 mt-3 text-white rounded-xl"
+          type={"submit"}>Send</Button
+        >
+      </form>
+    </div>
+    <div class="w-full h-[478px] rounded-xl overflow-hidden shadow-lg mt-8">
+      <iframe
+        class="w-full h-full transition duration-500 ease-in-out"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d636.8787087310537!2d110.4089028810593!3d-6.980884039361179!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e708b4c0352d167%3A0x92ffbbc43034712e!2sUdinus%20Gedung%20D%2C%20LABORATORY!5e0!3m2!1sid!2sid!4v1764650700010!5m2!1sid!2sid"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      >
+      </iframe>
+    </div>
+  </div>
+</div>

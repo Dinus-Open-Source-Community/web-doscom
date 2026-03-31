@@ -1,0 +1,57 @@
+---
+const periods = [
+	{ label: 'Present - 2025', value: '2025' },
+	{ label: '2024/2023', value: '2024' },
+	{ label: '2023/2022', value: '2023' },
+	{ label: '2022/2021', value: '2022' },
+	{ label: '2020/2019', value: '2020' },
+	{ label: '2018/2017', value: '2018' },
+	{ label: '2016/2015', value: '2016' },
+	{ label: '2014/2013', value: '2014' },
+	{ label: '2012/2011', value: '2012' },
+	{ label: '2010/2009', value: '2010' },
+];
+---
+
+<div class="bg-[var(--color-primary)] w-full">
+	<div class="max-w-7xl mx-auto px-4 md:px-6">
+		<nav
+			class="flex flex-row overflow-x-auto items-center py-4 gap-6 md:gap-8 no-scrollbar mask-gradient"
+		>
+			{
+				periods.map((period, i) => (
+					<div
+						role="button"
+						data-value={period.value}
+						class:list={[
+							'whitespace-nowrap font-jakarta text-sm text-white font-bold border-none  hover:text-white cursor-pointer md:text-base transition-all duration-300 ease-in-out border-b-2 pb-1',
+
+							i === 0
+								? 'text-white font-bold cursor-default '
+								: 'text-white/60 font-medium cursor-pointer ',
+						]}
+						class="tab-item"
+					>
+						{period.label}
+					</div>
+				))
+			}
+		</nav>
+	</div>
+</div>
+
+<script>
+	const tabs = document.querySelectorAll('.tab-item');
+
+	tabs.forEach((tab) => {
+		tab.addEventListener('click', () => {
+			tabs.forEach((t) => {
+				t.classList.remove('text-white', 'font-bold', 'cursor-default');
+				t.classList.add('text-white/60', 'font-medium', 'cursor-pointer');
+			});
+
+			tab.classList.remove('text-white/60', 'font-medium', 'cursor-pointer');
+			tab.classList.add('text-white', 'font-bold', 'cursor-default');
+		});
+	});
+</script>
