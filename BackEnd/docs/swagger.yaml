@@ -1,19 +1,20 @@
+basePath: /
 definitions:
-  handler.DeleteFileRequest:
+  internal_handler.DeleteFileRequest:
     properties:
       file_name:
         type: string
     required:
     - file_name
     type: object
-  handler.DeleteFileResponse:
+  internal_handler.DeleteFileResponse:
     properties:
       message:
         type: string
       success:
         type: boolean
     type: object
-  handler.ListFilesResponse:
+  internal_handler.ListFilesResponse:
     properties:
       count:
         type: integer
@@ -26,7 +27,7 @@ definitions:
       success:
         type: boolean
     type: object
-  handler.UploadImageResponse:
+  internal_handler.UploadImageResponse:
     properties:
       file_name:
         type: string
@@ -37,17 +38,29 @@ definitions:
       success:
         type: boolean
     type: object
-  model.Blog:
+  multipart.FileHeader:
+    properties:
+      filename:
+        type: string
+      header:
+        $ref: '#/definitions/textproto.MIMEHeader'
+      size:
+        format: int64
+        type: integer
+    type: object
+  textproto.MIMEHeader:
+    additionalProperties:
+      items:
+        type: string
+      type: array
+    type: object
+  web_doscom_internal_database_model.Blog:
     properties:
       content:
         type: string
       created_at:
         type: string
       id:
-        type: integer
-      id_activity:
-        type: integer
-      id_asset:
         type: integer
       id_pengurus:
         type: integer
@@ -67,7 +80,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  model.BlogPatch:
+  web_doscom_internal_database_model.BlogPatch:
     properties:
       content:
         type: string
@@ -90,15 +103,13 @@ definitions:
       title:
         type: string
     type: object
-  model.GalleryResponse:
+  web_doscom_internal_database_model.GalleryResponse:
     properties:
-      asset_url:
-        type: string
       description:
         type: string
       event_date:
         type: string
-      file_size:
+      file_upload_id:
         type: integer
       gallery_name:
         type: string
@@ -106,8 +117,8 @@ definitions:
         type: string
       id:
         type: integer
-      mime_type:
-        type: string
+      id_users:
+        type: integer
     type: object
   model.LoginRequest:
     properties:
@@ -125,19 +136,16 @@ definitions:
         type: string
       email:
         type: string
-      name:
-        maxLength: 150
-        minLength: 2
-        type: string
       period:
         maxLength: 50
         type: string
       position:
+        description: condition just for koor and super_admin
         type: string
       sosmed:
         type: string
       url_asset:
-        type: string
+        $ref: '#/definitions/multipart.FileHeader'
     type: object
   model.PengurusResponse:
     properties:
@@ -151,11 +159,29 @@ definitions:
         type: string
       period:
         type: string
+      photo_url:
+        type: string
       position:
         type: string
       sosmed:
         type: string
-      url_asset:
+    type: object
+  web_doscom_internal_database_model.RefreshTokenErrorResponse:
+    properties:
+      error:
+        example: token expired
+        type: string
+      message:
+        example: refresh token invalid or expired
+        type: string
+    type: object
+  web_doscom_internal_database_model.RefreshTokenSuccessResponse:
+    properties:
+      message:
+        example: refresh token success
+        type: string
+      token:
+        example: new_access_token_here
         type: string
     type: object
   model.RegisterBlog:
@@ -422,6 +448,71 @@ paths:
           description: OK
           schema:
             items:
+              $ref: '#/definitions/web_doscom_internal_database_model.Blog'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all blogs
+      tags:
+      - Blog
+  /api/v1/blogs/:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create blog dengan upload gambar baru dan/atau memilih gambar yang
+        sudah ada
+      parameters:
+      - description: Judul Blog
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Slug Blog
+        in: formData
+        name: slug
+        required: true
+        type: string
+      - description: Konten Blog
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: Kategori Blog
+        in: formData
+        name: kategori
+        required: true
+        type: string
+      - description: Tanggal publish (format RFC3339)
+        in: formData
+        name: published_at
+        type: string
+      - description: Status publish
+        in: formData
+        name: is_published
+        type: boolean
+      - description: ID Work
+        in: formData
+        name: id_work
+        required: true
+        type: integer
+      - description: ID Pengurus
+        in: formData
+        name: id_pengurus
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
               $ref: '#/definitions/model.Blog'
             type: array
         "500":
@@ -604,6 +695,113 @@ paths:
       security:
       - BearerAuth: []
       summary: List blogs by category
+      tags:
+      - Blog
+  /api/v1/blogs/{id}:
+    delete:
+      description: Delete a blog post
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete blog
+      tags:
+      - Blog
+    get:
+      description: Get detailed information of a blog
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_doscom_internal_database_model.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get blog by ID
+      tags:
+      - Blog
+    put:
+      consumes:
+      - application/json
+      description: Update existing blog post
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/web_doscom_internal_database_model.BlogPatch'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_doscom_internal_database_model.Blog'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update blog
       tags:
       - Blog
   /api/v1/gallery/:
@@ -1177,7 +1375,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handler.DeleteFileRequest'
+          $ref: '#/definitions/internal_handler.DeleteFileRequest'
       - description: File name to delete
         in: body
         name: request
@@ -1251,7 +1449,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.ListFilesResponse'
+            $ref: '#/definitions/internal_handler.ListFilesResponse'
         "401":
           description: Unauthorized
           schema:
@@ -1334,8 +1532,28 @@ paths:
       tags:
       - upload
       - Upload
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generate new access token using refresh token stored in HTTP-only
+        cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_doscom_internal_database_model.RefreshTokenSuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/web_doscom_internal_database_model.RefreshTokenErrorResponse'
+      summary: Refresh access token
+      tags:
+      - Auth
 securityDefinitions:
-  ApiKeyAuth:
+  BearerAuth:
     in: header
     name: Authorization
     type: apiKey

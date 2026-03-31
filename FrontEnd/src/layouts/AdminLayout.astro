@@ -1,20 +1,28 @@
 ---
-import BaseLayout from './BaseLayout.astro'
+// import tailwind
+import '../styles/global.css'
 import Sidebar from '../components/layouts/Sidebar.astro'
-import SearchModal from '../components/ui/admin/SearchModal.astro'
 
 const { title } = Astro.props
 ---
 
-<BaseLayout title="Admin Panel">
-  <main class="font-jakarta flex h-screen overflow-hidden bg-gray-50">
-    <SearchModal />
-    <Sidebar />
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Doscom | {title}</title>
+    </head>
+    <body>
+        <div class="flex">
+            <Sidebar />
 
-    <div class="relative flex h-screen flex-1 flex-col overflow-hidden">
-      <div class="flex-1 overflow-y-auto p-6">
-        <slot />
-      </div>
-    </div>
-  </main>
-</BaseLayout>
+            <div class="flex min-h-screen w-full flex-col justify-between">
+                <main>
+                    <slot />
+                </main>
+            </div>
+        </div>
+    </body>
+</html>

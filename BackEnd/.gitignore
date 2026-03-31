@@ -1,0 +1,32 @@
+# --------------------------
+# Environment
+# --------------------------
+.env
+
+# --------------------------
+# Temporary / Build
+# --------------------------
+tmp/
+*.tmp
+*.log
+
+
+# --------------------------
+# Node / npm (backend might use some node scripts)
+# --------------------------
+node_modules/
+package-lock.json
+package.json
+
+# --------------------------
+# Docker / Air / OS
+# --------------------------
+.air.toml
+.DS_Store
+
+# --------------------------
+# Go / bin
+# --------------------------
+bin/
+*.exe
+*.out
