@@ -11,11 +11,13 @@ import (
 )
 
 type AuthHandler struct {
-	Model *model.UserModel
+	// Model *model.UserModel
+	// Mod   *model.RefreshTokenModel
+	Auth *AuthService
 }
 
-func NewUserauth(m *model.UserModel) *AuthHandler {
-	return &AuthHandler{Model: m}
+func NewUserauth(a *AuthService) *AuthHandler {
+	return &AuthHandler{Auth: a}
 }
 
 // LoginHandler godoc
@@ -43,10 +45,10 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// look at the requested user
-	user, err := h.Model.FindByEmail(input.Email)
+	user, err := h.Auth.FindByEmail(input.Email)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid email ",
+			"error": "Invalid email or password ",
 		})
 		return
 	}
@@ -54,13 +56,13 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	// veerify the password
 	if !verifyPassword(input.Password, user.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid  password",
+			"error": "Invalid email or password",
 		})
 		return
 	}
 
 	// check the role
-	allowedRoles := []string{"Super_Admin", "Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH", "pemro_ang", "jaringan_ang", "medcrev_ang", "data_ang", "BPH_ang"}
+	allowedRoles := []string{"SuperAdmin", "KoorPemro", "KoorJaringan", "KoorData", "KoorMedcrev", "BPH", "pemroAnggota", "jaringanAnggota", "medcrevAnggota", "dataAnggota", "BPHAnggota"}
 
 	if !slices.Contains(allowedRoles, user.Role) {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -70,8 +72,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// generate token jwt
-	token, err := Create_token(user.ID, user.Email, user.Username, user.Role)
-
+	accesToken, err := Create_token(user.ID, user.Email, user.Username, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error: ": "Failed to create token",
@@ -80,12 +81,28 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
+	refreshToken, tokenHash, err := generateRefreshToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error: ": "Failed to create refresh token",
+		})
+		return
+	}
+	// insert to database
+	if err := h.Auth.CreateRefreshToken(refreshToken); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error: ": "Failed to insert refresh token",
+		})
+
+		return
+	}
+
 	// set cookie
 	SetCustomCookie(c, Cookies{
-		Name:     "AccessToken",
-		Value:    token,
+		Name:     "RefreshToken",
+		Value:    refreshToken.Token,
 		Path:     "/",
-		Expires:  time.Now().Add(1 * time.Hour),
+		Expires:  time.Now().Add(5 * 24 * time.Hour),
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
@@ -99,8 +116,9 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 
 	// development response
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login success, nasi padangnya sebungkus bolo",
-		"token":   token,
+		"message":       "Login success, nasi padangnya sebungkus bolo",
+		"token":         accesToken,
+		"refresh_token": tokenHash,
 	})
 }
 
@@ -136,8 +154,10 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 	}
 
 	// insert to database
-	if err := h.Model.InsertUser(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to register user"})
+	if err := h.Auth.InsertUser(&user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to register user",
+		})
 		return
 	}
 
@@ -160,7 +180,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 	// delete cookie
 	SetCustomCookie(c, Cookies{
-		Name:     "AccessToken",
+		Name:     "RefreshToken",
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Now().Add(-time.Hour),
@@ -172,4 +192,51 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Logout Success, nasi padang satu bungkus",
 	})
+}
+
+// RefreshToken godoc
+// @Summary Refresh access token
+// @Description Generate new access token using refresh token stored in HTTP-only cookie
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} model.RefreshTokenSuccessResponse
+// @Failure 401 {object} model.RefreshTokenErrorResponse
+// @Router /auth/refresh [post]
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	refreshCookie, err := c.Cookie("RefreshToken")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   err.Error(),
+			"message": "Refresh token not found",
+		})
+		return
+	}
+
+	newAccessToken, err := h.Auth.validateRefreshToken(refreshCookie)
+	if err != nil {
+		// clear expired Cookie
+		SetCustomCookie(c, Cookies{
+			Name:     "RefreshToken",
+			Value:    "",
+			Path:     "/",
+			Expires:  time.Now().Add(-time.Hour),
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   err.Error(),
+			"message": "refresh token invalid or expired",
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "refresh token success",
+		"token":   newAccessToken,
+	})
+
 }

@@ -312,7 +312,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Blog"
+                                "$ref": "#/definitions/web_doscom_internal_database_model.Blog"
                             }
                         }
                     },
@@ -326,7 +326,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/api/v1/blogs/": {
             "post": {
                 "security": [
                     {
@@ -520,6 +522,173 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/model.Blog"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a blog post",
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Delete blog",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Blog ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/blogs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get detailed information of a blog",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Get blog by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Blog ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web_doscom_internal_database_model.Blog"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update existing blog post",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Blog"
+                ],
+                "summary": "Update blog",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Blog ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update data",
+                        "name": "blog",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/web_doscom_internal_database_model.BlogPatch"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web_doscom_internal_database_model.Blog"
                         }
                     },
                     "400": {
@@ -1479,7 +1648,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.DeleteFileRequest"
+                            "$ref": "#/definitions/internal_handler.DeleteFileRequest"
                         }
                     },
                     {
@@ -1585,7 +1754,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.ListFilesResponse"
+                            "$ref": "#/definitions/internal_handler.ListFilesResponse"
                         }
                     },
                     "401": {
@@ -1700,10 +1869,39 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/auth/refresh": {
+            "post": {
+                "description": "Generate new access token using refresh token stored in HTTP-only cookie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Refresh access token",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web_doscom_internal_database_model.RefreshTokenSuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/web_doscom_internal_database_model.RefreshTokenErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "handler.DeleteFileRequest": {
+        "internal_handler.DeleteFileRequest": {
             "type": "object",
             "required": [
                 "file_name"
@@ -1714,7 +1912,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.DeleteFileResponse": {
+        "internal_handler.DeleteFileResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -1725,7 +1923,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.ListFilesResponse": {
+        "internal_handler.ListFilesResponse": {
             "type": "object",
             "properties": {
                 "count": {
@@ -1745,7 +1943,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.UploadImageResponse": {
+        "internal_handler.UploadImageResponse": {
             "type": "object",
             "properties": {
                 "file_name": {
@@ -1762,7 +1960,31 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Blog": {
+        "multipart.FileHeader": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string"
+                },
+                "header": {
+                    "$ref": "#/definitions/textproto.MIMEHeader"
+                },
+                "size": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "textproto.MIMEHeader": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        },
+        "web_doscom_internal_database_model.Blog": {
             "type": "object",
             "properties": {
                 "content": {
@@ -1772,12 +1994,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
-                },
-                "id_activity": {
-                    "type": "integer"
-                },
-                "id_asset": {
                     "type": "integer"
                 },
                 "id_pengurus": {
@@ -1807,7 +2023,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.BlogPatch": {
+        "web_doscom_internal_database_model.BlogPatch": {
             "type": "object",
             "properties": {
                 "content": {
@@ -1842,19 +2058,16 @@ const docTemplate = `{
                 }
             }
         },
-        "model.GalleryResponse": {
+        "web_doscom_internal_database_model.GalleryResponse": {
             "type": "object",
             "properties": {
-                "asset_url": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
                 "event_date": {
                     "type": "string"
                 },
-                "file_size": {
+                "file_upload_id": {
                     "type": "integer"
                 },
                 "gallery_name": {
@@ -1866,8 +2079,8 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "mime_type": {
-                    "type": "string"
+                "id_users": {
+                    "type": "integer"
                 }
             }
         },
@@ -1895,23 +2108,19 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "name": {
-                    "type": "string",
-                    "maxLength": 150,
-                    "minLength": 2
-                },
                 "period": {
                     "type": "string",
                     "maxLength": 50
                 },
                 "position": {
+                    "description": "condition just for koor and super_admin",
                     "type": "string"
                 },
                 "sosmed": {
                     "type": "string"
                 },
                 "url_asset": {
-                    "type": "string"
+                    "$ref": "#/definitions/multipart.FileHeader"
                 }
             }
         },
@@ -1933,14 +2142,40 @@ const docTemplate = `{
                 "period": {
                     "type": "string"
                 },
+                "photo_url": {
+                    "type": "string"
+                },
                 "position": {
                     "type": "string"
                 },
                 "sosmed": {
                     "type": "string"
+                }
+            }
+        },
+        "web_doscom_internal_database_model.RefreshTokenErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "token expired"
                 },
-                "url_asset": {
-                    "type": "string"
+                "message": {
+                    "type": "string",
+                    "example": "refresh token invalid or expired"
+                }
+            }
+        },
+        "web_doscom_internal_database_model.RefreshTokenSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "refresh token success"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "new_access_token_here"
                 }
             }
         },
@@ -2051,7 +2286,7 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth": {
+        "BearerAuth": {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
@@ -2063,7 +2298,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Web Doscom API",
 	Description:      "API Documentation Web Doscom",

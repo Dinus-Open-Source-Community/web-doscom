@@ -8,17 +8,21 @@ import (
 )
 
 func GalleryRoute(r *gin.RouterGroup, GalleryHandler *handler.GalleryHandler) {
-	crevmed := r.Group("/gallery")
+	publicRoutes := r.Group("/gallery")
 	// public api
 	{
-		crevmed.GET("/", GalleryHandler.GetGalleryByType) // get gallery by type
+		// get all gallery and gallery by filter -> year
+		publicRoutes.GET("/", GalleryHandler.GetAllGalleryByYear)
+
 	}
 
 	// private api -> need auth
-	crevmedAuth := crevmed.Group("/")
-	crevmedAuth.Use(auth.AuthMiddleware("Kor_Medcrev", "Super_Admin"))
+	privateRoutes := r.Group("/admin/gallery")
+	privateRoutes.Use(auth.AuthMiddleware("SuperAdmin", "KoorMedcrev"))
 	{
-		crevmedAuth.POST("/", GalleryHandler.InsertGallery)      // insert gallery
-		crevmedAuth.DELETE("/:id", GalleryHandler.DeleteGallery) // delete gallery by id
+		// insert gallery
+		privateRoutes.POST("/", GalleryHandler.InsertGallery)
+		// delete gallery by id
+		privateRoutes.DELETE("/:id", GalleryHandler.DeleteGallery)
 	}
 }
