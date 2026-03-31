@@ -11,8 +11,8 @@ func AuthRoutes(r *gin.RouterGroup, AuthHandler *auth.AuthHandler) {
 
 	r.POST("/login", AuthHandler.LoginHandler) // login route for admin and superadmin
 	r.POST("/register", AuthHandler.RegisterUser)
-
+	r.POST("/auth/refresh", AuthHandler.RefreshToken)
 	// Logout route
-	r.POST("/logout", AuthHandler.Logout)
+	r.POST("/auth/logout", AuthHandler.Logout)
 
 }

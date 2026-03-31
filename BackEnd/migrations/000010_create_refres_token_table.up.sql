@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS refresh_token (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER UNIQUE NOT NULL,
+  token_hash VARCHAR(255) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- indexing
+CREATE INDEX IF NOT EXISTS idx_refresh_tn_user_id ON refresh_token(user_id);

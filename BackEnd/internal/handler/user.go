@@ -3,58 +3,22 @@ package handler
 import (
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"web_doscom/internal/auth"
-	env "web_doscom/internal/config"
 	"web_doscom/internal/database/model"
+	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type UserHandler struct {
-	Model *model.UserModel
+	Service *service.UserService
 }
 
-func NewUserHandler(m *model.UserModel) *UserHandler {
-	return &UserHandler{Model: m}
-}
-
-func (m *UserHandler) SetDefaultValue(email, fullname, role string) (*model.DefaultValue, error) {
-	env.LoadEnv()
-	secret := os.Getenv("PASSWORD_SECRET")
-
-	var assignedRole, roles string
-	if strings.HasPrefix(role, "Kor_") {
-		roles = strings.TrimPrefix(role, "Kor_")
-		assignedRole = strings.ToLower(roles) + "_ang"
-	} else if role == "BPH" {
-		assignedRole = "BPH_ang"
-	} else {
-		log.Println(">>> CALLED handler.SetDefaultValue <<<", role)
-		assignedRole = ""
-	}
-
-	atIndex := strings.Index(email, "@")
-	partEmail := email
-	if atIndex != -1 {
-		partEmail = email[:atIndex]
-	} else {
-		partEmail = "user_" + roles
-	}
-
-	fullnamePart := strings.Split(fullname, " ")[0]
-
-	username := fullnamePart + "_" + partEmail
-	defaultPassword := partEmail + secret + fullnamePart
-
-	return &model.DefaultValue{
-		Username: username,
-		Password: defaultPassword,
-		Role:     assignedRole,
-	}, nil
+func NewUserHandler(s *service.UserService) *UserHandler {
+	return &UserHandler{Service: s}
 }
 
 func (m *UserHandler) CreateUser(c *gin.Context) {
@@ -63,7 +27,7 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 
 	var input model.RegisterRequest
 	// get the req body
-	if c.Bind(&input) != nil {
+	if c.ShouldBind(&input) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read req body",
 		})
@@ -78,66 +42,12 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// set default value for user
-	var (
-		defaultValue *model.DefaultValue
-		Err          error
-	)
-	switch {
-	case strings.HasPrefix(creatorRole, "Kor_"):
-		defaultValue, Err = m.SetDefaultValue(input.Email, input.Fullname, creatorRole)
-		if Err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": Err.Error(),
-			})
-		}
-	case creatorRole == "BPH":
-		defaultValue, Err = m.SetDefaultValue(input.Email, input.Fullname, creatorRole)
-		if Err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": Err.Error(),
-			})
-		}
-	case creatorRole == "Super_Admin":
-		if input.Role == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "role must be given",
-			})
-			return
-		}
-		defaultValue, Err = m.SetDefaultValue(input.Email, input.Fullname, creatorRole)
-		defaultValue.Role = input.Role
-		if Err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": Err.Error(),
-			})
-		}
-	default:
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   "Invalid role",
-			"message": "heyy jangan kau pakai route ini, bapak kau 3",
-		})
-	}
-
-	// hash the password
-	passwordHash := auth.HashPassword(defaultValue.Password)
-	log.Printf("Role value: '%s'", defaultValue.Role)
-
-	// mapping the user
-	user := &model.User{
-		Username:  defaultValue.Username,
-		Email:     input.Email,
-		Role:      defaultValue.Role,
-		Password:  passwordHash,
-		Full_name: input.Fullname,
-	}
-
-	// insert to database
-	if err := m.Model.InsertUser(user); err != nil {
+	// call service to create and set default value for user
+	if err := m.Service.InsertUser(&input, creatorRole); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to create user",
+			"error":   err.Error(),
+			"message": "failed while create user",
 		})
-
 		return
 	}
 
@@ -151,7 +61,7 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 	role := c.MustGet("role").(string)
 	if role != "Super_Admin" {
 		c.JSON(http.StatusForbidden, gin.H{
-			"error": "Heyy tinggi kali kau bah pake route ini",
+			"error": "Not allowed to access this route, nakal yaa!!",
 		})
 		return
 	}
@@ -159,18 +69,25 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 	var input model.RegisterRequest
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read req body"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read req body",
+		})
 		return
 	}
 
 	if input.Email == "" || input.Password == "" || input.Fullname == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "name, email, and password are required"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "some field are missing",
+		})
 		return
 	}
 
 	// Check email uniqueness
-	if _, err := m.Model.FindByEmail(input.Email); err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "email already registered"})
+	if _, err := m.Service.FindByEmail(input.Email); err == nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error":   "email already registered",
+			"message": "use another email, i know you have a lot of email",
+		})
 		return
 	}
 
@@ -185,7 +102,7 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 		Full_name: input.Fullname,
 	}
 
-	if err := m.Model.InsertUser(&user); err != nil {
+	if err := m.Service.InsertUser(&user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to create user",
 		})
@@ -209,7 +126,7 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := m.Model.GetUserById(id)
+	user, err := m.Service.GetUserById(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "User Not Found",
@@ -245,27 +162,27 @@ func (m *UserHandler) GetAllUser(c *gin.Context) {
 	}
 
 	// get all user
-	users, err := m.Model.GetAllUser(role, userRole)
+	users, err := m.Service.GetAllUser(role, userRole)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to fetch users data",
 		})
 	}
 
-	var userresponse []model.UserResponse
-	for _, u := range users {
-		userresponse = append(userresponse, model.UserResponse{
+	userResponse := make([]model.UserResponse, len(users))
+	for i, u := range users {
+		userResponse[i] = model.UserResponse{
 			Id:        int(u.ID),
 			Username:  u.Username,
 			Email:     u.Email,
 			Role:      u.Role,
 			Full_name: u.Full_name,
-		})
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "List of users (excluding superadmin)",
-		"users":   userresponse,
+		"users":   userResponse,
 	})
 }
 
@@ -289,7 +206,7 @@ func (m *UserHandler) UpdateUser(c *gin.Context) {
 
 	// update the data
 	userUpdate := patchUser.ToMap()
-	updateuser, err := m.Model.UpdateUser(id, userUpdate)
+	updateuser, err := m.Service.UpdateUser(id, userUpdate)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to update data user: " + err.Error(),
@@ -312,7 +229,7 @@ func (m *UserHandler) DeleteUser(c *gin.Context) {
 		return
 	}
 	// take the user by id
-	if err := m.Model.Deleteuser(id); err != nil {
+	if err := m.Service.DeleteUser(id); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "user not found",

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"mime/multipart"
+	"context"
 	"time"
 
 	"gorm.io/gorm"
@@ -12,50 +12,43 @@ type GalleryModel struct {
 }
 
 type Gallery struct {
-	ID          int       `gorm:"primaryKey" json:"id"`
-	GalleryName string    `form:"gallery_name"`
-	GalleryType string    `form:"gallery_type"`
-	Description string    `form:"description"`
-	EventDate   string    `form:"event_date"`
-	FileSize    int64     `form:"file_size"`
-	MimeType    string    `form:"mime_type"`
-	AssetUrl    string    `form:"asset_url"`
-	Kategori    string    `form:"kategori"`
-	CreatedAt   time.Time `form:"created_at"`
-	UpdatedAt   time.Time `form:"updated_at"`
+	ID           int       `form:"primaryKey" json:"id"`
+	IDUsers      int       `form:"column:id_pengurus" json:"id_users"`
+	FileUploadID int       `form:"column:file_upload_id" json:"file_upload_id"`
+	GalleryName  string    `form:"gallery_name"`
+	GalleryType  string    `form:"gallery_type"`
+	Description  string    `form:"description"`
+	EventDate    time.Time `form:"event_date"`
+	FileURL      string    `form:"file_url"`
+	CreatedAt    time.Time `form:"created_at"`
+	UpdatedAt    time.Time `form:"updated_at"`
 }
 
 type GalleryInsert struct {
-	FileHeader  *multipart.FileHeader
-	AssetUrl    string
-	GalleryName string
-	Kategori    string
-	FileSize    int64
-	MimeType    string
+	IDUsers      int       `form:"id_users"`
+	FileUploadID int       `form:"file_upload_id"`
+	GalleryName  string    `form:"gallery_name"`
+	GalleryType  string    `form:"gallery_type"`
+	Description  string    `form:"description"`
+	EventDate    time.Time `form:"event_date" time_format:"2006-01-02"`
 }
 
 type CreateGallery struct {
-	GalleryType string `form:"gallery_type" binding:"required"`
-	Description string `form:"description" binding:"required"`
-	EventDate   string `form:"event_date" binding:"required"`
+	GalleryName string    `form:"gallery_name" binding:"required"`
+	GalleryType string    `form:"gallery_type" binding:"required"`
+	Description string    `form:"description" binding:"required"`
+	EventDate   time.Time `form:"event_date" binding:"required"`
 }
 
 type GalleryResponse struct {
-	ID          int    `json:"id"`
-	GalleryName string `json:"gallery_name"`
-	GalleryType string `json:"gallery_type"`
-	Description string `json:"description"`
-	EventDate   string `json:"event_date"`
-	FileSize    int64  `json:"file_size"`
-	MimeType    string `json:"mime_type"`
-	AssetUrl    string `json:"asset_url"`
-}
-
-type GalleryUpdate struct {
-	GalleryName *string `json:"gallery_name" binding:"omitempty"`
-	GalleryType *string `json:"gallery_type" binding:"omitempty"`
-	Description *string `json:"description" binding:"omitempty"`
-	EventDate   *string `json:"event_date" binding:"omitempty"`
+	ID           int       `json:"id"`
+	IDUsers      int       `json:"id_users"`
+	FileUploadID int       `json:"file_upload_id"`
+	GalleryName  string    `json:"gallery_name"`
+	GalleryType  string    `json:"gallery_type"`
+	Description  string    `json:"description"`
+	EventDate    time.Time `json:"event_date"`
+	FileURL      string    `json:"file_url"`
 }
 
 func (Gallery) TableName() string {
@@ -63,13 +56,65 @@ func (Gallery) TableName() string {
 }
 
 // insert gallery
-func (g *GalleryModel) InsertGallery(gallery *Gallery) (*Gallery, error) {
+func (g *GalleryModel) InsertGallery(gallery *Gallery) (*GalleryResponse, error) {
 	if err := g.DB.Create(gallery).Error; err != nil {
 		return nil, err
 	}
 
-	return gallery, nil
+	return &GalleryResponse{
+		ID:           gallery.ID,
+		IDUsers:      gallery.IDUsers,
+		FileUploadID: gallery.FileUploadID,
+		GalleryName:  gallery.GalleryName,
+		GalleryType:  gallery.GalleryType,
+		Description:  gallery.Description,
+		EventDate:    gallery.EventDate,
+	}, nil
 }
+
+func (g *GalleryModel) InsertGalleryMultiple(gallery []*Gallery) ([]*GalleryResponse, error) {
+	if err := g.DB.Create(&gallery).Error; err != nil {
+		return nil, err
+	}
+
+	response := make([]*GalleryResponse, len(gallery))
+	for i, data := range gallery {
+		response[i] = &GalleryResponse{
+			ID:           data.ID,
+			IDUsers:      data.IDUsers,
+			FileUploadID: data.FileUploadID,
+			GalleryName:  data.GalleryName,
+			GalleryType:  data.GalleryType,
+			Description:  data.Description,
+			EventDate:    data.EventDate,
+			FileURL:      data.FileURL,
+		}
+	}
+	return response, nil
+}
+
+// get gallery by id multiple
+// func (g *GalleryModel) GetGalleryByID(id []int) ([]*GalleryResponse, error) {
+// 	var gallery []*Gallery
+// 	if err := g.DB.Where("id = ?", &id).Find(&gallery).Error; err != nil {
+// 		return nil, err
+// 	}
+//
+// 	response := make([]*GalleryResponse, len(gallery))
+// 	for i, data := range gallery {
+// 		response[i] = &GalleryResponse{
+// 			ID:           data.ID,
+// 			IDUsers:      data.IDUsers,
+// 			FileUploadID: data.FileUploadID,
+// 			GalleryName:  data.GalleryName,
+// 			GalleryType:  data.GalleryType,
+// 			Description:  data.Description,
+// 			EventDate:    data.EventDate,
+// 			FileURL:      data.FileURL,
+// 		}
+// 	}
+// 	return response, nil
+// }
 
 // get gallery by type
 func (g *GalleryModel) GetGalleryByType(galleryType string, page, limit, offset int) ([]*Gallery, int64, error) {
@@ -92,48 +137,6 @@ func (g *GalleryModel) GetGalleryByType(galleryType string, page, limit, offset 
 	return GalleryData, total, nil
 }
 
-// get gallery by id
-func (g *GalleryModel) GetGalleryByID(id int) (*Gallery, error) {
-	var gallery Gallery
-	if err := g.DB.First(&gallery, id).Error; err != nil {
-		return nil, err
-	}
-
-	return &gallery, nil
-}
-
-// get all gallery
-func (g *GalleryModel) GetAllGallery(page, limit, offset int) ([]*Gallery, int64, error) {
-	var GalleryData []*Gallery
-	// take data per page
-	if err := g.DB.
-		Offset(offset).
-		Limit(limit).
-		Find(&GalleryData).Error; err != nil {
-		return nil, 0, err
-	}
-
-	var total int64
-	// hitung total data
-	g.DB.Model(&Gallery{}).
-		Count(&total)
-
-	return GalleryData, total, nil
-}
-
-// update gallery
-func (g *GalleryModel) UpdateGallery(id int, patch GalleryUpdate) (*Gallery, error) {
-	var gallery Gallery
-	// find gallery by id
-	if err := g.DB.First(&gallery, id).Error; err != nil {
-		return nil, err
-	}
-	if err := g.DB.Model(&gallery).Updates(patch).Error; err != nil {
-		return nil, err
-	}
-	return &gallery, nil
-}
-
 // delete gallery by id
 func (g *GalleryModel) DeleteGallery(id int) error {
 	var gallery Gallery
@@ -149,4 +152,51 @@ func (g *GalleryModel) DeleteGallery(id int) error {
 	}
 
 	return nil
+}
+
+func (g *GalleryModel) CheckExistingGallery(id []int) (bool, error) {
+	if len(id) == 0 {
+		return false, nil
+	}
+	var count int64
+	result := g.DB.Model(&Gallery{}).Where("id in ?", id).Count(&count)
+
+	if result.Error != nil {
+		return false, result.Error
+	}
+
+	return int(count) == len(id), nil
+}
+
+// get all gallery -> if theres no filter year applied
+// get gallery by event_date -> if theres filter year applied
+func (g *GalleryModel) GetAllGalleryAndByYear(
+	ctx context.Context,
+	startYear, endYear *time.Time,
+	limit, offset int,
+) ([]GalleryResponse, int64, error) {
+
+	var galleryResponse []GalleryResponse
+	var total int64
+
+	query := g.DB.WithContext(ctx).Model(&Gallery{})
+	if startYear != nil && endYear != nil {
+		query = query.Where("created_at >= ? AND created_at < ?", startYear, endYear)
+	}
+
+	if err := query.Model(&Gallery{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := query.Model(&Gallery{}).
+		Select("id, description, file_url, event_date").
+		Limit(limit).
+		Offset(offset).
+		Order("created_at DESC").
+		Scan(&galleryResponse).
+		Error; err != nil {
+		return nil, 0, err
+	}
+
+	return galleryResponse, total, nil
 }

@@ -185,7 +185,7 @@ func (m *UserModel) UpdateUser(Id int, patch map[string]any) (*User, error) {
 }
 
 // delete
-func (m *UserModel) Deleteuser(id int) error {
+func (m *UserModel) DeleteUser(id int) error {
 	var user User
 
 	// take user by id

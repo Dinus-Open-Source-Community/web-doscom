@@ -9,26 +9,27 @@ import (
 
 func RegisterPengurusRoutes(rg *gin.RouterGroup, pengurusHandler *handler.PengurusHandler) {
 	// public api
-	p := rg.Group("/pengurus")
-	// public api
+	publicRoutes := rg.Group("/pengurus")
 	{
-		p.GET("/", pengurusHandler.GetAllPengurus)
+		publicRoutes.GET("/division/:division", pengurusHandler.GetAllPengurus)
 	}
 
 	// private api -> need auth
-	pengurusAuth := p.Group("/")
-	pengurusAuth.Use(auth.AuthMiddleware("ANGGOTA", "KOOR", "BPH", "ADMIN"))
+	authRoutes := rg.Group("/admin/pengurus")
+	authRoutes.Use(auth.AuthMiddleware("ANGGOTA", "KOOR", "BPH", "ADMIN"))
 	{
-		p.GET("/:id", pengurusHandler.GetPengurus)
-		pengurusAuth.POST("/", pengurusHandler.CreatePengurus)
-		pengurusAuth.PUT("/:id", pengurusHandler.UpdatePengurus)
-	}
+		authRoutes.GET("/:id", pengurusHandler.GetPengurusByID)
+		authRoutes.POST("/", pengurusHandler.CreatePengurus)
+		authRoutes.PUT("/:id", pengurusHandler.UpdatePengurus)
 
-	// private api -> koor khusus
-	koor := p.Group("/")
-	koor.Use(auth.AuthMiddleware("KOOR", "BPH", "ADMIN"))
-	{
-		pengurusAuth.DELETE("/:id", pengurusHandler.DeletePengurus)
+		authRoutes.DELETE("/:id",
+			auth.AuthMiddleware("KOOR", "BPH", "ADMIN"),
+			pengurusHandler.DeletePengurus,
+		)
+		authRoutes.GET("",
+			auth.AuthMiddleware("KOOR", "BPH", "ADMIN"),
+			pengurusHandler.GetAllPengurusByDivision,
+		)
 	}
 
 }
