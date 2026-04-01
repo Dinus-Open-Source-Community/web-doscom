@@ -17,7 +17,7 @@ func UserControllerRoute(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 		// create new users
 		admin.POST("/", UserHandler.SuperAdminCreateUser)
 		// get users by id
-		admin.GET("/:id", UserHandler.SuperAdmin   GetUser)
+		admin.GET("/:id", UserHandler.SuperAdminGetUser)
 		// get all users
 		admin.GET("/", UserHandler.SuperAdminGetAllUser)
 		// update user by id
@@ -40,4 +40,3 @@ func UserControllerRoute(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
 	}
 
 }
-

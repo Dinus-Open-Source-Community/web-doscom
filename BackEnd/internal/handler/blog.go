@@ -15,19 +15,27 @@ type BlogHandler struct {
 	Service *service.BlogService
 }
 
-func NewBlogHandler(service *service.BlogService) *BlogHandler {
-	return &BlogHandler{Service: service}
+func NewBlogHandler(m *service.BlogService) *BlogHandler {
+	return &BlogHandler{Service: m}
 }
 
-// Create Blog godoc
-// @Summary Create new blog
-// @Description Create a new blog post
+// CreateBlog godoc
+// @Summary Create a new blog
+// @Description Create blog dengan upload gambar baru dan/atau memilih gambar yang sudah ada
 // @Tags Blog
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
-// @Param blog body model.RegisterBlog true "Blog data"
-// @Success 201 {object} model.Blog
+// @Param title formData string true "Judul Blog"
+// @Param slug formData string true "Slug Blog"
+// @Param content formData string true "Konten Blog"
+// @Param kategori formData string true "Kategori Blog"
+// @Param published_at formData string false "Tanggal publish (format RFC3339)"
+// @Param is_published formData bool false "Status publish"
+// @Param id_work formData int true "ID Work"
+// @Param id_pengurus formData int true "ID Pengurus"
+// @Success 200 {object} map[string]interface{} "Blog created successfully"
 // @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Security ApiKeyAuth
 // @Router /api/v1/blogs/ [post]
@@ -49,9 +57,11 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 		return
 	}
 
-	// Insert using service model
-	if err := h.Service.Model.InsertBlog(&input); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create blog: " + err.Error()})
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read file",
+		})
 		return
 	}
 

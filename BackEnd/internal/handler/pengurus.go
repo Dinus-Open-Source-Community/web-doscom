@@ -93,7 +93,6 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 			"error":   err.Error(),
 			"message": "Failed to create data pengurus, server error",
 		})
-		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
