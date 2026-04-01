@@ -17,7 +17,6 @@ func Routes(app *config.Application) http.Handler {
 	g := gin.Default()
 
 	v1 := g.Group("api/v1")
-	// Tambahkan route lain di sini
 	{
 		// auth
 		authService := auth.NewAuthService(&app.Model.Users, &app.Model.RefreshToken)
@@ -49,6 +48,7 @@ func Routes(app *config.Application) http.Handler {
 		galleryService := service.NewGalleryService(&app.Model.Gallery, storageService)
 		galleryHandler := handler.NewUploadHandler(galleryService, storageService)
 
+		// pengurus
 		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
 		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
 
@@ -60,14 +60,8 @@ func Routes(app *config.Application) http.Handler {
 		)
 		blogHandler := handler.NewBlogHandler(blogService)
 
-		// Register upload routes if MinIO is available
-		if storageService != nil {
-			storageHandler := handler.NewStorageHandler(storageService)
-			routes.RegisterUploadRoutes(v1, storageHandler)
-		}
-
 		routes.AuthRoutes(v1, authHandler)
-		routes.UserControllerKoor(v1, userHandler)
+		// routes.UserControllerKoor(v1, userHandler)
 		routes.UserControllerRoute(v1, userHandler)
 		routes.RegisterWorkRoutes(v1, workHandler)
 		routes.GalleryRoute(v1, galleryHandler)
