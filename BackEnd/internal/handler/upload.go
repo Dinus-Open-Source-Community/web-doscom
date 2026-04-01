@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"web_doscom/internal/service"
-
 	"github.com/gin-gonic/gin"
+	"web_doscom/internal/service"
 )
 
 type StorageHandler struct {
