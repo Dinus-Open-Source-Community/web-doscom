@@ -36,7 +36,7 @@ const (
 func (m *BlogService) CreateBlogImage(
 	ctx context.Context,
 	blogDetail *model.RequestBlog,
-	existingID []int,
+	existingID []*int,
 	newImages []*multipart.FileHeader,
 ) (*model.BlogResponse, error) {
 	var galleryIDS []int
@@ -53,7 +53,9 @@ func (m *BlogService) CreateBlogImage(
 		}
 
 		for _, id := range existingID {
-			galleryIDS = append(galleryIDS, id)
+			if id != nil {
+				galleryIDS = append(galleryIDS, *id)
+			}
 		}
 
 	}
@@ -216,7 +218,7 @@ func (m *BlogService) UpdateBlog(
 	blogDetail *model.BlogPatch,
 	newImages []*multipart.FileHeader,
 ) (*model.BlogResponse, error) {
-	var GalleryIDS []int
+	var GalleryIDS []*int
 	// check if there is existing id image
 	if len(blogDetail.ExistingID) > 0 {
 		for _, id := range blogDetail.ExistingID {
@@ -287,7 +289,7 @@ func (m *BlogService) UpdateBlog(
 		}
 
 		for _, gallery := range gallery {
-			GalleryIDS = append(GalleryIDS, gallery.ID)
+			GalleryIDS = append(GalleryIDS, &gallery.ID)
 		}
 	}
 

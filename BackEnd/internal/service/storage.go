@@ -35,8 +35,10 @@ func NewStorageService(minioClient *config.MinioClient, fileUploadModel *model.F
 // AllowedImageExtensions defines allowed image file extensions
 var AllowedImageExtensions = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
 
-// MaxFileSize defines maximum file size (10MB)
-const MaxFileSize = 5 * 1024 * 1024
+const (
+	MaxFileSize   = 5 * 1024 * 1024
+	MaxUploadFile = 10
+)
 
 // ValidateImageFile validates file extension, size, and actual content
 func (s *StorageService) ValidateImageFile(fileHeader *multipart.FileHeader) error {
@@ -188,7 +190,7 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 ) ([]string, []int, error) {
 
 	// multiple file upload max = 10 files
-	if len(files) > 10 {
+	if len(files) > MaxUploadFile {
 		return nil, nil, fmt.Errorf("maximum file upload is 5")
 	}
 
@@ -360,4 +362,13 @@ func (s *StorageService) DownloadFile(ctx context.Context, filename string) (io.
 	}
 
 	return object, nil
+}
+
+// wrapper to model FileUpload
+func (s *StorageService) GetFileUploadByID(id int) (*model.FileUpload, error) {
+	return s.fileUpload.GetByID(uint(id))
+}
+
+func (s *StorageService) DeleteFileById(id int) error {
+	return s.fileUpload.Delete(uint(id))
 }

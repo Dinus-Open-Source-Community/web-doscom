@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"mime/multipart"
 	"time"
@@ -18,11 +19,6 @@ type GalleryService struct {
 func NewGalleryService(m *model.GalleryModel, s *StorageService) *GalleryService {
 	return &GalleryService{Model: m, Storage: s}
 }
-
-const (
-	maxUploadSize = 20 << 20 // 20mb
-	maxFileSize   = 5 << 20  // 5mb
-)
 
 type validateFile struct {
 	Fileheader *multipart.FileHeader
@@ -133,7 +129,7 @@ func (m *GalleryService) UploadAndInsertGalleryMultiple(
 }
 
 // wrapper for get gallery by type
-func (m *GalleryService) GetAllGalleryByDate(
+func (m *GalleryService) GetAllGalleryAndByDate(
 	ctx context.Context,
 	startDate, endDate string,
 	limit, offset int,
@@ -183,6 +179,57 @@ func (m *GalleryService) GetAllGalleryByDate(
 }
 
 // wrapper for delete gallery
-func (m *GalleryService) DeleteGallery(id int) error {
-	return m.Model.DeleteGallery(id)
+func (m *GalleryService) DeleteGallery(ctx context.Context, id int) error {
+	galleryData, err := m.Model.GetGalleryByID(id)
+	if err != nil {
+		return fmt.Errorf("gallery not found %w", err)
+	}
+
+	fileData, err := m.Storage.GetFileUploadByID(galleryData.FileUploadID)
+	if err != nil {
+		return fmt.Errorf("file upload not found %w", err)
+	}
+
+	if err := m.Storage.DeleteFile(ctx, fileData.StoredFilename); err != nil {
+		return fmt.Errorf("failed to delete file from the bucket: %w", err)
+	}
+
+	tx := m.Model.DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := m.Storage.DeleteFileById(int(fileData.ID)); err != nil {
+		tx.Rollback()
+		log.Println("orphand DB record s3 file already deleted but DB failed to delete",
+			"file_upload_id", fileData.ID,
+			"stored_filename", fileData.StoredFilename,
+			"error: %w", err,
+		)
+		return fmt.Errorf("failed to delete file data: %w", err)
+	}
+
+	if err := m.Model.DeleteGallery(galleryData.ID); err != nil {
+		tx.Rollback()
+		log.Println("orphand DB record s3 file already deleted but DB failed to delete",
+			"gallery_id", galleryData.ID,
+			"file_upload_id", fileData.ID,
+			"error: %w", err,
+		)
+
+		return fmt.Errorf("failed to gallery: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+
 }

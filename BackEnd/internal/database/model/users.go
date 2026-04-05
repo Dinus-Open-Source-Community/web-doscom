@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"time"
+	"web_doscom/internal/constants"
 
 	"gorm.io/gorm"
 )
@@ -16,7 +17,7 @@ type User struct {
 	Username  string    `json:"username"`
 	Email     string    `gorm:"uniqueIndex" json:"email"`
 	Full_name string    `json:"full_name"`
-	Password  string    `json:"-"` // stored hashed; omitted from JSON responses
+	Password  string    `json:"-"`
 	Role      string    `json:"role"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -115,90 +116,53 @@ func (m *UserModel) GetUserById(id int) (*User, error) {
 }
 
 // get all user data
-func (m *UserModel) GetAllUser(role string, userRole string) ([]User, error) {
-	var users []User
+func (m *UserModel) GetAllUserBaseOnRole(userRoleToget string) ([]UserResponse, error) {
+	var usersData []UserResponse
 
-	query := m.DB.Model(&User{})
+	query := m.DB.Model(&User{}).Select("id, username, email, role, fullname")
 
-	switch role {
-	case "Super_Admin":
-		query = query.Where("role != ?", role)
-	case "BPH_ang":
-		query = query.Where("role = ?", userRole)
+	switch {
+	case userRoleToget == constants.RoleKeySuperAdmin:
+		query = query.Where("role != ?", userRoleToget)
 	default:
-		query = query.Where("role = ?", userRole)
+		query = query.Where("role = ?", userRoleToget)
 	}
 
-	if err := query.Find(&users).Error; err != nil {
+	if err := query.Scan(&usersData).Error; err != nil {
 		return nil, err
 	}
 
-	return users, nil
+	return usersData, nil
 }
 
-// update
-func (m *UserModel) UpdateUser(Id int, patch map[string]any) (*User, error) {
+func (m *UserModel) UpdateUser(Id int, dataToUpdate map[string]any) (*UserResponse, error) {
 	var user User
-	// find user by id
 	if err := m.DB.First(&user, Id).Error; err != nil {
+		return nil, fmt.Errorf("user tidak di temukan %w", err)
+	}
+
+	if err := m.DB.Model(&user).Updates(dataToUpdate).Error; err != nil {
 		return nil, err
 	}
 
-	// set allowed fields to update
-	allowedField := map[string]bool{
-		"username":  true,
-		"email":     true,
-		"full_name": true,
-	}
-
-	// compare the data and filter the empty value
-	filteredUpdates := make(map[string]any)
-	for field, value := range patch {
-		if allowedField[field] && value != nil {
-			if str, ok := value.(string); ok {
-				if str != "" {
-					filteredUpdates[field] = value
-				}
-			} else {
-				filteredUpdates[field] = value
-			}
-		}
-	}
-	// debug bwang
-	fmt.Println("Filtered updates:", filteredUpdates)
-
-	if len(filteredUpdates) == 0 {
-		return &user, nil
-	}
-
-	// update data
-	if err := m.DB.Model(&user).Updates(filteredUpdates).Error; err != nil {
-		return nil, err
-	}
-
-	// make sure the data is updated
-	if err := m.DB.First(&user, Id).Error; err != nil {
-		return nil, err
-	}
-
-	return &user, nil
+	return &UserResponse{
+		Id,
+		user.Username,
+		user.Email,
+		user.Role,
+		user.Full_name,
+	}, nil
 }
 
 // delete
 func (m *UserModel) DeleteUser(id int) error {
-	var user User
 
-	// take user by id
-	if err := m.DB.First(&user, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return err
-		}
-
-		return err
+	result := m.DB.Delete(&User{}, id)
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete data %w", result.Error)
 	}
-
-	if err := m.DB.Delete(&user).Error; err != nil {
-		return err
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("user not found %w", gorm.ErrRecordNotFound)
 	}
 
 	return nil

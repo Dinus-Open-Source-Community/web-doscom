@@ -42,7 +42,7 @@ func (b *BlogGalleryModel) InsertBlogGalleryMultiple(BlogGallery []*BlogGallery)
 	return BlogGallery, nil
 }
 
-func (b *BlogGalleryModel) UpdateBlogGallery(galleryID []int, idBlog int) ([]*BlogGallery, error) {
+func (b *BlogGalleryModel) UpdateBlogGallery(galleryID []*int, idBlog int) ([]*BlogGallery, error) {
 	tx := b.DB.Begin()
 
 	defer func() {
@@ -63,7 +63,7 @@ func (b *BlogGalleryModel) UpdateBlogGallery(galleryID []int, idBlog int) ([]*Bl
 	for i, galleryIDs := range galleryID {
 		data[i] = &BlogGallery{
 			BlogID:    idBlog,
-			GalleryID: galleryIDs,
+			GalleryID: *galleryIDs,
 		}
 	}
 
