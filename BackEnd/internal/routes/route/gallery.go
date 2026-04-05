@@ -9,20 +9,15 @@ import (
 
 func GalleryRoute(r *gin.RouterGroup, GalleryHandler *handler.GalleryHandler) {
 	publicRoutes := r.Group("/gallery")
-	// public api
 	{
-		// get all gallery and gallery by filter -> year
-		publicRoutes.GET("/", GalleryHandler.GetAllGalleryByYear)
+		publicRoutes.GET("", GalleryHandler.GetAllGalleryAndByYear)
 
 	}
 
-	// private api -> need auth
 	privateRoutes := r.Group("/admin/gallery")
 	privateRoutes.Use(auth.AuthMiddleware("SuperAdmin", "KoorMedcrev"))
 	{
-		// insert gallery
-		privateRoutes.POST("/", GalleryHandler.InsertGallery)
-		// delete gallery by id
+		privateRoutes.POST("", GalleryHandler.InsertGallery)
 		privateRoutes.DELETE("/:id", GalleryHandler.DeleteGallery)
 	}
 }

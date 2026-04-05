@@ -224,7 +224,7 @@ func (p *PengurusService) UpdateDataPengurus(
 
 func (p *PengurusService) GetAllPengurusBaseOnDivision(ctx context.Context, userRole, divisi string) ([]model.PengurusResponse, error) {
 	// cek role
-	role, ok := roleGroup[userRole]
+	role, ok := constants.RoleGroup[userRole]
 	if !ok {
 		return nil, fmt.Errorf("role not valid")
 	}

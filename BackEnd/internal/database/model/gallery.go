@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -93,28 +94,42 @@ func (g *GalleryModel) InsertGalleryMultiple(gallery []*Gallery) ([]*GalleryResp
 	return response, nil
 }
 
+func (g *GalleryModel) GetGalleryByID(id int) (*GalleryResponse, error) {
+	var galleryData GalleryResponse
+
+	if err := g.DB.Model(&Gallery{}).
+		Select("id, id_users, file_upload_id, gallery_name, gallery_type, description, event_date, file_url").
+		Where("id = ?", id).
+		Scan(&galleryData).
+		Error; err != nil {
+		return nil, fmt.Errorf("gallery tidak ditemukan %w:", err)
+	}
+
+	return &galleryData, nil
+}
+
 // get gallery by id multiple
-// func (g *GalleryModel) GetGalleryByID(id []int) ([]*GalleryResponse, error) {
-// 	var gallery []*Gallery
-// 	if err := g.DB.Where("id = ?", &id).Find(&gallery).Error; err != nil {
-// 		return nil, err
-// 	}
-//
-// 	response := make([]*GalleryResponse, len(gallery))
-// 	for i, data := range gallery {
-// 		response[i] = &GalleryResponse{
-// 			ID:           data.ID,
-// 			IDUsers:      data.IDUsers,
-// 			FileUploadID: data.FileUploadID,
-// 			GalleryName:  data.GalleryName,
-// 			GalleryType:  data.GalleryType,
-// 			Description:  data.Description,
-// 			EventDate:    data.EventDate,
-// 			FileURL:      data.FileURL,
-// 		}
-// 	}
-// 	return response, nil
-// }
+func (g *GalleryModel) GetGalleryByIDMultiple(id []int) ([]*GalleryResponse, error) {
+	var gallery []*Gallery
+	if err := g.DB.Where("id = ?", &id).Find(&gallery).Error; err != nil {
+		return nil, err
+	}
+
+	response := make([]*GalleryResponse, len(gallery))
+	for i, data := range gallery {
+		response[i] = &GalleryResponse{
+			ID:           data.ID,
+			IDUsers:      data.IDUsers,
+			FileUploadID: data.FileUploadID,
+			GalleryName:  data.GalleryName,
+			GalleryType:  data.GalleryType,
+			Description:  data.Description,
+			EventDate:    data.EventDate,
+			FileURL:      data.FileURL,
+		}
+	}
+	return response, nil
+}
 
 // get gallery by type
 func (g *GalleryModel) GetGalleryByType(galleryType string, page, limit, offset int) ([]*Gallery, int64, error) {
@@ -154,7 +169,7 @@ func (g *GalleryModel) DeleteGallery(id int) error {
 	return nil
 }
 
-func (g *GalleryModel) CheckExistingGallery(id []int) (bool, error) {
+func (g *GalleryModel) CheckExistingGallery(id []*int) (bool, error) {
 	if len(id) == 0 {
 		return false, nil
 	}

@@ -1,9 +1,25 @@
 package constants
 
+import "fmt"
+
 const (
 	RoleAdmin       = "admin"
 	RoleKoordinator = "koor"
 	RolePengurus    = "pengurus"
+)
+
+const (
+	RoleKeyPemroAnggota    = "pemroAnggota"
+	RoleKeyJaringanAnggota = "jaringanAnggota"
+	RoleKeyMedcrevAnggota  = "medcrevAnggota"
+	RoleKeyDataAnggota     = "dataAnggota"
+	RoleKeyBphAnggota      = "BPHAnggota"
+	RoleKeyKoorPemro       = "KoorPemro"
+	RoleKeyKoorJaringan    = "KoorJaringan"
+	RoleKeyKoorData        = "KoorData"
+	RoleKeyKoorMedcrev     = "KoorMedcrev"
+	RoleKeyBPH             = "BPH"
+	RoleKeySuperAdmin      = "SuperAdmin"
 )
 
 var ValidPosition = map[string]string{
@@ -35,12 +51,12 @@ var PositionGroup = map[string][]string{
 	"data":     {"KoorData", "DataAng"},
 }
 
-type divitioninfo struct {
+type divisioninfo struct {
 	Role   string
 	Divisi string
 }
 
-var RoleGroup = map[string]divitioninfo{
+var RoleGroup = map[string]divisioninfo{
 	"pemroAnggota":    {RolePengurus, "pemro"},
 	"jaringanAnggota": {RolePengurus, "jaringan"},
 	"medcrevAnggota":  {RolePengurus, "medcrev"},
@@ -73,4 +89,12 @@ var AutoAsignRole = map[string]string{
 	"KoorData":     "medcrevAnggota",
 	"KoorMedcrev":  "dataAnggota",
 	"BPH":          "BPHAnggota",
+}
+
+func GetRoleInfo(role string) (divisioninfo, error) {
+	validRole, exist := RoleGroup[role]
+	if !exist {
+		return divisioninfo{}, fmt.Errorf("role tidak valid")
+	}
+	return validRole, nil
 }

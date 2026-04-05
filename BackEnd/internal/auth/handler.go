@@ -2,17 +2,15 @@ package auth
 
 import (
 	"net/http"
-	"slices"
 	"time"
 
+	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	// Model *model.UserModel
-	// Mod   *model.RefreshTokenModel
 	Auth *AuthService
 }
 
@@ -45,7 +43,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// look at the requested user
-	user, err := h.Auth.FindByEmail(input.Email)
+	userData, err := h.Auth.FindByEmail(input.Email)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Invalid email or password ",
@@ -54,25 +52,29 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// veerify the password
-	if !verifyPassword(input.Password, user.Password) {
+	if !verifyPassword(input.Password, userData.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Invalid email or password",
 		})
 		return
 	}
 
-	// check the role
-	allowedRoles := []string{"SuperAdmin", "KoorPemro", "KoorJaringan", "KoorData", "KoorMedcrev", "BPH", "pemroAnggota", "jaringanAnggota", "medcrevAnggota", "dataAnggota", "BPHAnggota"}
+	// // check the role
 
-	if !slices.Contains(allowedRoles, user.Role) {
+	_, err = constants.GetRoleInfo(userData.Role)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Acces denied, users have no acces",
+			"error": "acces denied",
 		})
 		return
 	}
-
 	// generate token jwt
-	accesToken, err := Create_token(user.ID, user.Email, user.Username, user.Role)
+	accesToken, err := Create_token(
+		userData.ID,
+		userData.Email,
+		userData.Username,
+		userData.Role,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error: ": "Failed to create token",
@@ -81,7 +83,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	refreshToken, tokenHash, err := generateRefreshToken(user.ID)
+	refreshToken, tokenHash, err := generateRefreshToken(userData.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error: ": "Failed to create refresh token",
@@ -234,6 +236,12 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
+	// production response
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"message": "refresh token success created",
+	// })
+
+	// development response
 	c.JSON(http.StatusOK, gin.H{
 		"message": "refresh token success",
 		"token":   newAccessToken,

@@ -56,7 +56,7 @@ type RequestBlog struct {
 
 // RegisterBlog is used for creating a new blog
 type RegisterBlog struct {
-	ExistingID  []int      `form:"existingID_image"`
+	ExistingID  []*int     `form:"existingID_image"`
 	Title       string     `form:"title" binding:"required"`
 	Slug        string     `form:"slug" binding:"required"`
 	Content     string     `form:"content" binding:"required"`
@@ -67,7 +67,7 @@ type RegisterBlog struct {
 
 // BlogPatch is used for updating a blog
 type BlogPatch struct {
-	ExistingID  []int      `form:"existingID_image" binding:"omitempty"`
+	ExistingID  []*int     `form:"existingID_image" binding:"omitempty"`
 	Title       string     `json:"title" binding:"omitempty"`
 	Slug        string     `json:"slug" binding:"omitempty"`
 	Content     string     `json:"content" binding:"omitempty"`

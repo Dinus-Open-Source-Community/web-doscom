@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"mime/multipart"
 	"time"
 
@@ -149,7 +150,17 @@ func (m *FileUploadModel) UpdateFileUpload(userID int, fileUpload *FileUpload) (
 
 // Delete removes a file upload record
 func (m *FileUploadModel) Delete(id uint) error {
-	return m.DB.Where("id = ?", id).Delete(&FileUpload{}).Error
+
+	result := m.DB.Where("id = ?", id).Delete(&FileUpload{})
+
+	if result.Error != nil {
+		return fmt.Errorf("failed while deleted metadata file %w: ", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("failed, no data match to delete")
+	}
+
+	return nil
 }
 
 // DeleteByFilename removes a file upload record by stored filename

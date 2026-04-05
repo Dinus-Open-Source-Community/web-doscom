@@ -1,23 +1,23 @@
 #!/bin/sh
 set -e
 
-echo "🔄 Starting backend initialization..."
+echo "Starting backend initialization..."
 
 # Install postgresql-client for database operations
-echo "📦 Installing postgresql-client..."
+echo "Installing postgresql-client..."
 apk add --no-cache postgresql-client
 
 # Wait for database to be ready
-echo "⏳ Waiting for database..."
+echo "Waiting for database..."
 until PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "$DB_DATABASE" -c '\q' 2>/dev/null; do
   echo "Database is unavailable - sleeping"
   sleep 2
 done
 
-echo "✅ Database is ready!"
+echo "Database is ready!"
 
 # Run migrations
-echo "🔄 Running database migrations..."
+echo "Running database migrations..."
 cd /app
 
 # Check if migrate binary exists, if not skip migration

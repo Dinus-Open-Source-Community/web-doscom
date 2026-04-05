@@ -12,10 +12,8 @@ import (
 	"web_doscom/internal/database/model"
 
 	"github.com/alexedwards/argon2id"
-	//"github.com/docker/docker/daemon/names"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	//"golang.org/x/tools/go/analysis/passes/stringintconv"
 )
 
 type AuthService struct {
