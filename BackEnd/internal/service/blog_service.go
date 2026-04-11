@@ -121,6 +121,10 @@ func (m *BlogService) CreateBlogImage(
 		}
 	}
 
+	if blogDetail.Status == "" {
+		blogDetail.Status = "draft"
+	}
+
 	var publishedAt *time.Time
 	if blogDetail.Status == "draft" {
 		publishedAt = nil
@@ -131,6 +135,11 @@ func (m *BlogService) CreateBlogImage(
 		publishedAt = blogDetail.PublishedAt
 	}
 
+	var thumbnailURL string
+	if len(gallery) > 0 {
+		thumbnailURL = gallery[0].FileURL
+	}
+
 	// insert blog to database
 	blog := &model.Blog{
 		AuthorID:     blogDetail.AuthorID,
@@ -138,8 +147,8 @@ func (m *BlogService) CreateBlogImage(
 		Slug:         blogDetail.Slug,
 		Content:      blogDetail.Content,
 		Kategori:     blogDetail.Kategori,
-		ThumbnailURL: gallery[0].FileURL,
-		PublishedAt:  *publishedAt,
+		ThumbnailURL: thumbnailURL,
+		PublishedAt:  publishedAt,
 		Status:       blogDetail.Status,
 	}
 
@@ -293,6 +302,10 @@ func (m *BlogService) UpdateBlog(
 		}
 	}
 
+	if blogDetail.Status == "" {
+		blogDetail.Status = "draft"
+	}
+
 	// update blog
 	var publishedAt *time.Time
 	if blogDetail.Status == "draft" {
@@ -310,7 +323,7 @@ func (m *BlogService) UpdateBlog(
 		Slug:        blogDetail.Slug,
 		Content:     blogDetail.Content,
 		Kategori:    pq.StringArray(blogDetail.Kategori),
-		PublishedAt: *publishedAt,
+		PublishedAt: publishedAt,
 		Status:      blogDetail.Status,
 		UpdatedAt:   time.Now(),
 	}
@@ -401,7 +414,7 @@ func (m *BlogService) DeleteBlogByID(
 		return fmt.Errorf("failed to delete blog : %w", err)
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit().Error; err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return nil

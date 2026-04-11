@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -94,10 +95,14 @@ func (s *StorageService) UploadFile(
 	fileHeader *multipart.FileHeader,
 	folder string,
 ) (*model.FileUpload, error) {
+	log.Printf("[Storage] Starting upload for file: %s", fileHeader.Filename)
+
 	// Validate file
 	if err := s.ValidateImageFile(fileHeader); err != nil {
+		log.Printf("[Storage] Validation failed for %s: %v", fileHeader.Filename, err)
 		return nil, err
 	}
+	log.Printf("[Storage] Validation success for %s", fileHeader.Filename)
 
 	// Generate unique filename
 	ext := filepath.Ext(fileHeader.Filename)
@@ -108,8 +113,10 @@ func (s *StorageService) UploadFile(
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
+	log.Printf("[Storage] Content-Type for %s: %s", fileHeader.Filename, contentType)
 
 	// Upload to MinIO
+	log.Printf("[Storage] Putting object to MinIO: %s", storedFilename)
 	_, err := s.minioClient.Client.PutObject(
 		ctx,
 		s.minioClient.BucketName,
@@ -121,8 +128,10 @@ func (s *StorageService) UploadFile(
 		},
 	)
 	if err != nil {
+		log.Printf("[Storage] MinIO PutObject failed for %s: %v", fileHeader.Filename, err)
 		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
+	log.Printf("[Storage] MinIO PutObject success for %s", fileHeader.Filename)
 
 	// Generate file URL using public URL from environment
 	publicURL := os.Getenv("MINIO_PUBLIC_URL")
@@ -136,6 +145,7 @@ func (s *StorageService) UploadFile(
 		s.minioClient.BucketName,
 		storedFilename,
 	)
+	log.Printf("[Storage] Upload complete for %s. URL: %s", fileHeader.Filename, fileURL)
 
 	// return metadata to be saved in database
 	fileUpload := &model.FileUpload{
@@ -176,6 +186,7 @@ func (s *StorageService) UploadFileAndCreateMetadata(ctx context.Context, reques
 			fileURL.StoredFilename,
 			minio.RemoveObjectOptions{},
 		)
+		return "", 0, fmt.Errorf("failed to save metadata to database: %w", err)
 	}
 
 	return responseFileUpload.FileURL, int(responseFileUpload.ID), nil
@@ -207,7 +218,7 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 	}
 
 	result := make([]*model.FileUpload, len(files))
-	eg, ctx := errgroup.WithContext(ctx)
+	eg, gCtx := errgroup.WithContext(ctx)
 	// upload file to minIO
 	for i, fileHeader := range files {
 		i, fileHeader := i, fileHeader
@@ -219,11 +230,12 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 			defer file.Close()
 
 			// upload file to minio
-			fileUpload, err := s.UploadFile(ctx, file, fileHeader, folder)
+			fileUpload, err := s.UploadFile(gCtx, file, fileHeader, folder)
 			if err != nil {
 				return fmt.Errorf("failed to upload file")
 			}
 
+			fileUpload.UserID = uint(currentUserID)
 			result[i] = fileUpload
 			return nil
 		})
@@ -233,7 +245,7 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 		return nil, nil, err
 	}
 
-	// upload to database
+	// upload to database - gunakan original ctx (bukan gCtx yang sudah dicancel)
 	responseFileUpload, err := s.fileUpload.CreateMetaDataMultiple(ctx, result)
 	if err != nil {
 		return nil, nil, err

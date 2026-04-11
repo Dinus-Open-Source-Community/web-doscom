@@ -13,10 +13,10 @@ type WorkModel struct {
 type Work struct {
 	ID          int       `gorm:"primaryKey" json:"id"`
 	Title       string    `json:"title"`
-	GalleryID   int       `json:"gallery_id"`
+	GalleryID   int       `gorm:"column:gallery_id" json:"gallery_id"`
 	Description string    `json:"description"`
-	ProjectDate time.Time `json:"project_date"`
-	TeamProject int       `json:"pengurus_id"`
+	ProjectDate time.Time `gorm:"column:project_date" json:"project_date"`
+	TeamProject int       `gorm:"column:pengurus_id" json:"pengurus_id"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

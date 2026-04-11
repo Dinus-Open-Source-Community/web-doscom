@@ -119,7 +119,7 @@ func (m *UserModel) GetUserById(id int) (*User, error) {
 func (m *UserModel) GetAllUserBaseOnRole(userRoleToget string) ([]UserResponse, error) {
 	var usersData []UserResponse
 
-	query := m.DB.Model(&User{}).Select("id, username, email, role, fullname")
+	query := m.DB.Model(&User{}).Select("id, username, email, role, full_name")
 
 	switch {
 	case userRoleToget == constants.RoleKeySuperAdmin:

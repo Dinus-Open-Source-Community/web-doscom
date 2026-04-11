@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin/binding"
@@ -38,7 +39,7 @@ type Blog struct {
 	Kategori     pq.StringArray `gorm:"type:text[]" json:"kategori"`
 	ThumbnailURL string         `json:"thumbnail_url"`
 	Status       string         `json:"status"`
-	PublishedAt  time.Time      `json:"published_at"`
+	PublishedAt  *time.Time     `json:"published_at"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 }
@@ -60,7 +61,7 @@ type RegisterBlog struct {
 	Title       string     `form:"title" binding:"required"`
 	Slug        string     `form:"slug" binding:"required"`
 	Content     string     `form:"content" binding:"required"`
-	Kategori    []string   `form:"kategori" binding:"required,kategori"`
+	Kategori    []string   `form:"kategori" binding:"required,dive,kategori"`
 	PublishedAt *time.Time `form:"published_at"`
 	Status      string     `form:"status" default:"draft"`
 }
@@ -71,7 +72,7 @@ type BlogPatch struct {
 	Title       string     `json:"title" binding:"omitempty"`
 	Slug        string     `json:"slug" binding:"omitempty"`
 	Content     string     `json:"content" binding:"omitempty"`
-	Kategori    []string   `json:"kategori" binding:"omitempty,kategori"`
+	Kategori    []string   `json:"kategori" binding:"omitempty,dive,kategori"`
 	Status      string     `json:"status" binding:"omitempty"`
 	PublishedAt *time.Time `json:"published_at" binding:"omitempty"`
 }
@@ -84,7 +85,7 @@ type BlogResponse struct {
 	Content      string         `json:"content"`
 	Kategori     []string       `json:"kategori"`
 	ThumbnailURL string         `json:"thumbnail_url"`
-	PublishedAt  time.Time      `json:"published_at"`
+	PublishedAt  *time.Time     `json:"published_at"`
 	BlogImage    []*BlogGallery `json:"blog_image"`
 }
 
@@ -99,7 +100,7 @@ type BlogThumbnail struct {
 func init() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("kategori", func(fl validator.FieldLevel) bool {
-			val := fl.Field().String()
+			val := strings.ToLower(fl.Field().String())
 			return ValidKategori[val]
 		})
 	}
@@ -183,7 +184,7 @@ func (m *BlogModel) GetBlogs(ctx context.Context, kategori []string, limit, offs
 
 	query := m.DB.WithContext(ctx).Model(&Blog{})
 
-	if len(kategori) >= 0 {
+	if len(kategori) > 0 {
 		query = query.Where("kategori && ?", pq.Array(kategori))
 	}
 

@@ -60,7 +60,7 @@ func ValidateURL(fl validator.FieldLevel) bool {
 	// block url shortener
 	for _, s := range blockShortenedURL {
 		if strings.EqualFold(host, s) {
-			return true
+			return false
 		}
 	}
 

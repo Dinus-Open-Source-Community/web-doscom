@@ -46,9 +46,9 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
 
 	var input model.CreateGallery
-	if c.ShouldBind(&input) != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Missing required fields",
+			"error": "Validation failed: " + err.Error(),
 		})
 		return
 	}

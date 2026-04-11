@@ -90,12 +90,15 @@ func (m *GalleryService) UploadAndInsertGalleryMultiple(
 	gallery *model.GalleryInsert,
 	fileUpload []*model.UploadFileRequest,
 ) ([]*model.GalleryResponse, error) {
+	// Gunakan background context agar upload tidak terputus jika client disconnect prematur
+	uploadCtx := context.Background()
+	
 	fileUploadHeader := make([]*multipart.FileHeader, len(fileUpload))
 	for i, file := range fileUpload {
 		fileUploadHeader[i] = file.FileHeader
 	}
 	fileUrl, fileUploadID, err := m.Storage.UploadFileAndCreateMetadataMultiple(
-		ctx,
+		uploadCtx,
 		fileUploadHeader,
 		fileUpload[0].Folder,
 		int(fileUpload[0].UserID),
@@ -119,7 +122,7 @@ func (m *GalleryService) UploadAndInsertGalleryMultiple(
 		}
 	}
 
-	// upload to database
+	// upload to database menggunakan uploadCtx agar tidak terputus
 	responseGallery, err := m.Model.InsertGalleryMultiple(galleryUpload)
 	if err != nil {
 		return nil, err
@@ -204,6 +207,11 @@ func (m *GalleryService) DeleteGallery(ctx context.Context, id int) error {
 			tx.Rollback()
 		}
 	}()
+
+	if err := m.Model.DeleteGallery(galleryData.ID); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to gallery: %w", err)
+	}
 
 	if err := m.Storage.DeleteFileById(int(fileData.ID)); err != nil {
 		tx.Rollback()

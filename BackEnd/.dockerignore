@@ -7,7 +7,7 @@ Dockerfile
 docker-compose.yml
 
 # Environment
-.env
+# .env (Dihapus agar bisa di-copy ke docker)
 .env.*
 
 # Go

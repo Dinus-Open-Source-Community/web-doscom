@@ -31,6 +31,11 @@ func (p *PengurusService) RolePositionAuthorization(idParams, currentUserID int,
 	}
 
 	actorRole := actor.Role
+	// SuperAdmin bypass
+	if actorRole == constants.RoleAdmin {
+		return actorRole, nil
+	}
+
 	// cek role pengurus
 	if actorRole == constants.RolePengurus && currentUserID != idParams {
 		return "", fmt.Errorf("You are not allowed to update this data")
@@ -47,7 +52,7 @@ func (p *PengurusService) RolePositionAuthorization(idParams, currentUserID int,
 	actorLevel := constants.RoleLevel[actorRole]
 	targetLevel := constants.RoleLevel[targetPositionRole]
 
-	if actorLevel <= targetLevel && currentUserID != idParams {
+	if actorLevel >= targetLevel && currentUserID != idParams {
 		return "", fmt.Errorf("You are not allowed to update this data")
 	}
 
@@ -63,7 +68,7 @@ func (p *PengurusService) CreatePengurus(
 ) (*model.PengurusResponse, error) {
 
 	// auto assign position and divisi
-	divisi, validPosition, err := utils.SetDivitionAndPositionByRole(dataPengurus.Position, userRole)
+	divisi, validPosition, err := utils.SetDivitionAndPositionByRole(dataPengurus.Position, dataPengurus.Divisi, userRole)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +87,8 @@ func (p *PengurusService) CreatePengurus(
 			dataPengurus.UserID = currentUserID
 		}
 	case constants.RoleAdmin:
-		if dataPengurus.UserID == 0 && validPosition != "ketum" {
-			return nil, fmt.Errorf("userId must be given")
+		if dataPengurus.UserID == 0 {
+			dataPengurus.UserID = currentUserID
 		}
 	}
 
@@ -188,10 +193,19 @@ func (p *PengurusService) UpdateDataPengurus(
 		if !canUpdatePhoto {
 			return nil, fmt.Errorf("koordinator tidak dapat memperbarui foto pengurus")
 		}
+		// Pastikan kita ambil data pengurus dulu untuk tahu UserID-nya yang asli
+		targetPengurus, err := p.PengurusModel.GetPengurusById(idParams)
+		if err != nil {
+			return nil, err
+		}
+
+		// Pastikan juga bungkusan fileUpload menggunakan UserID asli dari tabel users (angka 2)
+		fileUpload.UserID = uint(targetPengurus.UserID)
+
 		// update file upload and gallery
 		now := time.Now()
 		gallery := &model.GalleryInsert{
-			IDUsers:     idParams,
+			IDUsers:     idParams, // Untuk tabel gallery v03, ini menyambung ke ID Pengurus (angka 8)
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
 			Description: "foto identitas diri yang mewakili pengurus doscom",

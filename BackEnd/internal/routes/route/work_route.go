@@ -10,7 +10,7 @@ import (
 func RegisterWorkRoutes(rg *gin.RouterGroup, workHandler *handler.WorkHandler) {
 
 	workRoutes := rg.Group("/works")
-	workRoutes.Use(auth.AuthMiddleware("Super_Admin", "Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH"))
+	workRoutes.Use(auth.AuthMiddleware("SuperAdmin", "KorPemro", "KorJaringan", "KorData", "KorMedcrev", "BPH"))
 	{
 		workRoutes.POST("", workHandler.Create)
 		workRoutes.GET("/:id", workHandler.Get)
