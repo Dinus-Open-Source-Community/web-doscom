@@ -16,13 +16,13 @@ type BlogGalleryModel struct {
 
 type BlogGallery struct {
 	ID        int `json:"id"`
-	BlogID    int `json:"blog_id"`
-	GalleryID int `json:"gallery_id"`
+	BlogID    int `gorm:"column:id_blog" json:"blog_id"`
+	GalleryID int `gorm:"column:id_gallery" json:"gallery_id"`
 }
 
 type BlogGalleryInsert struct {
-	BlogID    int `json:"blog_id"`
-	GalleryID int `json:"gallery_id"`
+	BlogID    int `gorm:"column:id_blog" json:"blog_id"`
+	GalleryID int `gorm:"column:id_gallery" json:"gallery_id"`
 }
 
 // insert blog gallery

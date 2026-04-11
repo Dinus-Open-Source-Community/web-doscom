@@ -1,0 +1,282 @@
+### Admin Authentication & Management API Testing
+
+@baseUrl = http://localhost:3000/api/v1
+@role_admin = SuperAdmin
+@role_koor = KoorPemro
+@token = {{login.response.body.token}}
+
+### 1. LOGIN (Get Token)
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "email": "rizki@doscom.org",
+    "password": "password123"
+}
+
+### 2. REGISTER NEW USER (By Admin)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+    "username": "user_{{$timestamp}}",
+    "email": "rizki@doscom.org",
+    "password": "password123",
+    "role": "SuperAdmin",
+    "fullname": "Tester Koordinator {{$randomInt 1 100}}"
+}
+
+### ==========================================
+### PENGURUS MANAGEMENT (ADMIN/KOOR ONLY)
+### ==========================================
+
+### 3. CREATE PENGURUS (Multipart Form-Data)
+# @name create_pengurus
+POST {{baseUrl}}/admin/pengurus
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="id_user"
+
+{{login.response.body.user_id}}
+--boundary
+Content-Disposition: form-data; name="name"
+
+Tester Pengurus {{$timestamp}}
+--boundary
+Content-Disposition: form-data; name="email"
+
+test_{{$timestamp}}@doscom.org
+--boundary
+Content-Disposition: form-data; name="divisi"
+
+pemro
+--boundary
+Content-Disposition: form-data; name="position"
+
+PemroAng
+--boundary
+Content-Disposition: form-data; name="period"
+
+2024-2025
+--boundary
+Content-Disposition: form-data; name="sosmed"
+
+https://www.instagram.com/doscom/
+--boundary
+Content-Disposition: form-data; name="file"; filename="profile.png"
+Content-Type: image/png
+
+< ./test-assets/dummy.png
+--boundary--
+
+### 4. GET ALL PENGURUS (Filter by Division)
+GET {{baseUrl}}/admin/pengurus?divisi=pemro
+Authorization: Bearer {{token}}
+
+### 5. GET PENGURUS BY ID
+GET {{baseUrl}}/admin/pengurus/{{create_pengurus.response.body.pengurus.id}}
+Authorization: Bearer {{token}}
+
+### 6. UPDATE PENGURUS (Partial Update, Optional File)
+PUT {{baseUrl}}/admin/pengurus/{{create_pengurus.response.body.pengurus.id}}
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="name"
+
+Tester Pengurus Updated {{$timestamp}}
+--boundary
+Content-Disposition: form-data; name="divisi"
+
+pemro
+--boundary--
+
+### 7. DELETE PENGURUS
+DELETE {{baseUrl}}/admin/pengurus/{{create_pengurus.response.body.pengurus.id}}
+Authorization: Bearer {{token}}
+
+### ==========================================
+### USER MANAGEMENT (ADMIN ONLY)
+### ==========================================
+
+### 8. GET ALL USERS
+# @name get_users
+GET {{baseUrl}}/user
+Authorization: Bearer {{token}}
+
+### 9. GET USER BY ID
+GET {{baseUrl}}/user/{{login.response.body.user_id}}
+Authorization: Bearer {{token}}
+
+### 10. UPDATE USER
+PUT {{baseUrl}}/user/{{login.response.body.user_id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "fullname": "Administrator Updated"
+}
+
+### 11. DELETE USER
+# Berhati-hati saat menghapus user sendiri (ID dari login)
+DELETE {{baseUrl}}/user/{{login.response.body.user_id}}
+Authorization: Bearer {{token}}
+
+
+### ==========================================
+### GALLERY MANAGEMENT (ADMIN/KOOR ONLY)
+### ==========================================
+
+### 12. INSERT GALLERY (Multipart Form-Data)
+# @name create_gallery
+# @timeout 60000
+POST {{baseUrl}}/admin/gallery
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="gallery_name"
+
+Event Doscom {{$timestamp}}
+--boundary
+Content-Disposition: form-data; name="gallery_type"
+
+activity
+--boundary
+Content-Disposition: form-data; name="description"
+
+Dokumentasi event seru doscom
+--boundary
+Content-Disposition: form-data; name="event_date"
+
+2024-04-08
+--boundary
+Content-Disposition: form-data; name="files"; filename="dummy.png"
+Content-Type: image/png
+
+< ./test-assets/dummy.png
+--boundary--
+
+### 13. GET ALL GALLERY
+GET {{baseUrl}}/gallery
+Authorization: Bearer {{token}}
+
+### 14. DELETE GALLERY
+DELETE {{baseUrl}}/admin/gallery/{{create_gallery.response.body.data[0].id}}
+Authorization: Bearer {{token}}
+
+
+### ==========================================
+### WORKS MANAGEMENT (ADMIN/KOOR ONLY)
+### ==========================================
+
+### 15. CREATE WORK
+# PENTING: Jalankan 'CREATE PENGURUS' (Step 3) dan 'INSERT GALLERY' (Step 12) terlebih dahulu!
+# @name create_work
+POST {{baseUrl}}/works
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Project {{$timestamp}}",
+    "gallery_id": {{create_gallery.response.body.data[0].id}},
+    "description": "Project kolaborasi anggota doscom",
+    "project_date": "2024-04-08T00:00:00Z",
+    "pengurus_id": {{create_pengurus.response.body.pengurus.id}}
+}
+
+### 15b. CREATE WORK (HARDCODED ID - Use this if Step 15 errors)
+POST {{baseUrl}}/works
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Project Manual {{$timestamp}}",
+    "gallery_id": 1,
+    "description": "Project kolaborasi manual",
+    "project_date": "2024-04-08T00:00:00Z",
+    "pengurus_id": 1
+}
+
+### GET ALL WORK
+GET {{baseUrl}}/works
+Authorization: Bearer {{token}}
+
+
+### 16. UPDATE WORK
+PUT {{baseUrl}}/works/{{create_work.response.body.data.id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "title": "Project Updated {{$timestamp}}"
+}
+
+### 17. DELETE WORK
+DELETE {{baseUrl}}/works/{{create_work.response.body.data.id}}
+Authorization: Bearer {{token}}
+
+
+### ==========================================
+### BLOG MANAGEMENT (ADMIN/KOOR ONLY)
+### ==========================================
+
+### 18. CREATE BLOG (Multipart Form-Data)
+# @name create_blog
+POST {{baseUrl}}/admin/blogs
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="title"
+
+Blog Technology {{$timestamp}}
+--boundary
+Content-Disposition: form-data; name="slug"
+
+blog-tech-{{$timestamp}}
+--boundary
+Content-Disposition: form-data; name="content"
+
+Isi konten blog yang sangat menarik tentang teknologi masa depan.
+--boundary
+Content-Disposition: form-data; name="kategori"
+
+Technology
+--boundary
+Content-Disposition: form-data; name="files"; filename="blog.png"
+Content-Type: image/png
+
+< ./test-assets/dummy.png
+--boundary--
+
+### 19. GET ALL BLOGS (Filter by Status)
+GET {{baseUrl}}/blogs?status=published
+Authorization: Bearer {{token}}
+
+
+### 20. DELETE BLOG
+DELETE {{baseUrl}}/admin/blogs/{{create_blog.response.body.data.id}}
+Authorization: Bearer {{token}}
+
+
+### ==========================================
+### STORAGE & UPLOAD (AUTH REQUIRED)
+### ==========================================
+
+### 21. LIST FILES BY CATEGORY
+GET {{baseUrl}}/upload/files?category=gallery
+Authorization: Bearer {{token}}
+
+### 22. DELETE FILE FROM STORAGE
+DELETE {{baseUrl}}/upload/file
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "file_name": "gallery/event.png"
+}

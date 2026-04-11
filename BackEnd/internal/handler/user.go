@@ -135,7 +135,7 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 }
 
 func (m *UserHandler) GetUser(c *gin.Context) {
-	userRole := c.MustGet("user_role").(string)
+	userRole := c.MustGet("role").(string)
 	validRole, err := constants.GetRoleInfo(userRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{

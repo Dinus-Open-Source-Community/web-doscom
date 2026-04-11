@@ -90,6 +90,10 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		})
 		return
 	}
+
+	// Hapus token lama dulu agar tidak duplicate key error
+	h.Auth.RefreshToken.DeleteRefreshTokenByUserId(userData.ID)
+
 	// insert to database
 	if err := h.Auth.CreateRefreshToken(refreshToken); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -119,6 +123,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	// development response
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "Login success, nasi padangnya sebungkus bolo",
+		"user_id":       userData.ID,
 		"token":         accesToken,
 		"refresh_token": tokenHash,
 	})

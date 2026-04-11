@@ -96,11 +96,11 @@ type RegisterPengurusRequest struct {
 type PengurusPatch struct {
 	Email    string                `form:"email" binding:"omitempty,email"`
 	Divisi   string                `form:"divisi" binding:"omitempty,divisi"`
-	Name     string                `form:"name" binding:"omitempty,position"`
-	Sosmed   string                `form:"sosmed" binding:"omitempty,sosmed"`
-	Period   string                `form:"period" binding:"omitempty" validate:"max=50"`
-	Position string                `form:"position" binding:"omitempty,position"` // condition just for koor and super_admin
-	PhotoURL *multipart.FileHeader `form:"url_asset" binding:"omitempty"`
+	Name     string                `form:"name" binding:"omitempty"`
+	Sosmed   string                `form:"sosmed" binding:"omitempty,socialurl"`
+	Period   string                `form:"period" binding:"omitempty"`
+	Position string                `form:"position" binding:"omitempty,position"`
+	PhotoURL *multipart.FileHeader `form:"file" binding:"omitempty"`
 }
 
 // Custom validator

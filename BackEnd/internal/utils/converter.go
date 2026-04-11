@@ -18,14 +18,34 @@ func StructToMap(structData any) map[string]any {
 
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
-		typeField := typeOfData.Field(i).Tag.Get("json")
+		fieldType := typeOfData.Field(i)
 
-		if field.IsZero() || typeField == "" || typeField == "-" {
+		// Coba ambil tag json, kalau gak ada coba tag form
+		tag := fieldType.Tag.Get("json")
+		if tag == "" {
+			tag = fieldType.Tag.Get("form")
+		}
+
+		// Jika masih kosong tapi field ini punya data, gunakan nama field asli (lowercase) sebagai fallback
+		if tag == "" {
+			tag = strings.ToLower(fieldType.Name)
+		}
+
+		// Skip jika tag di-set "-" atau jika field kosong (Zero Value)
+		// Ini penting untuk partial update agar string kosong tidak menimpa data di database
+		if tag == "-" || field.IsZero() {
 			continue
 		}
 
-		typeField = strings.Split(typeField, ",")[0]
-		data[typeField] = field.Interface()
+		tag = strings.Split(tag, ",")[0]
+
+		// SKIP field jika tipenya adalah pointer ke multipart.FileHeader (untuk gambar)
+		// karena ini bukan kolom database
+		if fieldType.Type.String() == "*multipart.FileHeader" {
+			continue
+		}
+
+		data[tag] = field.Interface()
 	}
 
 	return data

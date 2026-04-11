@@ -13,16 +13,16 @@ type GalleryModel struct {
 }
 
 type Gallery struct {
-	ID           int       `form:"primaryKey" json:"id"`
-	IDUsers      int       `form:"column:id_pengurus" json:"id_users"`
-	FileUploadID int       `form:"column:file_upload_id" json:"file_upload_id"`
-	GalleryName  string    `form:"gallery_name"`
-	GalleryType  string    `form:"gallery_type"`
-	Description  string    `form:"description"`
-	EventDate    time.Time `form:"event_date"`
-	FileURL      string    `form:"file_url"`
-	CreatedAt    time.Time `form:"created_at"`
-	UpdatedAt    time.Time `form:"updated_at"`
+	ID           int       `gorm:"primaryKey" json:"id"`
+	IDUsers      int       `gorm:"column:id_users" json:"id_users"`
+	FileUploadID int       `gorm:"column:file_upload_id" json:"file_upload_id"`
+	GalleryName  string    `gorm:"column:gallery_name" json:"gallery_name"`
+	GalleryType  string    `gorm:"column:gallery_type" json:"gallery_type"`
+	Description  string    `gorm:"column:description" json:"description"`
+	EventDate    time.Time `gorm:"column:event_date" json:"event_date"`
+	FileURL      string    `gorm:"column:file_url" json:"file_url"`
+	CreatedAt    time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 type GalleryInsert struct {
@@ -38,7 +38,7 @@ type CreateGallery struct {
 	GalleryName string    `form:"gallery_name" binding:"required"`
 	GalleryType string    `form:"gallery_type" binding:"required"`
 	Description string    `form:"description" binding:"required"`
-	EventDate   time.Time `form:"event_date" binding:"required"`
+	EventDate   time.Time `form:"event_date" binding:"required" time_format:"2006-01-02"`
 }
 
 type GalleryResponse struct {
@@ -70,6 +70,7 @@ func (g *GalleryModel) InsertGallery(gallery *Gallery) (*GalleryResponse, error)
 		GalleryType:  gallery.GalleryType,
 		Description:  gallery.Description,
 		EventDate:    gallery.EventDate,
+		FileURL:      gallery.FileURL,
 	}, nil
 }
 
@@ -204,7 +205,7 @@ func (g *GalleryModel) GetAllGalleryAndByYear(
 	}
 
 	if err := query.Model(&Gallery{}).
-		Select("id, description, file_url, event_date").
+		Select("id, id_users, file_upload_id, description, file_url, event_date").
 		Limit(limit).
 		Offset(offset).
 		Order("created_at DESC").

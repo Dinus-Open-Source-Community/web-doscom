@@ -5,118 +5,100 @@ import (
 	"strconv"
 
 	"web_doscom/internal/database/model"
+	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 type WorkHandler struct {
-	Model *model.WorkModel
+	Service *service.WorkService
 }
 
-func NewWorkHandler(db *model.WorkModel) *WorkHandler {
-	return &WorkHandler{Model: db}
-
+func NewWorkHandler(s *service.WorkService) *WorkHandler {
+	return &WorkHandler{Service: s}
 }
 
 func (h *WorkHandler) Create(c *gin.Context) {
-
 	var work model.Work
 	if err := c.ShouldBindJSON(&work); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.Model.InsertWork(&work).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
-		})
+	if err := h.Service.CreateWork(&work); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, work)
-
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Work created successfully",
+		"data":    work,
+	})
 }
 
 func (h *WorkHandler) List(c *gin.Context) {
-	work, err := h.Model.GetAllWorks()
+	works, err := h.Service.GetAllWorks()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Success gel all works, nasi padang satu bungkus",
-		"works":   work,
+		"message": "Success fetching all works",
+		"data":    works,
 	})
 }
 
 func (h *WorkHandler) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
 		return
 	}
-	// var work model.Work
-	work, err := h.Model.GetWorkById(id)
+	work, err := h.Service.GetWorkByID(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
-		})
-
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Success get work, NASI PADANG SATU BUNGKUS",
-		"work":    work,
+		"message": "Success fetching work detail",
+		"data":    work,
 	})
 }
 
 func (h *WorkHandler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
 		return
 	}
 
-	// req body data new user
 	var patchData map[string]any
 	if err := c.ShouldBindJSON(&patchData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// update data
-	updateDataWork, err := h.Model.UpdateWork(id, patchData)
+	updatedWork, err := h.Service.UpdateWork(id, patchData)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Success update work, bwang nasi padangnya mana",
-		"work":    updateDataWork,
+		"message": "Work updated successfully",
+		"data":    updatedWork,
 	})
-
 }
 
 func (h *WorkHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
 		return
 	}
-	if err := h.Model.DeleteWork(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to delete data: " + err.Error(),
-		})
+	if err := h.Service.DeleteWork(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Success delete data, info nasi padang bang",
+		"message": "Work deleted successfully",
 	})
 }
