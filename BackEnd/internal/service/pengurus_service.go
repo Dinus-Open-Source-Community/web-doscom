@@ -24,6 +24,12 @@ func NewPengurusService(m *model.PengurusModel, g *GalleryService) *PengurusServ
 }
 
 func (p *PengurusService) RolePositionAuthorization(idParams, currentUserID int, userRole string) (string, error) {
+	// check if data exist
+	userValid, err := p.PengurusModel.GetPengurusById(idParams)
+	if err != nil {
+		return "", err
+	}
+
 	// white list role
 	actor, ok := constants.RoleGroup[userRole]
 	if !ok {
@@ -41,10 +47,6 @@ func (p *PengurusService) RolePositionAuthorization(idParams, currentUserID int,
 		return "", fmt.Errorf("You are not allowed to update this data")
 	}
 
-	userValid, err := p.PengurusModel.GetPengurusById(idParams)
-	if err != nil {
-		return "", err
-	}
 	// whitelist position
 	targetPositionRole := constants.ValidPosition[userValid.Position]
 
@@ -205,7 +207,7 @@ func (p *PengurusService) UpdateDataPengurus(
 		// update file upload and gallery
 		now := time.Now()
 		gallery := &model.GalleryInsert{
-			IDUsers:     idParams, // Untuk tabel gallery v03, ini menyambung ke ID Pengurus (angka 8)
+			IDUsers:     targetPengurus.UserID, // Correctly link to the UserID, not Pengurus ID
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
 			Description: "foto identitas diri yang mewakili pengurus doscom",

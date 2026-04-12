@@ -67,7 +67,7 @@ func (m *WorkModel) GetWorkById(id int) (*Work, error) {
 }
 
 func (m *WorkModel) GetAllWorks() ([]Work, error) {
-	var works []Work
+	works := []Work{}
 	if err := m.DB.Order("created_at DESC").Find(&works).Error; err != nil {
 		return nil, err
 	}
@@ -82,23 +82,18 @@ func (m *WorkModel) UpdateWork(id int, patch map[string]any) (*Work, error) {
 
 	// set allowed fields to update
 	allowedFields := map[string]bool{
-		"title":       true,
-		"description": true,
-		"StartDate":   true,
-		"EndDate":     true,
+		"title":        true,
+		"description":  true,
+		"gallery_id":   true,
+		"pengurus_id":  true,
+		"project_date": true,
 	}
 
 	// compare the data and filter the empty value
 	filteredUpdates := make(map[string]any)
 	for field, value := range patch {
-		if allowedFields[field] && value != nil {
-			if str, ok := value.(string); ok {
-				if str != "" {
-					filteredUpdates[field] = value
-				}
-			} else {
-				filteredUpdates[field] = value
-			}
+		if allowedFields[field] {
+			filteredUpdates[field] = value
 		}
 	}
 

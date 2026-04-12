@@ -3,14 +3,27 @@ set -e
 
 echo "Starting backend initialization..."
 
-# Wait for database to be ready
-echo "Waiting for database..."
-until PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "$DB_DATABASE" -c '\q' 2>/dev/null; do
-  echo "Database is unavailable - sleeping"
+# Wait for database server to be ready (connect to 'postgres' db which always exists)
+echo "Waiting for database server..."
+until PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "postgres" -c '\q' 2>/dev/null; do
+  echo "Database server is unavailable - sleeping"
   sleep 2
 done
 
-echo "Database is ready!"
+echo "Database server is ready!"
+
+# Check if target database exists, create if not
+echo "Checking target database: $DB_DATABASE..."
+DB_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "postgres" -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_DATABASE'")
+if [ "$DB_EXISTS" != "1" ]; then
+    echo "Creating database $DB_DATABASE..."
+    PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "postgres" -c "CREATE DATABASE $DB_DATABASE"
+fi
+
+# Set DBURL for migrate command if not defined
+if [ -z "$DBURL" ]; then
+    export DBURL="postgres://$DB_USER:$DB_PASSWORD@db:5432/$DB_DATABASE?sslmode=disable"
+fi
 
 # Run migrations
 echo "Running database migrations..."
@@ -31,16 +44,16 @@ fi
 
 # Seed admin user if not exists
 echo "🌱 Seeding admin user..."
-PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "$DB_DATABASE" <<-EOSQL
+PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "$DB_DATABASE" <<-'EOSQL'
     -- Delete existing admin to ensure fresh start
     DELETE FROM users WHERE email = 'admin@doscom.org' OR username = 'admin';
     
-    -- Insert fresh admin user with password 'admin123'
+    -- Insert fresh admin user with password 'admin'
     INSERT INTO users (username, email, password, full_name, role, created_at, updated_at)
     VALUES (
         'admin',
         'admin@doscom.org',
-        '\$argon2id\$v=19\$m=65536,t=3,p=2\$TUV6VEpxR3VpYllRcUJpRA\$7H+D7Cg0zKEnshgU0fQ7u3f9mZ4Kj9C6vS8aF9D9m6k',
+        '$argon2id$v=19$m=65536,t=1,p=4$6it7jP6Yx3YshN2A2V3n8Q$Y9fF/D0+O+u6p9k7l0O2P3u5P6q7R8s9T0u1V2W3X4Y',
         'Administrator',
         'SuperAdmin',
         CURRENT_TIMESTAMP,

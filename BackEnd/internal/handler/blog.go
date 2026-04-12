@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -223,20 +224,16 @@ func (h *BlogHandler) Update(c *gin.Context) {
 	}
 
 	var dataPatch model.BlogPatch
-	if err := c.ShouldBindJSON(&dataPatch); err != nil {
+	if err := c.ShouldBind(&dataPatch); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	form, err := c.MultipartForm()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read file",
-		})
-		return
+	form, _ := c.MultipartForm()
+	var files []*multipart.FileHeader
+	if form != nil {
+		files = form.File["files"]
 	}
-
-	files := form.File["files"]
 
 	// call service update blog
 	blogResponse, err := h.Service.UpdateBlog(

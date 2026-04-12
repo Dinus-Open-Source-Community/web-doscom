@@ -69,12 +69,12 @@ type RegisterBlog struct {
 // BlogPatch is used for updating a blog
 type BlogPatch struct {
 	ExistingID  []*int     `form:"existingID_image" binding:"omitempty"`
-	Title       string     `json:"title" binding:"omitempty"`
-	Slug        string     `json:"slug" binding:"omitempty"`
-	Content     string     `json:"content" binding:"omitempty"`
-	Kategori    []string   `json:"kategori" binding:"omitempty,dive,kategori"`
-	Status      string     `json:"status" binding:"omitempty"`
-	PublishedAt *time.Time `json:"published_at" binding:"omitempty"`
+	Title       string     `form:"title" json:"title" binding:"omitempty"`
+	Slug        string     `form:"slug" json:"slug" binding:"omitempty"`
+	Content     string     `form:"content" json:"content" binding:"omitempty"`
+	Kategori    []string   `form:"kategori" json:"kategori" binding:"omitempty,dive,kategori"`
+	Status      string     `form:"status" json:"status" binding:"omitempty"`
+	PublishedAt *time.Time `form:"published_at" json:"published_at" binding:"omitempty"`
 }
 
 type BlogResponse struct {

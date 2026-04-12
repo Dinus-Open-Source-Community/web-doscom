@@ -183,7 +183,7 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 		})
 		return
 	}
-	var respList []model.PengurusResponse
+	respList := []model.PengurusResponse{}
 	for _, p := range pengurusList {
 		respList = append(respList, model.PengurusResponse{
 			ID:       p.ID,
@@ -293,6 +293,15 @@ func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error":   err.Error(),
 				"message": "Akses ditolak untuk memperbarui data ini",
+			})
+			return
+		}
+
+		// Handle record not found
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   err.Error(),
+				"message": "Pengurus data not found",
 			})
 			return
 		}

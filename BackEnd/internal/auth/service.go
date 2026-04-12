@@ -84,7 +84,6 @@ func HashPassword(password string) string {
 }
 
 func verifyPassword(password, hash string) bool {
-
 	match, err := argon2id.ComparePasswordAndHash(password, hash)
 	if err != nil {
 		log.Printf("Error verifying password: %v", err)

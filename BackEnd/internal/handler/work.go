@@ -25,6 +25,11 @@ func (h *WorkHandler) Create(c *gin.Context) {
 		return
 	}
 	if err := h.Service.CreateWork(&work); err != nil {
+		// Handle referenced data not found (validation error)
+		if err.Error() == "referenced gallery_id not found" || err.Error() == "referenced pengurus_id (team_project) not found" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -78,6 +83,10 @@ func (h *WorkHandler) Update(c *gin.Context) {
 
 	updatedWork, err := h.Service.UpdateWork(id, patchData)
 	if err != nil {
+		if err.Error() == "work not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -95,10 +104,14 @@ func (h *WorkHandler) Delete(c *gin.Context) {
 		return
 	}
 	if err := h.Service.DeleteWork(id); err != nil {
+		if err.Error() == "work not found already" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusNoContent, gin.H{
 		"message": "Work deleted successfully",
 	})
 }

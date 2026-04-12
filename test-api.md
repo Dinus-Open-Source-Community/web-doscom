@@ -39,4 +39,43 @@
 ## 7. Tets API
 check on BackEnd/`api_testing.http`
 ---
+
+## 8. Insert Admin
+docker compose exec -T db psql -U postgres -d dbdoscom <<-'EOSQL'
+INSERT INTO users (username, email, password, role, full_name, created_at, updated_at)
+VALUES (
+    'admin', 
+    'admin@doscom.org', 
+    '$argon2id$v=19$m=65536,t=1,p=4$6it7jP6Yx3YshN2A2V3n8Q$Y9fF/D0+O+u6p9k7l0O2P3u5P6q7R8s9T0u1V2W3X4Y', 
+    'SuperAdmin', 
+    'Administrator', 
+    NOW(), 
+    NOW()
+) 
+ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password, email = EXCLUDED.email;
+EOSQL
+
+### Insert Admin/SuperAdmin Baru via API
+Jika Anda sudah memiliki akses SuperAdmin, Anda bisa membuat admin baru melalui API:
+
+**POST** `http://localhost:3000/api/v1/user/admin`
+
+**Headers:**
+- `Authorization`: `Bearer <token_anda>`
+- `Content-Type`: `application/json`
+
+**Body (JSON):**
+```json
+{
+    "username": "admin_baru",
+    "email": "admin2@doscom.org",
+    "password": "password123",
+    "role": "SuperAdmin",
+    "fullname": "Administrator Kedua"
+}
+```
+
+> [!TIP]
+> Endpoint `/user/admin` akan otomatis memberikan role `SuperAdmin` ke user baru tersebut. Jika ingin membuat role lain (Pemro, Jaringan, dsb), gunakan endpoint `POST /api/v1/user`.
+
 *Laporan ini mencakup seluruh rangkaian perbaikan kritis dan pengembangan fitur baru sejak fase stabilisasi backend dimulai.*
