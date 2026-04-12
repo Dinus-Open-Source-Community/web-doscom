@@ -81,7 +81,7 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 		return
 	}
 
-	if validRole.Role != constants.RoleKeySuperAdmin {
+	if validRole.Role != constants.RoleAdmin {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "Not allowed to access this route, nakal yaa!!",
 		})

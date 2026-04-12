@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -96,17 +95,21 @@ func (g *GalleryModel) InsertGalleryMultiple(gallery []*Gallery) ([]*GalleryResp
 }
 
 func (g *GalleryModel) GetGalleryByID(id int) (*GalleryResponse, error) {
-	var galleryData GalleryResponse
-
-	if err := g.DB.Model(&Gallery{}).
-		Select("id, id_users, file_upload_id, gallery_name, gallery_type, description, event_date, file_url").
-		Where("id = ?", id).
-		Scan(&galleryData).
-		Error; err != nil {
-		return nil, fmt.Errorf("gallery tidak ditemukan %w:", err)
+	var gallery Gallery
+	if err := g.DB.First(&gallery, id).Error; err != nil {
+		return nil, err
 	}
 
-	return &galleryData, nil
+	return &GalleryResponse{
+		ID:           gallery.ID,
+		IDUsers:      gallery.IDUsers,
+		FileUploadID: gallery.FileUploadID,
+		GalleryName:  gallery.GalleryName,
+		GalleryType:  gallery.GalleryType,
+		Description:  gallery.Description,
+		EventDate:    gallery.EventDate,
+		FileURL:      gallery.FileURL,
+	}, nil
 }
 
 // get gallery by id multiple
@@ -192,7 +195,7 @@ func (g *GalleryModel) GetAllGalleryAndByYear(
 	limit, offset int,
 ) ([]GalleryResponse, int64, error) {
 
-	var galleryResponse []GalleryResponse
+	galleryResponse := []GalleryResponse{}
 	var total int64
 
 	query := g.DB.WithContext(ctx).Model(&Gallery{})

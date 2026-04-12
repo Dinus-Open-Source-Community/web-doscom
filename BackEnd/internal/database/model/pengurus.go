@@ -177,7 +177,7 @@ func (m *PengurusModel) GetPengurusById(id int) (*Pengurus, error) {
 
 // Get all pengurus data
 func (m *PengurusModel) GetAllPengurusByDivisi(divisi string) ([]Pengurus, error) {
-	var pengurus []Pengurus
+	pengurus := []Pengurus{}
 	db := m.DB
 	if divisi != "" {
 		db = db.Where("divisi = ?", divisi)
@@ -208,12 +208,17 @@ func (m *PengurusModel) UpdatePengurus(Id int, patch PengurusPatch) (*Pengurus, 
 func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*PengurusResponse, error) {
 	var updatePengurus Pengurus
 
-	if err := m.DB.Model(&updatePengurus).
+	result := m.DB.Model(&updatePengurus).
 		Clauses(clause.Returning{}).
 		Where("id = ?", id).
-		Updates(data).
-		Error; err != nil {
-		return nil, err
+		Updates(data)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, gorm.ErrRecordNotFound
 	}
 
 	return &PengurusResponse{
@@ -242,7 +247,7 @@ func (m *PengurusModel) DeletePengurus(ctx context.Context, id int) error {
 }
 
 func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string) ([]PengurusResponse, error) {
-	var dataPengurus []PengurusResponse
+	dataPengurus := []PengurusResponse{}
 
 	if division == "" {
 		return nil, fmt.Errorf("division required")
