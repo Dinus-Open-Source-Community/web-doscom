@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS work (
 	project_type varchar(50),
 	technologies TEXT[],
   image_url TEXT,-- thumbnail
+    gallery_id INT REFERENCES gallery(id) ON DELETE SET NULL,
+    project_date TIMESTAMP
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

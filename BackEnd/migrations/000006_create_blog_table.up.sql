@@ -17,7 +17,7 @@ CREATE TYPE blog_status AS ENUM (
 
 CREATE TABLE blog (
 	id SERIAL PRIMARY KEY,
-	author_id INT REFERENCES pengurus(id),
+	author_id INT REFERENCES users(id),
 	title VARCHAR(255) NOT NULL,
 	slug VARCHAR(255) NOT NULL UNIQUE,
 	content TEXT,
