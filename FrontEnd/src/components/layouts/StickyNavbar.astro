@@ -1,27 +1,51 @@
 ---
 import Button from '../ui/Button.astro'
 import Logo from '../../assets/logo-doscom.svg?raw'
+
+const navItems = [
+  { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
+  { name: 'Division', href: '/division' },
+  { name: 'Works', href: '/works' },
+  { name: 'Blog', href: '/blog' },
+  { name: 'Contact', href: '/contact' },
+]
+
+const currentPath = Astro.url.pathname
 ---
 
 <nav
   id="sticky-nav"
   class="fixed top-0 left-0 z-50 w-full -translate-y-full transform bg-white px-10 py-4 text-black shadow-lg transition-transform duration-500 ease-out"
 >
-  <div class="mx-auto flex max-w-7xl items-center justify-between">
-    <!-- <img src="/assets/logo/logo-doscom.svg" alt="Logo DOSCOM" class="h-8 w-auto" /> -->
-    <span class="w-36 text-[var(--color-primary)] [&>svg]:h-full [&>svg]:w-full" set:html={Logo} />
+  <div class="mx-auto flex max-w-[96rem] items-center justify-between">
+    <span
+      class="w-36 text-[var(--color-primary)] [&>svg]:h-full [&>svg]:w-full"
+      set:html={Logo}
+    />
 
-    <ul class="flex justify-center gap-6 text-xl font-normal">
-      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Home</li>
-      <li>
-        <a href="/about" class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">About</a>
-      </li>
-      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Divisions</li>
-      <li>
-        <a href="/works" class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Works</a>
-      </li>
-      <li><a href="/blog" class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Blog</a></li>
-      <li class="cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]">Contact</li>
+    <ul class="flex justify-center gap-10 text-lg font-normal">
+      {
+        navItems.map(item => {
+          const isActive =
+            currentPath === item.href ||
+            (item.href !== '/' && currentPath.startsWith(item.href))
+
+          return (
+            <li>
+              <a
+                href={item.href}
+                class:list={[
+                  'cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]',
+                  isActive ? 'font-semibold text-[#0A84DC]' : '',
+                ]}
+              >
+                {item.name}
+              </a>
+            </li>
+          )
+        })
+      }
     </ul>
 
     <Button variant="primary" class="font-semibold text-white">Join Us</Button>
