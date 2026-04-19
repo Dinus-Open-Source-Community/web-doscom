@@ -10,7 +10,8 @@ import (
 )
 
 func SeedPengurus(db *gorm.DB) {
-	// Assumes users with ID 1, 2, 3 have been seeded.
+	now := time.Now()
+
 	pengurusList := []model.Pengurus{
 		{
 			UserID:    1,
@@ -21,8 +22,8 @@ func SeedPengurus(db *gorm.DB) {
 			Position:  "ketum",
 			Sosmed:    "instagram",
 			Period:    "2023/2024",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 		{
 			UserID:    2,
@@ -33,8 +34,8 @@ func SeedPengurus(db *gorm.DB) {
 			Position:  "KoorPemro",
 			Sosmed:    "github",
 			Period:    "2023/2024",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 		{
 			UserID:    3,
@@ -45,13 +46,21 @@ func SeedPengurus(db *gorm.DB) {
 			Position:  "PemroAng",
 			Sosmed:    "linkedin",
 			Period:    "2023/2024",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 	}
 
 	for _, p := range pengurusList {
-		db.FirstOrCreate(&p, model.Pengurus{Email: p.Email})
+		var existing model.Pengurus
+
+		err := db.Where("email = ?", p.Email).
+			Or("id_user = ?", p.UserID).
+			First(&existing).Error
+
+		if err == gorm.ErrRecordNotFound {
+			db.Create(&p)
+		}
 	}
 
 	log.Println("Seed table 'pengurus' completed.")

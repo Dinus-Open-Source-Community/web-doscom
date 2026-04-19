@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS work (
 	slug TEXT,
 	project_type varchar(50),
 	technologies TEXT[],
+  project_date TIMESTAMP,
   image_url TEXT,-- thumbnail
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

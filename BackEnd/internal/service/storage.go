@@ -276,6 +276,38 @@ func (s *StorageService) DeleteFile(ctx context.Context, filename string) error 
 	return nil
 }
 
+func (s *StorageService) DeleteFileMultiple(ctx context.Context, filenames []string) error {
+	if len(filenames) == 0 {
+		return fmt.Errorf("filenames is required not empty")
+	}
+	objectsCh := make(chan minio.ObjectInfo)
+	go func() {
+		defer close(objectsCh)
+		for _, filename := range filenames {
+			objectsCh <- minio.ObjectInfo{
+				Key: filename,
+			}
+		}
+	}()
+
+	opts := minio.RemoveObjectsOptions{}
+	errorCh := s.minioClient.Client.RemoveObjects(ctx, s.minioClient.BucketName, objectsCh, opts)
+
+	var errors []error
+	for err := range errorCh {
+		if err.Err != nil {
+			log.Printf("failed to delete %s: %v", err.ObjectName, err.Err)
+			errors = append(errors, fmt.Errorf("failed to delete %s: %w", err.ObjectName, err.Err))
+		}
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("failed to delete %d files", len(errors))
+	}
+
+	return nil
+}
+
 func (s *StorageService) UpdateFile(
 	ctx context.Context,
 	oldfilename string,
@@ -381,6 +413,21 @@ func (s *StorageService) GetFileUploadByID(id int) (*model.FileUpload, error) {
 	return s.fileUpload.GetByID(uint(id))
 }
 
+func (s *StorageService) GetFileUploadByIDMultiple(ctx context.Context, ids []int) ([]model.FileUploadResponse, error) {
+	if len(ids) == 0 {
+		return []model.FileUploadResponse{}, fmt.Errorf("ids is required, not empty, if empty what should i get")
+	}
+
+	return s.fileUpload.GetByIDMultiple(ctx, ids)
+}
+
 func (s *StorageService) DeleteFileById(id int) error {
 	return s.fileUpload.Delete(uint(id))
+}
+
+func (s *StorageService) DeleteFileByIdMultiple(ctx context.Context, ids []int) error {
+	if len(ids) == 0 {
+		return fmt.Errorf("ids is required, not empty, if empty what should id delete")
+	}
+	return s.fileUpload.DeleteByIdMultiple(ctx, ids)
 }

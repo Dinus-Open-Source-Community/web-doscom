@@ -45,6 +45,10 @@ type FileUploadModel struct {
 	DB *gorm.DB
 }
 
+func (FileUpload) TableName() string {
+	return "file_upload"
+}
+
 // Create saves a new file upload record
 func (m *FileUploadModel) CreateMetaData(fileUpload *FileUpload) (*FileUploadResponse, error) {
 	if err := m.DB.Create(fileUpload).Error; err != nil {
@@ -93,6 +97,39 @@ func (m *FileUploadModel) GetByID(id uint) (*FileUpload, error) {
 		return nil, err
 	}
 	return &fileUpload, nil
+}
+
+func (m *FileUploadModel) GetByIDMultiple(ctx context.Context, ids []int) ([]FileUploadResponse, error) {
+	if len(ids) == 0 {
+		return nil, fmt.Errorf("ids is required, not empty, if empty what should i get")
+	}
+
+	var fileUploads []FileUpload
+
+	result := m.DB.WithContext(ctx).
+		Model(&FileUpload{}).
+		Where("id IN ?", ids).
+		Find(&fileUploads)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get data: %w", result.Error)
+	}
+
+	responses := make([]FileUploadResponse, 0, len(fileUploads))
+	for _, f := range fileUploads {
+		responses = append(responses, FileUploadResponse{
+			ID:               f.ID,
+			UserID:           f.UserID,
+			Category:         f.Category,
+			OriginalFilename: f.OriginalFilename,
+			StoredFilename:   f.StoredFilename,
+			FileSize:         f.FileSize,
+			ContentType:      f.ContentType,
+			FileURL:          f.FileURL,
+		})
+	}
+
+	return responses, nil
 }
 
 // GetByUserID retrieves all file uploads for a user
@@ -166,4 +203,21 @@ func (m *FileUploadModel) Delete(id uint) error {
 // DeleteByFilename removes a file upload record by stored filename
 func (m *FileUploadModel) DeleteByFilename(filename string) error {
 	return m.DB.Where("stored_filename = ?", filename).Delete(&FileUpload{}).Error
+}
+
+func (m *FileUploadModel) DeleteByIdMultiple(ctx context.Context, ids []int) error {
+	if len(ids) == 0 {
+		return fmt.Errorf("ids is required, not empty, if empty what should i delete")
+	}
+	result := m.DB.WithContext(ctx).Where("id in ?", ids).Delete(&FileUpload{})
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete data: %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("failed, no data match to delete")
+	}
+
+	return nil
 }

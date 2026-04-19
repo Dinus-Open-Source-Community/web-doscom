@@ -42,7 +42,7 @@ func (r *RefreshTokenModel) CreateRefreshToken(refreshToken *RefreshToken) error
 
 func (r *RefreshTokenModel) GetRefreshToken(refreshToken string) (*RefreshToken, error) {
 	var refreshtoken RefreshToken
-	if err := r.DB.Where("token_hash = ?", &refreshToken).First(&refreshtoken).Error; err != nil {
+	if err := r.DB.Where("token = ?", &refreshToken).First(&refreshtoken).Error; err != nil {
 		return nil, err
 	}
 	return &refreshtoken, nil

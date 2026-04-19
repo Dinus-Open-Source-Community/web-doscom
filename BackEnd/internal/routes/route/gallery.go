@@ -11,7 +11,6 @@ func GalleryRoute(r *gin.RouterGroup, GalleryHandler *handler.GalleryHandler) {
 	publicRoutes := r.Group("/gallery")
 	{
 		publicRoutes.GET("", GalleryHandler.GetAllGalleryAndByYear)
-
 	}
 
 	privateRoutes := r.Group("/admin/gallery")

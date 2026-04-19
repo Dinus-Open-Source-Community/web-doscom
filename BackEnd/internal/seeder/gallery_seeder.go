@@ -15,7 +15,7 @@ func SeedGallery(db *gorm.DB) {
 			IDUsers:      1,
 			FileUploadID: 1,
 			GalleryName:  "Gathering Doscom 2024",
-			GalleryType:  "event",
+			GalleryType:  "fun",
 			Description:  "Foto kegiatan gathering tahun 2024 bersama anggota baru.",
 			EventDate:    time.Now().AddDate(0, -1, 0), // 1 bulan lalu
 			FileURL:      "https://dummyimage.com/800x600/000/fff&text=Gathering2024",

@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -84,7 +83,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	refreshToken, tokenHash, err := generateRefreshToken(userData.ID)
+	refreshToken, plainToken, err := generateRefreshToken(userData.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error: ": "Failed to create refresh token",
@@ -107,7 +106,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	// set cookie
 	SetCustomCookie(c, Cookies{
 		Name:     "RefreshToken",
-		Value:    refreshToken.Token,
+		Value:    plainToken,
 		Path:     "/",
 		Expires:  time.Now().Add(5 * 24 * time.Hour),
 		Secure:   true,
@@ -117,17 +116,18 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 
 	// production response
 	// send back
-	// c.JSON(http.StatusOK, gin.H{
-	// "message:": "login success bolo, nasi padang satu bungkus",
-	// })
+	c.JSON(http.StatusOK, gin.H{
+		"message:":    "login success bolo, nasi padang satu bungkus",
+		"acces_token": accesToken,
+	})
 
 	// development response
-	c.JSON(http.StatusOK, gin.H{
-		"message":       "Login success, nasi padangnya sebungkus bolo",
-		"user_id":       userData.ID,
-		"token":         accesToken,
-		"refresh_token": tokenHash,
-	})
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"message":       "Login success, nasi padangnya sebungkus bolo",
+	// 	"user_id":       userData.ID,
+	// 	"token":         accesToken,
+	// 	"refresh_token": plainToken,
+	// })
 }
 
 func (h *AuthHandler) RegisterUser(c *gin.Context) {

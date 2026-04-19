@@ -2,8 +2,8 @@ package model
 
 import (
 	"context"
-
 	"gorm.io/gorm"
+	"time"
 )
 
 func (BlogGallery) TableName() string {
@@ -15,9 +15,11 @@ type BlogGalleryModel struct {
 }
 
 type BlogGallery struct {
-	ID        int `json:"id"`
-	BlogID    int `gorm:"column:id_blog" json:"blog_id"`
-	GalleryID int `gorm:"column:id_gallery" json:"gallery_id"`
+	ID        int       `json:"id"`
+	BlogID    int       `gorm:"column:id_blog" json:"blog_id"`
+	GalleryID int       `gorm:"column:id_gallery" json:"gallery_id"`
+	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 type BlogGalleryInsert struct {
@@ -27,6 +29,8 @@ type BlogGalleryInsert struct {
 
 // insert blog gallery
 func (b *BlogGalleryModel) InsertBlogGallery(blogGallery *BlogGallery) (*BlogGallery, error) {
+	blogGallery.CreatedAt = time.Now()
+	blogGallery.UpdatedAt = time.Now()
 	if err := b.DB.Create(blogGallery).Error; err != nil {
 		return nil, err
 	}

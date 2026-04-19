@@ -80,6 +80,16 @@ type PengurusResponse struct {
 	Period   string `json:"period"`
 }
 
+type PengurusPublicResponse struct {
+	ID       int    `json:"id"`
+	PhotoURL string `json:"photo_url"`
+	Divisi   string `json:"divisi"`
+	Name     string `json:"name"`
+	Position string `json:"position"`
+	Sosmed   string `json:"sosmed"`
+	Period   string `json:"period"`
+}
+
 // Untuk create/register pengurus
 type RegisterPengurusRequest struct {
 	UserID   int                   `form:"id_user"`
@@ -167,18 +177,18 @@ func (m *PengurusModel) FindByEmail(email string) (*Pengurus, error) {
 }
 
 // Get pengurus by id
-func (m *PengurusModel) GetPengurusById(id int) (*Pengurus, error) {
+func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*Pengurus, error) {
 	var pengurus Pengurus
-	if err := m.DB.First(&pengurus, id).Error; err != nil {
+	if err := m.DB.WithContext(ctx).First(&pengurus, id).Error; err != nil {
 		return nil, err
 	}
 	return &pengurus, nil
 }
 
 // Get all pengurus data
-func (m *PengurusModel) GetAllPengurusByDivisi(divisi string) ([]Pengurus, error) {
+func (m *PengurusModel) GetAllPengurusByDivisi(ctx context.Context, divisi string) ([]Pengurus, error) {
 	pengurus := []Pengurus{}
-	db := m.DB
+	db := m.DB.WithContext(ctx)
 	if divisi != "" {
 		db = db.Where("divisi = ?", divisi)
 	}

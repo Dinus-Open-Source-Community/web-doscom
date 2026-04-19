@@ -133,16 +133,23 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 // @Tags Pengurus
 // @Router /api/v1/pengurus/{id} [get]
 func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
-	idParams := c.Param("id")
+	ctx := c.Request.Context()
+	userID := c.MustGet("user_id").(int)
+	userRole := c.MustGet("role").(string)
 
+	idParams := c.Param("id")
 	id, err := strconv.Atoi(idParams)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pengurus id"})
 		return
 	}
-	pengurus, err := h.Service.PengurusModel.GetPengurusById(id)
+
+	pengurus, err := h.Service.GetPengurusByID(ctx, id, userRole, userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Pengurus Not Found"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   err.Error(),
+			"message": "error while getting the data or data not found",
+		})
 		return
 	}
 	resp := model.PengurusResponse{
@@ -162,33 +169,24 @@ func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 	})
 }
 
-// GetAllPengurus godoc
-// @Summary Get all Pengurus
-// @Description Mengambil semua data penguru
-// @Accept json
-// @Produce json
-// @Param divisi query string false "Filter by divisi (optional)"
-// @Success 200 {object} model.PengurusResponse
-// @Failure 500 {object} map[string]string
-// @Security ApiKeyAuth
-// @Tags Pengurus
-// @Router /api/v1/pengurus/ [get]
 func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
-	divisi := c.Param("divisi")
+	ctx := c.Request.Context()
+	divisi := c.Param("division")
 
-	pengurusList, err := h.Service.PengurusModel.GetAllPengurusByDivisi(divisi)
+	pengurusList, err := h.Service.GetAllPengurusByDivision(ctx, divisi)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch pengurus data",
+			"error":   err.Error(),
+			"message": "Failed to fetch pengurus data",
 		})
 		return
 	}
-	respList := []model.PengurusResponse{}
+
+	pengurusDataResponse := make([]model.PengurusPublicResponse, 0, len(pengurusList))
 	for _, p := range pengurusList {
-		respList = append(respList, model.PengurusResponse{
+		pengurusDataResponse = append(pengurusDataResponse, model.PengurusPublicResponse{
 			ID:       p.ID,
 			PhotoURL: p.PhotoURL,
-			Email:    "",
 			Divisi:   p.Divisi,
 			Name:     p.Name,
 			Position: p.Position,
@@ -199,7 +197,7 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "List of pengurus",
-		"pengurus": respList,
+		"pengurus": pengurusDataResponse,
 	})
 }
 
