@@ -10,6 +10,10 @@ tmp/
 *.tmp
 *.log
 
+# --------------------------
+# folder rak penting
+# --------------------------
+storage/
 
 # --------------------------
 # Node / npm (backend might use some node scripts)

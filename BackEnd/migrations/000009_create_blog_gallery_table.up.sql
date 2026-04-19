@@ -1,5 +1,7 @@
 CREATE TABLE blog_gallery (
 	id SERIAL PRIMARY KEY,
 	id_blog INT REFERENCES blog(id),
-	id_gallery INT REFERENCES gallery(id)
+	id_gallery INT REFERENCES gallery(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

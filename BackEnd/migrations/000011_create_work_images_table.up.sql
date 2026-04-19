@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS work_gallery (
+  id SERIAL PRIMARY KEY,
+  id_work INT REFERENCES work(id),
+  id_gallery INT REFERENCES gallery(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)

@@ -23,9 +23,9 @@ func NewPengurusService(m *model.PengurusModel, g *GalleryService) *PengurusServ
 	}
 }
 
-func (p *PengurusService) RolePositionAuthorization(idParams, currentUserID int, userRole string) (string, error) {
+func (p *PengurusService) RolePositionAuthorization(ctx context.Context, idParams, currentUserID int, userRole string) (string, error) {
 	// check if data exist
-	userValid, err := p.PengurusModel.GetPengurusById(idParams)
+	userValid, err := p.PengurusModel.GetPengurusById(ctx, idParams)
 	if err != nil {
 		return "", err
 	}
@@ -83,7 +83,6 @@ func (p *PengurusService) CreatePengurus(
 	switch roleUser.Role {
 	case constants.RolePengurus:
 		dataPengurus.UserID = currentUserID
-
 	case constants.RoleKoordinator:
 		if dataPengurus.UserID == 0 {
 			dataPengurus.UserID = currentUserID
@@ -179,7 +178,7 @@ func (p *PengurusService) UpdateDataPengurus(
 	)
 
 	// authorization check for update data
-	roleUser, err := p.RolePositionAuthorization(idParams, currentUserID, userRole)
+	roleUser, err := p.RolePositionAuthorization(ctx, idParams, currentUserID, userRole)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +195,7 @@ func (p *PengurusService) UpdateDataPengurus(
 			return nil, fmt.Errorf("koordinator tidak dapat memperbarui foto pengurus")
 		}
 		// Pastikan kita ambil data pengurus dulu untuk tahu UserID-nya yang asli
-		targetPengurus, err := p.PengurusModel.GetPengurusById(idParams)
+		targetPengurus, err := p.PengurusModel.GetPengurusById(ctx, idParams)
 		if err != nil {
 			return nil, err
 		}
@@ -238,7 +237,10 @@ func (p *PengurusService) UpdateDataPengurus(
 	return updatedPengurus, nil
 }
 
-func (p *PengurusService) GetAllPengurusBaseOnDivision(ctx context.Context, userRole, divisi string) ([]model.PengurusResponse, error) {
+func (p *PengurusService) GetAllPengurusBaseOnDivision(
+	ctx context.Context,
+	userRole, divisi string,
+) ([]model.PengurusResponse, error) {
 	// cek role
 	role, ok := constants.RoleGroup[userRole]
 	if !ok {
@@ -273,13 +275,80 @@ func (p *PengurusService) GetAllPengurusBaseOnDivision(ctx context.Context, user
 
 }
 
+func (p *PengurusService) GetAllPengurusByDivision(
+	ctx context.Context,
+	division string,
+) ([]model.PengurusResponse, error) {
+	if division == "" {
+		return nil, fmt.Errorf("division must be provided")
+	}
+
+	pengurusResponse, err := p.PengurusModel.GetAllPengurusByDivisi(ctx, division)
+	if err != nil {
+		return nil, fmt.Errorf("terjadi error ketika ambil data %w", err)
+	}
+
+	dataPengurus := make([]model.PengurusResponse, 0, len(pengurusResponse))
+	for _, data := range pengurusResponse {
+		dataPengurus = append(dataPengurus, model.PengurusResponse{
+			ID:       data.ID,
+			PhotoURL: data.PhotoURL,
+			Email:    data.Email,
+			Divisi:   data.Divisi,
+			Name:     data.Name,
+			Position: data.Position,
+			Sosmed:   data.Sosmed,
+			Period:   data.Period,
+		})
+	}
+
+	return dataPengurus, nil
+}
+
+func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole string, userID int) (model.PengurusResponse, error) {
+	validRole, err := constants.GetRoleInfo(userRole)
+	if err != nil {
+		return model.PengurusResponse{}, fmt.Errorf("role not valid")
+	}
+
+	pengurusResponse, err := p.PengurusModel.GetPengurusById(ctx, id)
+	if err != nil {
+		return model.PengurusResponse{}, fmt.Errorf("error while getting the data %w", err)
+	}
+
+	switch validRole.Role {
+	case constants.RoleKoordinator:
+		if validRole.Divisi != pengurusResponse.Divisi {
+			return model.PengurusResponse{}, fmt.Errorf("you can not see other division bro %w", err)
+		}
+	case constants.RolePengurus:
+		if userID != pengurusResponse.ID {
+			return model.PengurusResponse{}, fmt.Errorf("you can't see other data bro")
+		}
+	default:
+		return model.PengurusResponse{}, fmt.Errorf("role not valid")
+	}
+
+	pengurusDataResponse := model.PengurusResponse{
+		ID:       pengurusResponse.ID,
+		PhotoURL: pengurusResponse.PhotoURL,
+		Email:    pengurusResponse.Email,
+		Divisi:   pengurusResponse.Divisi,
+		Name:     pengurusResponse.Name,
+		Position: pengurusResponse.Position,
+		Sosmed:   pengurusResponse.Sosmed,
+		Period:   pengurusResponse.Period,
+	}
+	return pengurusDataResponse, nil
+}
+
 func (p *PengurusService) DeletePengurusById(ctx context.Context, idPengurus int, userRole string) error {
 	role, ok := constants.RoleGroup[userRole]
 	if !ok {
 		return fmt.Errorf("role not valid")
 	}
 
-	targetPengurus, err := p.PengurusModel.GetPengurusById(idPengurus)
+	targetPengurus, err := p.PengurusModel.GetPengurusById(ctx, idPengurus)
 	if err != nil {
 		return err
 	}

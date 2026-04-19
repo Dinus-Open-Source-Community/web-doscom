@@ -63,8 +63,19 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
+	// userData, password, err := m.Service.InsertUserWithDefaultValue(&input, creatorRole)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"error":   err.Error(),
+	// 		"message": "failed while create user",
+	// 	})
+	// 	return
+	// }
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "User created successfully",
+		// "data":     response,
+		// "password": password,
 	})
 
 }
@@ -205,7 +216,8 @@ func (m *UserHandler) GetAllUserBasedOnRole(c *gin.Context) {
 	usersData, err := m.Service.GetAllUserBaseOnRole(userRole)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch users data",
+			"error":   err.Error(),
+			"message": "Failed to fetch users data",
 		})
 	}
 

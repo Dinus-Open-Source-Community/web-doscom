@@ -11,6 +11,8 @@ import (
 )
 
 func SeedUsers(db *gorm.DB) {
+	now := time.Now()
+
 	passwordHash := auth.HashPassword("password123")
 
 	users := []model.User{
@@ -20,8 +22,8 @@ func SeedUsers(db *gorm.DB) {
 			Full_name: "Super Admin Doscom",
 			Password:  passwordHash,
 			Role:      "SuperAdmin",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 		{
 			Username:  "koorpemro",
@@ -29,8 +31,8 @@ func SeedUsers(db *gorm.DB) {
 			Full_name: "Koor Pemrograman",
 			Password:  passwordHash,
 			Role:      "KoorPemro",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 		{
 			Username:  "anggotapemro",
@@ -38,13 +40,15 @@ func SeedUsers(db *gorm.DB) {
 			Full_name: "Anggota Pemrograman",
 			Password:  passwordHash,
 			Role:      "pemroAnggota",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 	}
 
 	for _, user := range users {
-		db.FirstOrCreate(&user, model.User{Email: user.Email})
+		db.Where(model.User{Email: user.Email}).
+			Or(model.User{Username: user.Username}).
+			FirstOrCreate(&user)
 	}
 
 	log.Println("Seed table 'users' completed.")

@@ -126,15 +126,16 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		// Set user info in context
 		c.Set("user_id", claims.UserId)
+		c.Set("role", claims.Role)
 		// c.Set("email", claims.Email)
 		// c.Set("username", claims.Username)
-		c.Set("role", claims.Role)
 
 		// Check role if specified
 		if len(allowedRoles) > 0 {
 			if !isRoleAllowed(claims.Role, allowedRoles) {
 				c.JSON(http.StatusForbidden, gin.H{
-					"error": "forbidden",
+					"error":   "forbidden",
+					"message": "you are not allowed access this resource",
 				})
 				c.Abort()
 				return

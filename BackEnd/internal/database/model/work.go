@@ -1,6 +1,8 @@
 package model
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -11,51 +13,84 @@ type WorkModel struct {
 }
 
 type Work struct {
-	ID          int       `gorm:"primaryKey" json:"id"`
-	Title       string    `json:"title"`
-	GalleryID   int       `gorm:"column:gallery_id" json:"gallery_id"`
-	Description string    `json:"description"`
-	ProjectDate time.Time `gorm:"column:project_date" json:"project_date"`
-	TeamProject int       `gorm:"column:pengurus_id" json:"pengurus_id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID           int       `gorm:"primaryKey" json:"id"`
+	PengurusID   int       `gorm:"column:pengurus_id" json:"pengurus_id"`
+	Title        string    `gorm:"column:title" json:"title"`
+	Tagline      string    `gorm:"column:tagline" json:"tagline"`
+	Description  string    `gorm:"column:description" json:"description"`
+	Slug         string    `gorm:"column:slug" json:"slug"`
+	ProjectType  string    `gorm:"column:project_type" json:"project_type"`
+	Technologies []string  `gorm:"type:text[]" json:"technologies"`
+	ProjectDate  time.Time `gorm:"column:project_date" json:"project_date"`
+	ImageURL     string    `gorm:"column:image_url" json:"image_url"`
+	CreatedAt    time.Time `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
 type RegisterWork struct {
-	Title       string    `json:"title" binding:"required"`
-	GalleryID   int       `json:"gallery_id" binding:"required"`
-	Description string    `json:"description" binding:"required"`
-	ProjectDate time.Time `json:"project_date" binding:"required"`
-	TeamProject int       `json:"pengurus_id" binding:"required"`
+	ExistingID   []*int    `form:"existingID_image"`
+	PengurusID   int       `form:"pengurus_id" binding:"required"`
+	Title        string    `form:"title" binding:"required"`
+	Tagline      string    `form:"tagline"`
+	Description  string    `form:"description" binding:"required"`
+	Slug         string    `form:"slug" binding:"required"`
+	ProjectType  string    `form:"project_type" binding:"required"`
+	Technologies []string  `form:"technologies[]" binding:"required"`
+	ProjectDate  time.Time `form:"project_date" binding:"required"`
 }
 
 type WorkResponse struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
-	GalleryID   int       `json:"gallery_id"`
-	Description string    `json:"description"`
-	ProjectDate time.Time `json:"project_date"`
-	TeamProject int       `json:"pengurus_id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID           int       `json:"id"`
+	Title        string    `json:"title"`
+	Tagline      string    `json:"tagline"`
+	Description  string    `json:"description"`
+	Slug         string    `json:"slug"`
+	ProjectType  string    `json:"project_type"`
+	Technologies []string  `json:"technologies"`
+	ProjectDate  time.Time `json:"project_date"`
+	ImageURL     string    `json:"image_url"`
 }
 type WorkPatch struct {
-	Title       *string    `json:"title" binding:"omitempty"`
-	Description *string    `json:"description" binding:"omitempty"`
-	StartDate   *time.Time `json:"start_date" binding:"omitempty"`
-	EndDate     *time.Time `json:"end_date" binding:"omitempty"`
+	PengurusID   int       `json:"pengurus_id" `
+	Title        string    `json:"title" `
+	Tagline      string    `json:"tagline"`
+	Description  string    `json:"description" `
+	Slug         string    `json:"slug" `
+	ProjectType  string    `json:"project_type" `
+	Technologies []string  `json:"technologies" `
+	ProjectDate  time.Time `json:"project_date" `
 }
 
 func (Work) TableName() string {
 	return "work"
 }
 
-// CRUD implementation
+func (m *WorkModel) WithTx(tx *gorm.DB) *WorkModel {
+	return &WorkModel{DB: tx}
+}
 
-func (m *WorkModel) InsertWork(work *Work) error {
+func (m *WorkModel) InsertWork(ctx context.Context, work *Work) (WorkResponse, error) {
 	work.CreatedAt = time.Now()
 	work.UpdatedAt = time.Now()
-	return m.DB.Create(work).Error
+	result := m.DB.WithContext(ctx).Create(work)
+
+	if result.Error != nil {
+		return WorkResponse{}, fmt.Errorf("failed while insert data %w", result.Error)
+	}
+
+	responseData := WorkResponse{
+		ID:           work.ID,
+		Title:        work.Title,
+		Tagline:      work.Tagline,
+		Description:  work.Description,
+		Slug:         work.Slug,
+		ProjectType:  work.ProjectType,
+		Technologies: work.Technologies,
+		ProjectDate:  work.ProjectDate,
+		ImageURL:     work.ImageURL,
+	}
+
+	return responseData, nil
 }
 
 func (m *WorkModel) GetWorkById(id int) (*Work, error) {

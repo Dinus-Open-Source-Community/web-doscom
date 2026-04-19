@@ -78,7 +78,7 @@ func (s *UserService) InsertUserWithDefaultValue(
 	// validasi userRole
 	creatorRole, ok := constants.RoleGroup[userRole]
 	if !ok {
-		return fmt.Errorf("role not valid %w")
+		return fmt.Errorf("role not valid")
 	}
 
 	if creatorRole.Role != constants.RoleAdmin &&
@@ -125,7 +125,7 @@ func (s *UserService) GetUserById(id int) (*model.User, error) {
 
 func (s *UserService) GetAllUserBaseOnRole(
 	creatorRole string,
-) ([]model.User, error) {
+) ([]model.UserResponse, error) {
 	validRole, err := constants.GetRoleInfo(creatorRole)
 	if err != nil {
 		return nil, err
@@ -138,12 +138,13 @@ func (s *UserService) GetAllUserBaseOnRole(
 	case constants.RoleKoordinator:
 		assignRole = constants.AutoAsignRole[creatorRole]
 	case constants.RolePengurus:
-		return nil, fmt.Errorf("this role cannot access this data")
+		return nil, fmt.Errorf("this role cannot access this data %s", validRole.Role)
 	default:
 		return nil, fmt.Errorf("need creator role to get data")
 	}
 
-	userData, err := s.GetAllUserBaseOnRole(assignRole)
+	// userData, err := s.UserModel.GetAllUserBaseOnRole(assignRole)
+	userData, err := s.UserModel.GetAllUserBaseOnRole(assignRole)
 	if err != nil {
 		return nil, fmt.Errorf("terjadi kesalahan di database: %w", err)
 	}

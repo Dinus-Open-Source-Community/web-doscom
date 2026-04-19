@@ -10,20 +10,26 @@ import (
 )
 
 func SeedWorks(db *gorm.DB) {
+	now := time.Now()
+
 	workList := []model.Work{
 		{
-			Title:       "Website Profil Doscom",
-			GalleryID:   1, // Asumsi ID gallery 1 sudah ada
-			Description: "Pengembangan website internal profil dinus open source community.",
-			ProjectDate: time.Now().AddDate(-1, 0, 0), // 1 tahun lalu
-			TeamProject: 2, // ID koorpemro
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			PengurusID:   2,
+			Title:        "Website Profil Doscom",
+			Tagline:      "Company Profile Website",
+			Description:  "Pengembangan website internal profil dinus open source community.",
+			Slug:         "website-profil-doscom",
+			ProjectType:  "web",
+			Technologies: []string{"golang", "gin", "postgresql"},
+			ProjectDate:  now.AddDate(-1, 0, 0),
+			ImageURL:     "https://dummyimage.com/800x600/000/fff&text=Doscom",
+			CreatedAt:    now,
+			UpdatedAt:    now,
 		},
 	}
 
 	for _, w := range workList {
-		db.FirstOrCreate(&w, model.Work{Title: w.Title})
+		db.FirstOrCreate(&w, model.Work{Slug: w.Slug})
 	}
 
 	log.Println("Seed table 'work' completed.")

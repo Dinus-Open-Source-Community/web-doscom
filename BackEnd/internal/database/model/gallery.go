@@ -113,9 +113,9 @@ func (g *GalleryModel) GetGalleryByID(id int) (*GalleryResponse, error) {
 }
 
 // get gallery by id multiple
-func (g *GalleryModel) GetGalleryByIDMultiple(id []int) ([]*GalleryResponse, error) {
+func (g *GalleryModel) GetGalleryByIDMultiple(ctx context.Context, id []int) ([]*GalleryResponse, error) {
 	var gallery []*Gallery
-	if err := g.DB.Where("id = ?", &id).Find(&gallery).Error; err != nil {
+	if err := g.DB.WithContext(ctx).Where("id IN ?", id).Find(&gallery).Error; err != nil {
 		return nil, err
 	}
 

@@ -137,24 +137,24 @@ func generateRefreshToken(userId int) (*model.RefreshToken, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	tokenHash := HashPassword(tokenString)
+	// tokenHash := HashPassword(tokenString)
 	expiredAt := time.Now().Add(5 * 24 * time.Hour)
 
 	refreshToken := &model.RefreshToken{
 		UserId:    userId,
-		Token:     tokenHash,
+		Token:     tokenString,
 		Expires:   &expiredAt,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
-	return refreshToken, tokenHash, nil
+	return refreshToken, tokenString, nil
 }
 
 func (h *AuthService) validateRefreshToken(tokenString string) (string, error) {
 	// take refresh token from database
-	refreshTokenHash := HashPassword(tokenString)
-	refreshToken, err := h.RefreshToken.GetRefreshToken(refreshTokenHash)
+	// refreshTokenHash := HashPassword(tokenString)
+	refreshToken, err := h.RefreshToken.GetRefreshToken(tokenString)
 	if err != nil {
 		return "", err
 	}

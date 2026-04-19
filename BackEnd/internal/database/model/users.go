@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"strings"
 	"time"
 	"web_doscom/internal/constants"
 
@@ -64,15 +65,15 @@ type DefaultValue struct {
 func (u *UserPatch) ToMap() map[string]any {
 	result := make(map[string]any)
 
-	if u.Username != nil {
+	if u.Username != nil && strings.TrimSpace(*u.Username) != "" {
 		result["username"] = *u.Username
 	}
 
-	if u.Email != nil {
+	if u.Email != nil && strings.TrimSpace(*u.Email) != "" {
 		result["email"] = *u.Email
 	}
 
-	if u.Fullname != nil {
+	if u.Fullname != nil && strings.TrimSpace(*u.Fullname) != "" {
 		result["full_name"] = *u.Fullname
 	}
 
