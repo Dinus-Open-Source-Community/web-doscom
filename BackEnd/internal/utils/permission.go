@@ -76,3 +76,26 @@ func FilterRoleFieldPermission(userRole string, data *model.PengurusPatch) (map[
 
 	return editableFields, nil
 }
+
+func CheckRolePermission(userRole string, grantedRole ...string) error {
+	roleMap := make(map[string]struct{}, len(grantedRole))
+
+	if len(grantedRole) == 0 {
+		return fmt.Errorf("role is required not empty")
+	}
+
+	_, err := constants.GetRoleInfo(userRole)
+	if err != nil {
+		return err
+	}
+
+	for _, role := range grantedRole {
+		roleMap[role] = struct{}{}
+	}
+
+	if _, ok := roleMap[userRole]; !ok {
+		return fmt.Errorf("you are not allowed to access this resource")
+	}
+
+	return nil
+}

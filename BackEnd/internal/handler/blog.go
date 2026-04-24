@@ -74,7 +74,7 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 		return
 	}
 
-	var input model.RegisterBlog
+	var input model.CreateRequestBlog
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -90,22 +90,23 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 
 	files := form.File["files"]
 
-	blogInput := &model.RequestBlog{
+	blogInput := &model.BlogPayload{
 		AuthorID:    userID,
-		Title:       input.Title,
-		Slug:        input.Slug,
 		Content:     input.Content,
+		ExistingID:  input.ExistingID,
 		Kategori:    input.Kategori,
 		PublishedAt: input.PublishedAt,
+		Slug:        input.Slug,
 		Status:      input.Status,
+		Title:       input.Title,
 	}
 
 	// service insert blog
 	blogResponse, err := h.Service.CreateBlogImage(
 		ctx,
 		blogInput,
-		input.ExistingID,
 		files,
+		user_role,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

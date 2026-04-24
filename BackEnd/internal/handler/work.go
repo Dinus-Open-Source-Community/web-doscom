@@ -1,11 +1,15 @@
 package handler
 
 import (
+	"math"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
+	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/service"
+	"web_doscom/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,67 +22,154 @@ func NewWorkHandler(s *service.WorkService) *WorkHandler {
 	return &WorkHandler{Service: s}
 }
 
-func (h *WorkHandler) Create(c *gin.Context) {
-	var work model.Work
+func (h *WorkHandler) CreateWork(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+
+	if err := utils.CheckRolePermission(userRole,
+		constants.RoleKoordinator,
+		constants.RoleAdmin,
+	); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "role is not allowed to access this resource",
+		})
+		return
+	}
+
+	var work model.RegisterWork
 	if err := c.ShouldBindJSON(&work); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   err.Error(),
+			"message": "Invalid request body",
+		})
 		return
 	}
-	if err := h.Service.CreateWork(&work); err != nil {
-		// Handle referenced data not found (validation error)
-		if err.Error() == "referenced gallery_id not found" || err.Error() == "referenced pengurus_id (team_project) not found" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   err.Error(),
+			"message": "failed to read file",
+		})
 		return
 	}
+
+	files := form.File["files"]
+
+	workInputDataResponse, err := h.Service.CreateWork(
+		ctx,
+		&work,
+		files,
+		userRole,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "Failed to insert data, something went wrong",
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Work created successfully",
-		"data":    work,
+		"data":    workInputDataResponse,
 	})
 }
 
-func (h *WorkHandler) List(c *gin.Context) {
-	works, err := h.Service.GetAllWorks()
+func (h *WorkHandler) GetAllWorksOrByFilterTechnologies(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	filterProjectType := c.DefaultQuery("projecttype", "")
+	offset := (page - 1) * limit
+
+	worksResponseData, totalData, err := h.Service.GetAllWorksAndByTechnologi(
+		ctx,
+		offset,
+		limit,
+		filterProjectType,
+	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "Failed to fetch data, something went wrong",
+		})
 	}
+
+	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+	currentPage := (offset / limit) * 1
+
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Success fetching all works",
-		"data":    works,
+		"message":     "Success fetching all works",
+		"work data":   worksResponseData,
+		"totalPage":   totalPage,
+		"currentPage": currentPage,
 	})
 }
 
-func (h *WorkHandler) Get(c *gin.Context) {
+func (h *WorkHandler) GetWorkByID(c *gin.Context) {
+	ctx := c.Request.Context()
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid id format",
+		})
 		return
 	}
-	work, err := h.Service.GetWorkByID(id)
+
+	workResponseData, err := h.Service.GetWorkByID(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   err.Error(),
+			"message": "something went wrong while fetching data",
+		})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Success fetching work detail",
-		"data":    work,
+		"data":    workResponseData,
 	})
 }
 
-func (h *WorkHandler) Update(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
+func (h *WorkHandler) UpdateWorkByID(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+	if err := utils.CheckRolePermission(
+		userRole,
+		constants.RoleKoordinator,
+		constants.RoleAdmin,
+	); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "forbidden to access this resource",
+		})
 		return
 	}
 
-	var patchData map[string]any
-	if err := c.ShouldBindJSON(&patchData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid id format",
+		})
 		return
+	}
+
+	var updatedWorkData model.WorkPatch
+	if err := c.ShouldBindJSON(&updatedWorkData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   err.Error(),
+			"message": "invalid request body, budy",
+		})
+		return
+	}
+
+	form, _ := c.MultipartForm()
+	var files []*multipart.FileHeader
+	if form != nil {
+		files = form.File["files"]
 	}
 
 	updatedWork, err := h.Service.UpdateWork(id, patchData)

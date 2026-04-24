@@ -2,6 +2,7 @@ package constants
 
 import "fmt"
 
+// ================= ROLE =================
 const (
 	RoleAdmin       = "admin"
 	RoleKoordinator = "koor"
@@ -35,6 +36,7 @@ var ValidPosition = map[string]string{
 	"sekum":        RoleKoordinator,
 	"bendum":       RolePengurus,
 	"sekAng":       RolePengurus,
+	"humas":        RolePengurus,
 	"bendAng":      RolePengurus,
 	"PemroAng":     RolePengurus,
 	"JaringanAng":  RolePengurus,
@@ -42,7 +44,6 @@ var ValidPosition = map[string]string{
 	"DataAng":      RolePengurus,
 }
 
-// position group
 var PositionGroup = map[string][]string{
 	"bph":      {"ketum", "sdm", "pr", "pm", "pmang", "sekum", "sekang", "bendum", "bendang"},
 	"pemro":    {"KoorPemro", "PemroAng"},
@@ -98,3 +99,14 @@ func GetRoleInfo(role string) (divisioninfo, error) {
 	}
 	return validRole, nil
 }
+
+// ================= BLOG STATUS =================
+
+const (
+	StatusDraft     = "draft"
+	StatusPublished = "published"
+	StatusScheduled = "scheduled"
+	StatusUnpublish = "unpublished"
+	StatusRejected  = "rejected"
+	StatusPending   = "pending_review"
+)
