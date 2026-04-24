@@ -44,26 +44,28 @@ type Blog struct {
 	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
-type RequestBlog struct {
-	AuthorID     int        `json:"author_id"`
-	Title        string     `json:"title"`
-	Slug         string     `json:"slug" gorm:"unique"`
-	Content      string     `json:"content"`
-	Kategori     []string   `json:"kategori"`
-	ThumbnailURL string     `json:"thumbnail_url"`
-	PublishedAt  *time.Time `json:"published_at"`
-	Status       string     `json:"status" default:"draft"`
-}
-
-// RegisterBlog is used for creating a new blog
-type RegisterBlog struct {
+// use to get input from client
+type CreateRequestBlog struct {
 	ExistingID  []*int     `form:"existingID_image"`
 	Title       string     `form:"title" binding:"required"`
 	Slug        string     `form:"slug" binding:"required"`
 	Content     string     `form:"content" binding:"required"`
 	Kategori    []string   `form:"kategori" binding:"required,dive,kategori"`
 	PublishedAt *time.Time `form:"published_at"`
-	Status      string     `form:"status" default:"draft"`
+	Status      string     `form:"status" binding:"required"`
+}
+
+// use to internal process -> insert to database
+type BlogPayload struct {
+	AuthorID     int        `json:"author_id"`
+	Content      string     `json:"content"`
+	ExistingID   []*int     `json:"existingID_image"`
+	Kategori     []string   `json:"kategori"`
+	PublishedAt  *time.Time `json:"published_at"`
+	Slug         string     `json:"slug"`
+	Status       string     `json:"status" default:"draft"`
+	Title        string     `json:"title"`
+	ThumbnailURL string     `json:"thumbnail_url"`
 }
 
 // BlogPatch is used for updating a blog
@@ -111,11 +113,16 @@ func (Blog) TableName() string {
 	return "blog"
 }
 
+func (m *BlogModel) WithTx(tx *gorm.DB) *BlogModel {
+	return &BlogModel{DB: tx}
+}
+
 // InsertBlog creates a new blog record
-func (m *BlogModel) InsertBlog(blog *Blog) error {
+func (m *BlogModel) InsertBlog(ctx context.Context, blog *Blog) error {
 	blog.CreatedAt = time.Now()
 	blog.UpdatedAt = time.Now()
-	if err := m.DB.Create(blog).Error; err != nil {
+
+	if err := m.DB.WithContext(ctx).Create(blog).Error; err != nil {
 		return err
 	}
 	return nil
@@ -132,7 +139,7 @@ func (m *BlogModel) GetBlogById(id int) (*BlogResponse, error) {
 			b.title,
 			b.slug,
 			b.content,
-b.kategori,
+			b.kategori,
 			b.thumbnail_url,
 			b.published_at,
 			COALESCE(gallery.images, '[]'::json) AS gallery

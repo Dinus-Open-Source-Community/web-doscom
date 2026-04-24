@@ -12,7 +12,10 @@ CREATE TYPE blog_category AS ENUM (
 CREATE TYPE blog_status AS ENUM (
 'draft',
 'published',
-'scheduled'
+'scheduled',
+'unpublished', -- di un-publish manual
+'rejected',
+'pending_review'
 );
 
 CREATE TABLE blog (

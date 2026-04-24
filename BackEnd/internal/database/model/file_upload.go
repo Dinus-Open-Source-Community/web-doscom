@@ -49,6 +49,10 @@ func (FileUpload) TableName() string {
 	return "file_upload"
 }
 
+func (m *FileUploadModel) WithTx(tx *gorm.DB) *FileUploadModel {
+	return &FileUploadModel{DB: tx}
+}
+
 // Create saves a new file upload record
 func (m *FileUploadModel) CreateMetaData(fileUpload *FileUpload) (*FileUploadResponse, error) {
 	if err := m.DB.Create(fileUpload).Error; err != nil {

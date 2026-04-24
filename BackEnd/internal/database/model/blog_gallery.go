@@ -27,6 +27,10 @@ type BlogGalleryInsert struct {
 	GalleryID int `gorm:"column:id_gallery" json:"gallery_id"`
 }
 
+func (b *BlogGalleryModel) WithTx(tx *gorm.DB) *BlogGalleryModel {
+	return &BlogGalleryModel{DB: tx}
+}
+
 // insert blog gallery
 func (b *BlogGalleryModel) InsertBlogGallery(blogGallery *BlogGallery) (*BlogGallery, error) {
 	blogGallery.CreatedAt = time.Now()

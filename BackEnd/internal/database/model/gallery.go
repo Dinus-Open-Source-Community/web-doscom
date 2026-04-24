@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -53,6 +54,10 @@ type GalleryResponse struct {
 
 func (Gallery) TableName() string {
 	return "gallery"
+}
+
+func (g *GalleryModel) WithTx(tx *gorm.DB) *GalleryModel {
+	return &GalleryModel{DB: tx}
 }
 
 // insert gallery
@@ -168,6 +173,24 @@ func (g *GalleryModel) DeleteGallery(id int) error {
 
 	if err := g.DB.Delete(&gallery).Error; err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (g *GalleryModel) DeleteGalleryByIdMultiple(ctx context.Context, id []int) error {
+	if len(id) == 0 {
+		return fmt.Errorf("ids is required, not empty, if empty what should i delete")
+	}
+
+	result := g.DB.WithContext(ctx).Where("id IN ?", id).Delete(&Gallery{})
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete data: %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("failed, no data match to delete")
 	}
 
 	return nil

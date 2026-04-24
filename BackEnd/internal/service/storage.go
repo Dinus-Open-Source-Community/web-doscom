@@ -19,6 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 )
 
 type StorageService struct {
@@ -30,6 +31,13 @@ func NewStorageService(minioClient *config.MinioClient, fileUploadModel *model.F
 	return &StorageService{
 		minioClient: minioClient,
 		fileUpload:  fileUploadModel,
+	}
+}
+
+func (s *StorageService) WithTx(tx *gorm.DB) *StorageService {
+	return &StorageService{
+		fileUpload:  s.fileUpload.WithTx(tx),
+		minioClient: s.minioClient,
 	}
 }
 
@@ -425,7 +433,7 @@ func (s *StorageService) DeleteFileById(id int) error {
 	return s.fileUpload.Delete(uint(id))
 }
 
-func (s *StorageService) DeleteFileByIdMultiple(ctx context.Context, ids []int) error {
+func (s *StorageService) DeleteFileUploadByIdMultiple(ctx context.Context, ids []int) error {
 	if len(ids) == 0 {
 		return fmt.Errorf("ids is required, not empty, if empty what should id delete")
 	}
