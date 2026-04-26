@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"gorm.io/gorm"
 	"time"
 )
@@ -50,28 +51,33 @@ func (b *BlogGalleryModel) InsertBlogGalleryMultiple(BlogGallery []*BlogGallery)
 	return BlogGallery, nil
 }
 
-func (b *BlogGalleryModel) UpdateBlogGallery(galleryID []*int, idBlog int) ([]*BlogGallery, error) {
+func (b *BlogGalleryModel) UpdateBlogGallery(galleryID []int, idBlog int) ([]*BlogGallery, error) {
+	if len(galleryID) == 0 {
+		return nil, fmt.Errorf("galleryID is empty cannot update database")
+	}
+
 	tx := b.DB.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
 
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
+			panic(r)
 		}
 	}()
 
-	if err := tx.Model(&BlogGallery{}).
-		Where("id_blog = ?", idBlog).
-		Delete(&BlogGallery{}).
-		Error; err != nil {
+	if err := tx.Where("id_blog = ?", idBlog).Delete(&BlogGallery{}).Error; err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
 	data := make([]*BlogGallery, len(galleryID))
-	for i, galleryIDs := range galleryID {
+	for i, id := range galleryID {
 		data[i] = &BlogGallery{
 			BlogID:    idBlog,
-			GalleryID: *galleryIDs,
+			GalleryID: id,
 		}
 	}
 

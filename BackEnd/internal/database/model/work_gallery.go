@@ -75,3 +75,54 @@ func (m *WorkGalleryModel) InsertWorkGalleryMultiple(ctx context.Context, workGa
 
 	return nil
 }
+
+func (m *WorkGalleryModel) UpdateWorkGallery(galleryID []int, idWork int) ([]*WorkGalleryResponse, error) {
+	if len(galleryID) == 0 {
+		return nil, fmt.Errorf("galleryID is empty cannot update database")
+	}
+
+	tx := m.DB.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	if err := tx.Where("id_work = ?", idWork).Delete(&WorkGallery{}).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	data := make([]*WorkGallery, len(galleryID))
+	for i, id := range galleryID {
+		data[i] = &WorkGallery{
+			IDWork:    idWork,
+			IDGallery: id,
+		}
+	}
+
+	if err := tx.Create(&data).Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	responseData := make([]*WorkGalleryResponse, len(data))
+	for i, workGallery := range data {
+		responseData[i] = &WorkGalleryResponse{
+			ID:        workGallery.ID,
+			IDWork:    workGallery.IDWork,
+			IDGallery: workGallery.IDGallery,
+		}
+	}
+	return responseData, nil
+}

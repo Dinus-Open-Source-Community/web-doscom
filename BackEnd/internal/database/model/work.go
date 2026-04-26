@@ -65,8 +65,40 @@ type WorkPatch struct {
 	Slug         string    `json:"slug"`
 	ProjectType  string    `json:"project_type"`
 	ProjectDate  time.Time `json:"project_date"`
+	Status       string    `json:"status"`
 	Technologies []string  `json:"technologies"`
 	ExistingID   []*int    `json:"existingID_image"`
+}
+
+type WorkPayloadUpdate struct {
+	PengurusID   int       `json:"pengurus_id"`
+	Title        string    `json:"title"`
+	Tagline      string    `json:"tagline"`
+	Description  string    `json:"description"`
+	Slug         string    `json:"slug"`
+	ProjectType  string    `json:"project_type"`
+	ProjectDate  time.Time `json:"project_date"`
+	Status       string    `json:"status"`
+	Technologies []string  `json:"technologies"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	ImageURL     string    `json:"image_url"`
+}
+
+type WorkUpdateResponse struct {
+	ID           int                    `json:"id"`
+	PengurusID   int                    `json:"pengurus_id"`
+	Title        string                 `json:"title"`
+	Tagline      string                 `json:"tagline"`
+	Description  string                 `json:"description"`
+	Slug         string                 `json:"slug"`
+	ProjectType  string                 `json:"project_type"`
+	Technologies []string               `json:"technologies"`
+	ProjectDate  time.Time              `json:"project_date"`
+	ImageURL     string                 `json:"image_url"`
+	Status       string                 `json:"status"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+	CreatedAt    time.Time              `json:"created_at"`
+	WorkGallery  []*WorkGalleryResponse `json:"work_gallery"`
 }
 
 func (Work) TableName() string {
@@ -205,11 +237,17 @@ func (m *WorkModel) UpdateWork(id int, patch map[string]any) (*Work, error) {
 
 	// set allowed fields to update
 	allowedFields := map[string]bool{
-		"title":        true,
-		"description":  true,
-		"gallery_id":   true,
 		"pengurus_id":  true,
+		"title":        true,
+		"tagline":      true,
+		"description":  true,
+		"slug":         true,
+		"project_type": true,
+		"technologies": true,
 		"project_date": true,
+		"Status":       true,
+		"updated_at":   true,
+		"image_url":    true,
 	}
 
 	// compare the data and filter the empty value

@@ -1,12 +1,22 @@
-package utils
+package authorization
 
 import (
 	"fmt"
 	"slices"
 	"strings"
+
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model"
+	"web_doscom/internal/utils"
 )
+
+func GetRoleInfo(role string) (constants.Divisioninfo, error) {
+	validRole, exist := constants.RoleGroup[role]
+	if !exist {
+		return constants.Divisioninfo{}, fmt.Errorf("role tidak valid")
+	}
+	return validRole, nil
+}
 
 func SetDivitionAndPositionByRole(position, requestedDivisi, userRole string) (string, string, error) {
 	// Clean inputs
@@ -54,7 +64,7 @@ func FilterRoleFieldPermission(userRole string, data *model.PengurusPatch) (map[
 		return nil, fmt.Errorf("invalid user role")
 	}
 
-	allFields := StructToMap(data)
+	allFields := utils.StructToMap(data)
 
 	// SUPERADMIN PRIVILEGE: Admin can edit all fields
 	if role.Role == constants.RoleAdmin {
@@ -78,24 +88,27 @@ func FilterRoleFieldPermission(userRole string, data *model.PengurusPatch) (map[
 }
 
 func CheckRolePermission(userRole string, grantedRole ...string) error {
-	roleMap := make(map[string]struct{}, len(grantedRole))
 
 	if len(grantedRole) == 0 {
 		return fmt.Errorf("role is required not empty")
 	}
 
-	_, err := constants.GetRoleInfo(userRole)
+	validRole, err := GetRoleInfo(userRole)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid user role")
 	}
 
 	for _, role := range grantedRole {
-		roleMap[role] = struct{}{}
+		// check by role level
+		if validRole.Role == role {
+			return nil
+		}
+
+		// check by role key
+		if userRole == role {
+			return nil
+		}
 	}
 
-	if _, ok := roleMap[userRole]; !ok {
-		return fmt.Errorf("you are not allowed to access this resource")
-	}
-
-	return nil
+	return fmt.Errorf("permissions denied for this role %s", userRole)
 }

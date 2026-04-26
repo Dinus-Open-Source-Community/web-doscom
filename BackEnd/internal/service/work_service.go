@@ -8,6 +8,8 @@ import (
 	"mime/multipart"
 	"strings"
 	"time"
+	"web_doscom/internal/authorization"
+	workAuthorization "web_doscom/internal/authorization/work"
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/utils"
@@ -41,6 +43,7 @@ func (s *WorkService) ProcessWorkGalleries(
 	newImages []*multipart.FileHeader,
 	workData *model.CreateRequestWork,
 ) ([]*model.GalleryResponse, []int, error) {
+
 	var allGalleryIDS []int
 	if len(workData.ExistingID) > 0 {
 		isValid, err := s.GalleryServices.CheckExistingGallery(workData.ExistingID)
@@ -69,6 +72,11 @@ func (s *WorkService) ProcessWorkGalleries(
 	}
 	if len(workData.Technologies) > MaxKategori {
 		return nil, nil, fmt.Errorf("you can only tag %d Technologies in one work", MaxKategori)
+	}
+
+	// if there is no new image, return
+	if len(newImages) == 0 {
+		return nil, allGalleryIDS, nil
 	}
 
 	now := time.Now()
@@ -131,7 +139,7 @@ func (s *WorkService) CreateWork(
 	userRole string,
 ) (*model.WorkResponse, error) {
 
-	if err := utils.CheckRolePermission(userRole,
+	if err := authorization.CheckRolePermission(userRole,
 		constants.RoleAdmin,
 		constants.RoleKoordinator,
 	); err != nil {
@@ -266,14 +274,103 @@ func (s *WorkService) UpdateWorkByID(
 	idWork int,
 	updatedWork *model.WorkPatch,
 	newImages []*multipart.FileHeader,
-) (*model.WorkResponse, error) {
-	// Cek apakah data ada sebelum update
-	_, err := s.Model.GetWorkById(id)
+	userRole string,
+) (*model.WorkUpdateResponse, error) {
+
+	_, err := s.WorkModel.GetWorkById(ctx, idWork)
 	if err != nil {
-		return nil, errors.New("work not found")
+		return nil, fmt.Errorf("work not found you can't do update %w", err)
 	}
 
-	return s.Model.UpdateWork(id, patch)
+	if err := authorization.CheckRolePermission(
+		userRole,
+		constants.RoleAdmin,
+		constants.RoleKoordinator,
+	); err != nil {
+		return nil, fmt.Errorf("you are not allowed to access this resource %w", err)
+	}
+
+	status, err := workAuthorization.CanSetStatusWork(userRole, updatedWork.Status)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set status %w", err)
+	}
+
+	var (
+		newGalleryDataResponse []*model.GalleryResponse
+		allGalleryIDS          []int
+	)
+
+	galleryTouch := len(newImages) != 0 || len(updatedWork.ExistingID) != 0
+	if galleryTouch {
+		workUpdate := &model.CreateRequestWork{
+			ExistingID:   updatedWork.ExistingID,
+			PengurusID:   updatedWork.PengurusID,
+			Title:        updatedWork.Title,
+			Tagline:      updatedWork.Tagline,
+			Description:  updatedWork.Description,
+			Slug:         updatedWork.Slug,
+			ProjectType:  updatedWork.ProjectType,
+			Technologies: updatedWork.Technologies,
+			ProjectDate:  updatedWork.ProjectDate,
+			Status:       status,
+		}
+
+		newGalleryDataResponse, allGalleryIDS, err = s.ProcessWorkGalleries(
+			ctx,
+			newImages,
+			workUpdate,
+		)
+	}
+
+	workUpdateDataPayload := &model.WorkPayloadUpdate{
+		PengurusID:   updatedWork.PengurusID,
+		Title:        updatedWork.Title,
+		Tagline:      updatedWork.Tagline,
+		Description:  updatedWork.Description,
+		Slug:         updatedWork.Slug,
+		ProjectType:  updatedWork.ProjectType,
+		Technologies: updatedWork.Technologies,
+		ProjectDate:  updatedWork.ProjectDate,
+		Status:       status,
+		UpdatedAt:    time.Now(),
+	}
+
+	if len(newGalleryDataResponse) > 0 {
+		workUpdateDataPayload.ImageURL = newGalleryDataResponse[0].FileURL
+	}
+
+	updatedWorkData := utils.StructToMap(workUpdateDataPayload)
+
+	workUpdateData, err := s.WorkModel.UpdateWork(idWork, updatedWorkData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update work %w", err)
+	}
+
+	var workGallery []*model.WorkGalleryResponse
+	if galleryTouch {
+		workGallery, err = s.WorkGallery.UpdateWorkGallery(allGalleryIDS, idWork)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update work gallery %w", err)
+		}
+	}
+
+	workUpdateDataResponse := &model.WorkUpdateResponse{
+		ID:           workUpdateData.ID,
+		PengurusID:   workUpdateData.PengurusID,
+		Title:        workUpdateData.Title,
+		Tagline:      workUpdateData.Tagline,
+		Description:  workUpdateData.Description,
+		Slug:         workUpdateData.Slug,
+		ProjectType:  workUpdateData.ProjectType,
+		Technologies: workUpdateData.Technologies,
+		ProjectDate:  workUpdateData.ProjectDate,
+		ImageURL:     workUpdateData.ImageURL,
+		Status:       workUpdateData.Status,
+		UpdatedAt:    workUpdateData.UpdatedAt,
+		CreatedAt:    workUpdateData.CreatedAt,
+		WorkGallery:  workGallery,
+	}
+	return workUpdateDataResponse, nil
 }
 
 func (s *WorkService) DeleteWork(id int) error {
