@@ -1,12 +1,11 @@
-package model
+package entity
 
 import (
 	"fmt"
-	"strings"
+	"gorm.io/gorm"
 	"time"
 	"web_doscom/internal/constants"
-
-	"gorm.io/gorm"
+	"web_doscom/internal/database/model/dto"
 )
 
 type UserModel struct {
@@ -22,62 +21,6 @@ type User struct {
 	Role      string    `json:"role"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// dto for front end -> data that send to frontend
-type UserResponse struct {
-	Id        int    `json:"id"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	Role      string `json:"role"`
-	Full_name string `json:"full_name"`
-}
-
-// untuk register/create user method
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
-	Fullname string `json:"fullname" binding:"required"`
-}
-
-// untuk login method
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
-// untuk kebutuhan update data
-type UserPatch struct {
-	Username *string `json:"username"`
-	Email    *string `json:"email"`
-	Fullname *string `json:"fullname"`
-}
-
-type DefaultValue struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
-}
-
-// method struct pada UserPatch
-func (u *UserPatch) ToMap() map[string]any {
-	result := make(map[string]any)
-
-	if u.Username != nil && strings.TrimSpace(*u.Username) != "" {
-		result["username"] = *u.Username
-	}
-
-	if u.Email != nil && strings.TrimSpace(*u.Email) != "" {
-		result["email"] = *u.Email
-	}
-
-	if u.Fullname != nil && strings.TrimSpace(*u.Fullname) != "" {
-		result["full_name"] = *u.Fullname
-	}
-
-	return result
 }
 
 // insert new user data
@@ -117,8 +60,8 @@ func (m *UserModel) GetUserById(id int) (*User, error) {
 }
 
 // get all user data
-func (m *UserModel) GetAllUserBaseOnRole(userRoleToget string) ([]UserResponse, error) {
-	var usersData []UserResponse
+func (m *UserModel) GetAllUserBaseOnRole(userRoleToget string) ([]dto.UserResponse, error) {
+	var usersData []dto.UserResponse
 
 	query := m.DB.Model(&User{}).Select("id, username, email, role, full_name")
 
@@ -136,7 +79,7 @@ func (m *UserModel) GetAllUserBaseOnRole(userRoleToget string) ([]UserResponse, 
 	return usersData, nil
 }
 
-func (m *UserModel) UpdateUser(Id int, dataToUpdate map[string]any) (*UserResponse, error) {
+func (m *UserModel) UpdateUser(Id int, dataToUpdate map[string]any) (*dto.UserResponse, error) {
 	var user User
 	if err := m.DB.First(&user, Id).Error; err != nil {
 		return nil, fmt.Errorf("user tidak di temukan %w", err)
@@ -146,12 +89,12 @@ func (m *UserModel) UpdateUser(Id int, dataToUpdate map[string]any) (*UserRespon
 		return nil, err
 	}
 
-	return &UserResponse{
-		Id,
-		user.Username,
-		user.Email,
-		user.Role,
-		user.Full_name,
+	return &dto.UserResponse{
+		Id:        Id,
+		Username:  user.Username,
+		Email:     user.Email,
+		Role:      user.Role,
+		Full_name: user.Full_name,
 	}, nil
 }
 

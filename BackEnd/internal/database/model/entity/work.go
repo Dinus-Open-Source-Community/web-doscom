@@ -1,12 +1,13 @@
-package model
+package entity
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 	"web_doscom/internal/constants"
+	"web_doscom/internal/database/model/dto"
 
 	"gorm.io/gorm"
 )
@@ -31,76 +32,6 @@ type Work struct {
 	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-type CreateRequestWork struct {
-	ExistingID   []*int    `form:"existingID_image"`
-	PengurusID   int       `form:"pengurus_id" binding:"required"`
-	Title        string    `form:"title" binding:"required"`
-	Tagline      string    `form:"tagline"`
-	Description  string    `form:"description" binding:"required"`
-	Slug         string    `form:"slug" binding:"required"`
-	ProjectType  string    `form:"project_type" binding:"required"`
-	Technologies []string  `form:"technologies[]" binding:"required"`
-	ProjectDate  time.Time `form:"project_date" binding:"required"`
-	Status       string    `form:"status" binding:"required"`
-}
-
-type WorkResponse struct {
-	ID           int             `json:"id"`
-	Title        string          `json:"title"`
-	Tagline      string          `json:"tagline"`
-	Description  string          `json:"description"`
-	Slug         string          `json:"slug"`
-	ProjectType  string          `json:"project_type"`
-	Technologies []string        `json:"technologies"`
-	ProjectDate  time.Time       `json:"project_date"`
-	ImageURL     string          `json:"image_url"`
-	Gallery      json.RawMessage `json:"gallery"`
-}
-
-type WorkPatch struct {
-	PengurusID   int       `json:"pengurus_id"`
-	Title        string    `json:"title"`
-	Tagline      string    `json:"tagline"`
-	Description  string    `json:"description"`
-	Slug         string    `json:"slug"`
-	ProjectType  string    `json:"project_type"`
-	ProjectDate  time.Time `json:"project_date"`
-	Status       string    `json:"status"`
-	Technologies []string  `json:"technologies"`
-	ExistingID   []*int    `json:"existingID_image"`
-}
-
-type WorkPayloadUpdate struct {
-	PengurusID   int       `json:"pengurus_id"`
-	Title        string    `json:"title"`
-	Tagline      string    `json:"tagline"`
-	Description  string    `json:"description"`
-	Slug         string    `json:"slug"`
-	ProjectType  string    `json:"project_type"`
-	ProjectDate  time.Time `json:"project_date"`
-	Status       string    `json:"status"`
-	Technologies []string  `json:"technologies"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	ImageURL     string    `json:"image_url"`
-}
-
-type WorkUpdateResponse struct {
-	ID           int                    `json:"id"`
-	PengurusID   int                    `json:"pengurus_id"`
-	Title        string                 `json:"title"`
-	Tagline      string                 `json:"tagline"`
-	Description  string                 `json:"description"`
-	Slug         string                 `json:"slug"`
-	ProjectType  string                 `json:"project_type"`
-	Technologies []string               `json:"technologies"`
-	ProjectDate  time.Time              `json:"project_date"`
-	ImageURL     string                 `json:"image_url"`
-	Status       string                 `json:"status"`
-	UpdatedAt    time.Time              `json:"updated_at"`
-	CreatedAt    time.Time              `json:"created_at"`
-	WorkGallery  []*WorkGalleryResponse `json:"work_gallery"`
-}
-
 func (Work) TableName() string {
 	return "work"
 }
@@ -109,7 +40,7 @@ func (m *WorkModel) WithTx(tx *gorm.DB) *WorkModel {
 	return &WorkModel{DB: tx}
 }
 
-func (m *WorkModel) InsertWork(ctx context.Context, work *Work) (*WorkResponse, error) {
+func (m *WorkModel) InsertWork(ctx context.Context, work *Work) (*dto.WorkResponseClient, error) {
 	work.CreatedAt = time.Now()
 	work.UpdatedAt = time.Now()
 	result := m.DB.WithContext(ctx).Create(work)
@@ -118,7 +49,7 @@ func (m *WorkModel) InsertWork(ctx context.Context, work *Work) (*WorkResponse, 
 		return nil, fmt.Errorf("failed while insert data %w", result.Error)
 	}
 
-	responseData := &WorkResponse{
+	responseData := &dto.WorkResponseClient{
 		ID:           work.ID,
 		Title:        work.Title,
 		Tagline:      work.Tagline,
@@ -133,8 +64,8 @@ func (m *WorkModel) InsertWork(ctx context.Context, work *Work) (*WorkResponse, 
 	return responseData, nil
 }
 
-func (m *WorkModel) GetWorkById(ctx context.Context, id int) (*WorkResponse, error) {
-	var work WorkResponse
+func (m *WorkModel) GetWorkById(ctx context.Context, id int) (*dto.WorkResponseClient, error) {
+	var work dto.WorkResponseClient
 
 	query := `
 		SELECT
@@ -175,7 +106,25 @@ func (m *WorkModel) GetWorkById(ctx context.Context, id int) (*WorkResponse, err
 	return &work, nil
 }
 
-func (m *WorkModel) GetAllWorks(ctx context.Context, offset, limit int) ([]WorkResponse, int64, error) {
+func (m *WorkModel) GetWorkWithOutGallery(ctx context.Context, blogID int) (dto.WorkResponseInternal, error) {
+
+	var work dto.WorkResponseInternal
+	result := m.DB.WithContext(ctx).
+		Model(&Work{}).
+		Where("id = ?", blogID).
+		First(&work)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return dto.WorkResponseInternal{}, fmt.Errorf("work not found")
+		}
+		return dto.WorkResponseInternal{}, fmt.Errorf("failed to get work by id %w", result.Error)
+	}
+
+	return work, nil
+}
+
+func (m *WorkModel) GetAllWorks(ctx context.Context, offset, limit int) ([]dto.WorkResponseClient, int64, error) {
 
 	baseQuery := m.DB.WithContext(ctx).Model(&Work{}).Where("status = ?", constants.StatusPublished)
 
@@ -184,7 +133,7 @@ func (m *WorkModel) GetAllWorks(ctx context.Context, offset, limit int) ([]WorkR
 		return nil, 0, fmt.Errorf("error while count the data %w", err)
 	}
 
-	var worksDataResponse []WorkResponse
+	var worksDataResponse []dto.WorkResponseClient
 	if err := baseQuery.
 		Select("id, title, tagline, description, slug, project_type, technologies, Project_date, image_url").
 		Offset(offset).
@@ -198,11 +147,19 @@ func (m *WorkModel) GetAllWorks(ctx context.Context, offset, limit int) ([]WorkR
 	return worksDataResponse, totalData, nil
 }
 
+// func (m *WorkModel) GetAllWorksAdmin(
+// 	ctx context.Context,
+// 	division, status string,
+// 	offset, limit int,
+// ) ([]dto.WorkResponseClient, int64, error) {
+//
+// }
+
 func (m *WorkModel) GetAllWorksByProjectType(
 	ctx context.Context,
 	offset, limit int,
 	projectType string,
-) ([]WorkResponse, int64, error) {
+) ([]dto.WorkResponseClient, int64, error) {
 	if strings.TrimSpace(projectType) == "" {
 		return nil, 0, fmt.Errorf("project type is required not empty, if empty what should i get")
 	}
@@ -214,7 +171,7 @@ func (m *WorkModel) GetAllWorksByProjectType(
 		return nil, 0, fmt.Errorf("error while count the data %w", err)
 	}
 
-	var worksDataResponse []WorkResponse
+	var worksDataResponse []dto.WorkResponseClient
 
 	if err := baseQuery.
 		Select("id, title, tagline, description, slug, project_type, technologies, Project_date, image_url").
@@ -277,18 +234,16 @@ func (m *WorkModel) UpdateWork(id int, patch map[string]any) (*Work, error) {
 
 }
 
-func (m *WorkModel) DeleteWork(id int) error {
-	var work Work
-	if err := m.DB.First(&work, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return err
-		}
-		return err
+func (m *WorkModel) DeleteWork(ctx context.Context, id int) error {
+
+	result := m.DB.WithContext(ctx).Delete(&Work{}, id)
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete work %w", result.Error)
 	}
 
-	if err := m.DB.Delete(&work).Error; err != nil {
-		return err
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("work not found")
 	}
-
 	return nil
 }

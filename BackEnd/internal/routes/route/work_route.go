@@ -28,7 +28,7 @@ func RegisterWorkRoutes(rg *gin.RouterGroup, workHandler *handler.WorkHandler) {
 		))
 	{
 		privateRoutes.POST("", workHandler.CreateWork)
-		privateRoutes.GET("/:id", workHandler.Get)
+		privateRoutes.GET("/:id", workHandler.GetWorkByID)
 		privateRoutes.GET("", workHandler.List)
 		privateRoutes.PUT("/:id", workHandler.Update)
 		privateRoutes.DELETE("/:id", workHandler.Delete)

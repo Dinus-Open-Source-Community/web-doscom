@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"web_doscom/internal/authorization"
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/service"
@@ -26,7 +27,7 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
 
-	if err := utils.CheckRolePermission(userRole,
+	if err := authorization.CheckRolePermission(userRole,
 		constants.RoleKoordinator,
 		constants.RoleAdmin,
 	); err != nil {
@@ -37,7 +38,7 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 		return
 	}
 
-	var work model.RegisterWork
+	var work model.CreateRequestWork
 	if err := c.ShouldBindJSON(&work); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   err.Error(),
@@ -137,7 +138,7 @@ func (h *WorkHandler) GetWorkByID(c *gin.Context) {
 func (h *WorkHandler) UpdateWorkByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
-	if err := utils.CheckRolePermission(
+	if err := authorization.CheckRolePermission(
 		userRole,
 		constants.RoleKoordinator,
 		constants.RoleAdmin,
@@ -157,8 +158,8 @@ func (h *WorkHandler) UpdateWorkByID(c *gin.Context) {
 		return
 	}
 
-	var updatedWorkData model.WorkPatch
-	if err := c.ShouldBindJSON(&updatedWorkData); err != nil {
+	var workDataToUpdate model.WorkPatch
+	if err := c.ShouldBindJSON(&workDataToUpdate); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   err.Error(),
 			"message": "invalid request body, budy",
@@ -172,36 +173,54 @@ func (h *WorkHandler) UpdateWorkByID(c *gin.Context) {
 		files = form.File["files"]
 	}
 
-	updatedWork, err := h.Service.UpdateWork(id, patchData)
+	workUpdatedDataResponse, err := h.Service.UpdateWorkByID(
+		ctx,
+		id,
+		&workDataToUpdate,
+		files,
+		userRole,
+	)
 	if err != nil {
-		if err.Error() == "work not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "failed to update work, something went wrong",
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Work updated successfully",
-		"data":    updatedWork,
+		"data":    workUpdatedDataResponse,
 	})
 }
 
 func (h *WorkHandler) Delete(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+	if err := authorization.CheckRolePermission(userRole,
+		constants.RoleAdmin,
+		constants.RoleKoordinator,
+	); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "forbidden to access this resource",
+		})
+		return
+	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
 		return
 	}
-	if err := h.Service.DeleteWork(id); err != nil {
-		if err.Error() == "work not found already" {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	if err := h.Service.DeleteWork(ctx, id, userRole); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "failed to delete work, something went wrong",
+		})
 		return
 	}
+
 	c.JSON(http.StatusNoContent, gin.H{
 		"message": "Work deleted successfully",
 	})

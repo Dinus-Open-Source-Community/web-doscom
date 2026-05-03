@@ -1,9 +1,10 @@
-package model
+package entity
 
 import (
 	"context"
 	"fmt"
 	"time"
+	"web_doscom/internal/database/model/dto"
 
 	"gorm.io/gorm"
 )
@@ -25,33 +26,6 @@ type Gallery struct {
 	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-type GalleryInsert struct {
-	IDUsers      int       `form:"id_users"`
-	FileUploadID int       `form:"file_upload_id"`
-	GalleryName  string    `form:"gallery_name"`
-	GalleryType  string    `form:"gallery_type"`
-	Description  string    `form:"description"`
-	EventDate    time.Time `form:"event_date" time_format:"2006-01-02"`
-}
-
-type CreateGallery struct {
-	GalleryName string    `form:"gallery_name" binding:"required"`
-	GalleryType string    `form:"gallery_type" binding:"required"`
-	Description string    `form:"description" binding:"required"`
-	EventDate   time.Time `form:"event_date" binding:"required" time_format:"2006-01-02"`
-}
-
-type GalleryResponse struct {
-	ID           int       `json:"id"`
-	IDUsers      int       `json:"id_users"`
-	FileUploadID int       `json:"file_upload_id"`
-	GalleryName  string    `json:"gallery_name"`
-	GalleryType  string    `json:"gallery_type"`
-	Description  string    `json:"description"`
-	EventDate    time.Time `json:"event_date"`
-	FileURL      string    `json:"file_url"`
-}
-
 func (Gallery) TableName() string {
 	return "gallery"
 }
@@ -61,12 +35,12 @@ func (g *GalleryModel) WithTx(tx *gorm.DB) *GalleryModel {
 }
 
 // insert gallery
-func (g *GalleryModel) InsertGallery(gallery *Gallery) (*GalleryResponse, error) {
+func (g *GalleryModel) InsertGallery(gallery *Gallery) (*dto.GalleryResponse, error) {
 	if err := g.DB.Create(gallery).Error; err != nil {
 		return nil, err
 	}
 
-	return &GalleryResponse{
+	return &dto.GalleryResponse{
 		ID:           gallery.ID,
 		IDUsers:      gallery.IDUsers,
 		FileUploadID: gallery.FileUploadID,
@@ -78,14 +52,14 @@ func (g *GalleryModel) InsertGallery(gallery *Gallery) (*GalleryResponse, error)
 	}, nil
 }
 
-func (g *GalleryModel) InsertGalleryMultiple(gallery []*Gallery) ([]*GalleryResponse, error) {
+func (g *GalleryModel) InsertGalleryMultiple(gallery []*Gallery) ([]*dto.GalleryResponse, error) {
 	if err := g.DB.Create(&gallery).Error; err != nil {
 		return nil, err
 	}
 
-	response := make([]*GalleryResponse, len(gallery))
+	response := make([]*dto.GalleryResponse, len(gallery))
 	for i, data := range gallery {
-		response[i] = &GalleryResponse{
+		response[i] = &dto.GalleryResponse{
 			ID:           data.ID,
 			IDUsers:      data.IDUsers,
 			FileUploadID: data.FileUploadID,
@@ -99,13 +73,13 @@ func (g *GalleryModel) InsertGalleryMultiple(gallery []*Gallery) ([]*GalleryResp
 	return response, nil
 }
 
-func (g *GalleryModel) GetGalleryByID(id int) (*GalleryResponse, error) {
+func (g *GalleryModel) GetGalleryByID(id int) (*dto.GalleryResponse, error) {
 	var gallery Gallery
 	if err := g.DB.First(&gallery, id).Error; err != nil {
 		return nil, err
 	}
 
-	return &GalleryResponse{
+	return &dto.GalleryResponse{
 		ID:           gallery.ID,
 		IDUsers:      gallery.IDUsers,
 		FileUploadID: gallery.FileUploadID,
@@ -118,15 +92,15 @@ func (g *GalleryModel) GetGalleryByID(id int) (*GalleryResponse, error) {
 }
 
 // get gallery by id multiple
-func (g *GalleryModel) GetGalleryByIDMultiple(ctx context.Context, id []int) ([]*GalleryResponse, error) {
+func (g *GalleryModel) GetGalleryByIDMultiple(ctx context.Context, id []int) ([]*dto.GalleryResponse, error) {
 	var gallery []*Gallery
 	if err := g.DB.WithContext(ctx).Where("id IN ?", id).Find(&gallery).Error; err != nil {
 		return nil, err
 	}
 
-	response := make([]*GalleryResponse, len(gallery))
+	response := make([]*dto.GalleryResponse, len(gallery))
 	for i, data := range gallery {
-		response[i] = &GalleryResponse{
+		response[i] = &dto.GalleryResponse{
 			ID:           data.ID,
 			IDUsers:      data.IDUsers,
 			FileUploadID: data.FileUploadID,
@@ -216,9 +190,9 @@ func (g *GalleryModel) GetAllGalleryAndByYear(
 	ctx context.Context,
 	startYear, endYear *time.Time,
 	limit, offset int,
-) ([]GalleryResponse, int64, error) {
+) ([]dto.GalleryResponse, int64, error) {
 
-	galleryResponse := []GalleryResponse{}
+	galleryResponse := []dto.GalleryResponse{}
 	var total int64
 
 	query := g.DB.WithContext(ctx).Model(&Gallery{})
