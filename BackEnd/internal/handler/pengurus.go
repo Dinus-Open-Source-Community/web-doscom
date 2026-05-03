@@ -89,10 +89,28 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 		uploadFile,
 	)
 	if err != nil {
+		// Handle specific conflict error
+		if err.Error() == "email sudah terdaftar di pengurus" {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":   err.Error(),
+				"message": "Gagal mendaftarkan pengurus: email sudah digunakan",
+			})
+			return
+		}
+		// Handle user not found or validation errors
+		if err.Error() == "user_id tidak ditemukan" || err.Error() == "role not valid" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   err.Error(),
+				"message": "Gagal mendaftarkan pengurus: input tidak valid",
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
 			"message": "Failed to create data pengurus, server error",
 		})
+		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -115,16 +133,23 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 // @Tags Pengurus
 // @Router /api/v1/pengurus/{id} [get]
 func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
-	idParams := c.Param("id")
+	ctx := c.Request.Context()
+	userID := c.MustGet("user_id").(int)
+	userRole := c.MustGet("role").(string)
 
+	idParams := c.Param("id")
 	id, err := strconv.Atoi(idParams)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pengurus id"})
 		return
 	}
-	pengurus, err := h.Service.PengurusModel.GetPengurusById(id)
+
+	pengurus, err := h.Service.GetPengurusByID(ctx, id, userRole, userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Pengurus Not Found"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   err.Error(),
+			"message": "error while getting the data or data not found",
+		})
 		return
 	}
 	resp := model.PengurusResponse{
@@ -144,33 +169,24 @@ func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 	})
 }
 
-// GetAllPengurus godoc
-// @Summary Get all Pengurus
-// @Description Mengambil semua data penguru
-// @Accept json
-// @Produce json
-// @Param divisi query string false "Filter by divisi (optional)"
-// @Success 200 {object} model.PengurusResponse
-// @Failure 500 {object} map[string]string
-// @Security ApiKeyAuth
-// @Tags Pengurus
-// @Router /api/v1/pengurus/ [get]
 func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
-	divisi := c.Param("divisi")
+	ctx := c.Request.Context()
+	divisi := c.Param("division")
 
-	pengurusList, err := h.Service.PengurusModel.GetAllPengurusByDivisi(divisi)
+	pengurusList, err := h.Service.GetAllPengurusByDivision(ctx, divisi)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch pengurus data",
+			"error":   err.Error(),
+			"message": "Failed to fetch pengurus data",
 		})
 		return
 	}
-	var respList []model.PengurusResponse
+
+	pengurusDataResponse := make([]model.PengurusPublicResponse, 0, len(pengurusList))
 	for _, p := range pengurusList {
-		respList = append(respList, model.PengurusResponse{
+		pengurusDataResponse = append(pengurusDataResponse, model.PengurusPublicResponse{
 			ID:       p.ID,
 			PhotoURL: p.PhotoURL,
-			Email:    "",
 			Divisi:   p.Divisi,
 			Name:     p.Name,
 			Position: p.Position,
@@ -181,14 +197,14 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "List of pengurus",
-		"pengurus": respList,
+		"pengurus": pengurusDataResponse,
 	})
 }
 
 func (h *PengurusHandler) GetAllPengurusByDivision(c *gin.Context) {
 	divisi := c.Query("divisi")
 	ctx := c.Request.Context()
-	userRole := c.MustGet("user_role").(string)
+	userRole := c.MustGet("role").(string)
 
 	// call service GetAllPengurusbaseonddivision
 	pengurusResponse, err := h.Service.GetAllPengurusBaseOnDivision(
@@ -226,7 +242,7 @@ func (h *PengurusHandler) GetAllPengurusByDivision(c *gin.Context) {
 // @Router /api/v1/pengurus/{id} [put]
 func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 	ctx := c.Request.Context()
-	idCurrentUser := c.MustGet("id").(int)
+	idCurrentUser := c.MustGet("user_id").(int)
 	currentUserRole := c.MustGet("role").(string)
 
 	id, err := strconv.Atoi(c.Param("id"))
@@ -235,35 +251,30 @@ func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 		return
 	}
 	var patch model.PengurusPatch
-	if err := c.ShouldBindJSON(&patch); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read req body"})
+	if err := c.ShouldBind(&patch); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind data, please use form-data for updates"})
 		return
 	}
 
 	fileheader, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read file",
-		})
-		return
-	}
+	var fileUpload *model.UploadFileRequest
+	if err == nil {
+		file, err := fileheader.Open()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Failed to open file",
+			})
+			return
+		}
+		defer file.Close()
 
-	file, err := fileheader.Open()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to open file",
-		})
-		return
-	}
-
-	defer file.Close()
-
-	// file request to upload to MinIO
-	fileUpload := &model.UploadFileRequest{
-		FileHeader: fileheader,
-		File:       file,
-		Folder:     "pengurus",
-		UserID:     uint(id),
+		// file request to upload to MinIO
+		fileUpload = &model.UploadFileRequest{
+			FileHeader: fileheader,
+			File:       file,
+			Folder:     "pengurus",
+			UserID:     uint(id),
+		}
 	}
 	// update data pengurus
 	updatedPengurus, err := h.Service.UpdateDataPengurus(
@@ -275,6 +286,24 @@ func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 		fileUpload,
 	)
 	if err != nil {
+		// Handle permission issues
+		if err.Error() == "You are not allowed to update this data" || err.Error() == "koordinator tidak dapat memperbarui foto pengurus" {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error":   err.Error(),
+				"message": "Akses ditolak untuk memperbarui data ini",
+			})
+			return
+		}
+
+		// Handle record not found
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   err.Error(),
+				"message": "Pengurus data not found",
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
 			"message": "Failed to update data pengurus, server error",
@@ -301,7 +330,7 @@ func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 // @Tags Pengurus
 // @Router /api/v1/pengurus/{id} [delete]
 func (h *PengurusHandler) DeletePengurus(c *gin.Context) {
-	userRole := c.MustGet("user_role").(string)
+	userRole := c.MustGet("role").(string)
 	ctx := c.Request.Context()
 
 	id, err := strconv.Atoi(c.Param("id"))

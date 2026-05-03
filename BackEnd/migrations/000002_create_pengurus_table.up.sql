@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS pengurus (
   id SERIAL PRIMARY KEY ,
-  id_user INT REFERENCES users(id),
+  id_user INT REFERENCES users(id) ON DELETE CASCADE,
   photo_url TEXT,
   email VARCHAR(100) UNIQUE NOT NULL,
   divisi VARCHAR(50) CHECK (divisi IN ('bph', 'pemro', 'jaringan', 'medcrev', 'data')),

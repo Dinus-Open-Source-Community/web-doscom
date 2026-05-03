@@ -30,11 +30,11 @@ services:
     env_file:
       - ./BackEnd/.env
     ports:
-      - "8080:8080"
+      - "3000:3000"
     depends_on:
       - db
-    volumes:
-      - ./BackEnd:/app
+    # volumes:
+    #   - ./BackEnd:/app
     networks:
       - doscom-network
     entrypoint: [ "/bin/sh", "/app/docker-entrypoint.sh" ]

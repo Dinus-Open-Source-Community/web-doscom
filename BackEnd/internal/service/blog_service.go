@@ -3,8 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"mime/multipart"
 	"time"
+	"web_doscom/internal/authorization"
+	blogAuthorization "web_doscom/internal/authorization/blog"
+	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/utils"
 
@@ -13,59 +17,61 @@ import (
 )
 
 type BlogService struct {
-	DB           *gorm.DB
-	BlogModel    *model.BlogModel
-	BlogGallery  *model.BlogGalleryModel
-	GalleryModel *GalleryService
+	DB             *gorm.DB
+	BlogModel      *model.BlogModel
+	BlogGallery    *model.BlogGalleryModel
+	GalleryService *GalleryService
 }
 
 func NewBlogService(db *gorm.DB, n *model.BlogModel, m *model.BlogGalleryModel, g *GalleryService) *BlogService {
 	return &BlogService{
-		DB:           db,
-		BlogModel:    n,
-		BlogGallery:  m,
-		GalleryModel: g,
+		DB:             db,
+		BlogModel:      n,
+		BlogGallery:    m,
+		GalleryService: g,
 	}
 }
 
-const (
-	maxGallery  = 5 // satu blog hanya dapat memiliki 5 foto
-	maxKategori = 3 // satu blog hanya dapat memiliki 3 kategori
-)
-
-func (m *BlogService) CreateBlogImage(
+func (m *BlogService) ProcessBlogGalleries(
 	ctx context.Context,
-	blogDetail *model.RequestBlog,
-	existingID []int,
 	newImages []*multipart.FileHeader,
-) (*model.BlogResponse, error) {
-	var galleryIDS []int
+	blogDetail *model.BlogPayload,
+) ([]*model.GalleryResponse, []int, error) {
 
-	// check if there is existing id image
-	if len(existingID) > 0 {
-		// check if existing id gallery is valid
-		isValid, err := m.GalleryModel.Model.CheckExistingGallery(existingID)
+	var allGalleryIDS []int
+	if len(blogDetail.ExistingID) > 0 {
+		isValid, err := m.GalleryService.Model.CheckExistingGallery(blogDetail.ExistingID)
 		if err != nil {
-			return nil, err
+			return nil, nil, fmt.Errorf("failedt to check existing gallery %w", err)
 		}
+
 		if !isValid {
-			return nil, fmt.Errorf("invalid gallery ids")
+			return nil, nil, fmt.Errorf("invalid gallery ids")
 		}
 
-		for _, id := range existingID {
-			galleryIDS = append(galleryIDS, id)
+		for _, id := range blogDetail.ExistingID {
+			if id != nil {
+				allGalleryIDS = append(allGalleryIDS, *id)
+			}
 		}
 
 	}
 
-	// validate max gallery and kategori
-	totalGallery := len(galleryIDS) + len(newImages)
+	const (
+		maxGallery  = 5
+		maxKategori = 3
+	)
+	totalGallery := len(allGalleryIDS) + len(newImages)
 	if totalGallery > maxGallery {
-		return nil, fmt.Errorf("you can only use %d gallery", maxGallery)
+		return nil, nil, fmt.Errorf("you can only use %d gallery", maxGallery)
+	}
+	if len(blogDetail.Kategori) > maxKategori {
+		return nil, nil, fmt.Errorf("you can only tag %d kategori in one blog", maxKategori)
 	}
 
-	if len(blogDetail.Kategori) > maxKategori {
-		return nil, fmt.Errorf("you can only tag %d kategori in one blog", maxKategori)
+	// if there is no new image return
+	if len(newImages) == 0 {
+		return nil, allGalleryIDS, nil
 	}
 
 	now := time.Now()
@@ -86,7 +92,7 @@ func (m *BlogService) CreateBlogImage(
 	for i, file := range newImages {
 		fileContent, err := file.Open()
 		if err != nil {
-			return nil, fmt.Errorf("failed to open file")
+			return nil, nil, fmt.Errorf("failed to open file")
 		}
 
 		fileUpload[i] = &model.UploadFileRequest{
@@ -102,76 +108,141 @@ func (m *BlogService) CreateBlogImage(
 			file.File.Close()
 		}
 	}()
-	// upload foto baru and insert to database
-	var gallery []*model.GalleryResponse
+
+	var newGalleryDataResponse []*model.GalleryResponse
 	if len(newImages) > 0 {
 		var err error
-		gallery, err = m.GalleryModel.UploadAndInsertGalleryMultiple(
+		newGalleryDataResponse, err = m.GalleryService.UploadAndInsertGalleryMultiple(
 			ctx,
 			galleryData,
 			fileUpload,
 		)
 		if err != nil {
-			return nil, err
+			return nil, nil, fmt.Errorf("failed to upload new image and gallery %w", err)
 		}
-		for _, gallery := range gallery {
-			galleryIDS = append(galleryIDS, gallery.ID)
-		}
-	}
-
-	var publishedAt *time.Time
-	if blogDetail.Status == "draft" {
-		publishedAt = nil
-	} else if blogDetail.Status == "published" {
-		now := time.Now()
-		publishedAt = &now
-	} else {
-		publishedAt = blogDetail.PublishedAt
-	}
-
-	// insert blog to database
-	blog := &model.Blog{
-		AuthorID:     blogDetail.AuthorID,
-		Title:        blogDetail.Title,
-		Slug:         blogDetail.Slug,
-		Content:      blogDetail.Content,
-		Kategori:     blogDetail.Kategori,
-		ThumbnailURL: gallery[0].FileURL,
-		PublishedAt:  *publishedAt,
-		Status:       blogDetail.Status,
-	}
-
-	if err := m.BlogModel.InsertBlog(blog); err != nil {
-		return nil, err
-	}
-
-	// insert blog_gallery
-	blogGallery := make([]*model.BlogGallery, len(galleryIDS))
-	for i, id := range galleryIDS {
-		blogGallery[i] = &model.BlogGallery{
-			BlogID:    blog.ID,
-			GalleryID: id,
+		for _, gallery := range newGalleryDataResponse {
+			allGalleryIDS = append(allGalleryIDS, gallery.ID)
 		}
 	}
 
-	blogGalleryResponse, err := m.BlogGallery.InsertBlogGalleryMultiple(blogGallery)
+	return newGalleryDataResponse, allGalleryIDS, nil
+}
+
+func (m *BlogService) CreateBlogImage(
+	ctx context.Context,
+	blogDetail *model.BlogPayload,
+	newImages []*multipart.FileHeader,
+	userRole string,
+) (*model.BlogResponse, error) {
+
+	if err := authorization.CheckRolePermission(
+		userRole,
+		constants.RoleAdmin,
+		constants.RoleKeyKoorMedcrev,
+	); err != nil {
+		return nil, fmt.Errorf("you are not allowed to access this resource %w", err)
+	}
+
+	if blogDetail.Status == "" {
+		blogDetail.Status = constants.StatusDraft
+	}
+	if userRole == constants.RoleKeyKoorMedcrev &&
+		(blogDetail.Status != constants.StatusDraft || blogDetail.Status != constants.StatusPending) {
+		return nil, fmt.Errorf("you are can only set status to draft or pending")
+	}
+
+	if len(newImages) == 0 && len(blogDetail.ExistingID) == 0 {
+		return nil, fmt.Errorf("at least one gallery image is required")
+	}
+	newGalleryDataResponse, allGalleryIDS, err := m.ProcessBlogGalleries(
+		ctx,
+		newImages,
+		blogDetail,
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert blog gallery %w", err)
+		return nil, fmt.Errorf("failed while process gallery %w", err)
 	}
 
-	response := &model.BlogResponse{
-		ID:           blog.ID,
-		AuthorID:     blog.AuthorID,
-		Title:        blog.Title,
-		Slug:         blog.Slug,
-		Content:      blog.Content,
-		Kategori:     blog.Kategori,
-		ThumbnailURL: blog.ThumbnailURL,
-		PublishedAt:  blog.PublishedAt,
-		BlogImage:    blogGalleryResponse,
+	newGalleryIDS := make([]int, 0, len(newGalleryDataResponse))
+	for _, idGallery := range newGalleryDataResponse {
+		newGalleryIDS = append(newGalleryIDS, idGallery.ID)
 	}
 
-	return response, nil
+	var blogDataResponse model.BlogResponse
+	err = m.DB.Transaction(func(tx *gorm.DB) error {
+
+		var txFailed bool
+		defer func() {
+			if txFailed {
+				m.GalleryService.DeleteGalleryMultiple(ctx, newGalleryIDS)
+			}
+		}()
+
+		modelBlog := m.BlogModel.WithTx(tx)
+		modelBlogGallery := m.BlogGallery.WithTx(tx)
+		var err error
+
+		var thumbnailURL string
+		if len(newGalleryDataResponse) > 0 {
+			thumbnailURL = newGalleryDataResponse[0].FileURL
+		}
+
+		blog := &model.Blog{
+			AuthorID:     blogDetail.AuthorID,
+			Title:        blogDetail.Title,
+			Slug:         blogDetail.Slug,
+			Content:      blogDetail.Content,
+			Kategori:     blogDetail.Kategori,
+			ThumbnailURL: thumbnailURL,
+			Status:       blogDetail.Status,
+			PublishedAt:  nil,
+		}
+
+		if err := modelBlog.InsertBlog(ctx, blog); err != nil {
+			txFailed = true
+			log.Printf("Failed to insert blog %v: %v", blog, err)
+			return fmt.Errorf("failed to insert blog %w", err)
+		}
+
+		blogGallery := make([]*model.BlogGallery, len(allGalleryIDS))
+		for i, id := range blogDetail.ExistingID {
+			if id == nil {
+				txFailed = true
+				return fmt.Errorf("gallery id is nil/empty, issue on backend side")
+			}
+			blogGallery[i] = &model.BlogGallery{
+				BlogID:    blog.ID,
+				GalleryID: *id,
+			}
+		}
+
+		blogGalleryResponse, err := modelBlogGallery.InsertBlogGalleryMultiple(blogGallery)
+		if err != nil {
+			txFailed = true
+			log.Printf("Failed to insert blog gallery %v: %v", blogGallery, err)
+			return fmt.Errorf("failed to insert blog gallery %w", err)
+		}
+
+		blogDataResponse = model.BlogResponse{
+			ID:           blog.ID,
+			AuthorID:     blog.AuthorID,
+			Title:        blog.Title,
+			Slug:         blog.Slug,
+			Content:      blog.Content,
+			Kategori:     blog.Kategori,
+			ThumbnailURL: blog.ThumbnailURL,
+			PublishedAt:  blog.PublishedAt,
+			BlogImage:    blogGalleryResponse,
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert database and Transaction failed %w", err)
+	}
+
+	return &blogDataResponse, nil
 }
 
 func (m *BlogService) GetAllBlogsForAdmin(ctx context.Context, kategori []string, offset, limit int) ([]model.BlogThumbnail, int, error) {
@@ -215,106 +286,63 @@ func (m *BlogService) UpdateBlog(
 	idBlog, authorID int,
 	blogDetail *model.BlogPatch,
 	newImages []*multipart.FileHeader,
+	userRole string,
 ) (*model.BlogResponse, error) {
-	var GalleryIDS []int
-	// check if there is existing id image
-	if len(blogDetail.ExistingID) > 0 {
-		for _, id := range blogDetail.ExistingID {
-			GalleryIDS = append(GalleryIDS, id)
-		}
 
-		// check if existing id gallery is valid
-		isValid, err := m.GalleryModel.Model.CheckExistingGallery(GalleryIDS)
-		if err != nil {
-			return nil, err
-		}
-		if !isValid {
-			return nil, fmt.Errorf("invalid gallery ids")
-		}
+	_, err := m.BlogModel.GetBlogById(idBlog)
+	if err != nil {
+		return nil, fmt.Errorf("blog not found you can't do update %w", err)
 	}
 
-	// check len of new images and old images
-	allImagesID := len(GalleryIDS) + len(newImages)
-	if allImagesID > maxGallery {
-		return nil, fmt.Errorf("You can only use %d gallery", maxGallery)
+	if err := authorization.CheckRolePermission(
+		userRole,
+		constants.RoleKeySuperAdmin,
+		constants.RoleKeyKoorMedcrev,
+	); err != nil {
+		return nil, err
 	}
 
-	fileUpload := make([]*model.UploadFileRequest, len(newImages))
-	for i, file := range newImages {
-		fileContent, err := file.Open()
-		if err != nil {
-			return nil, fmt.Errorf("failed to open file")
-		}
-
-		fileUpload[i] = &model.UploadFileRequest{
-			FileHeader: file,
-			File:       fileContent,
-			Folder:     "blog",
-			UserID:     uint(authorID),
-		}
+	status, err := blogAuthorization.CanSetStatusBlog(userRole, blogDetail.Status)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set status %w", err)
 	}
+	var (
+		newGalleryDataResponse []*model.GalleryResponse
+		allGalleryIDS          []int
+	)
 
-	defer func() {
-		for _, file := range fileUpload {
-			file.File.Close()
+	galleryTouch := len(newImages) != 0 || len(blogDetail.ExistingID) != 0
+	if galleryTouch {
+		blogUpdate := &model.BlogPayload{
+			AuthorID:    authorID,
+			Content:     blogDetail.Content,
+			ExistingID:  blogDetail.ExistingID,
+			Kategori:    blogDetail.Kategori,
+			PublishedAt: blogDetail.PublishedAt,
+			Slug:        blogDetail.Slug,
+			Status:      status,
+			Title:       blogDetail.Title,
 		}
-	}()
-	// upload foto baru and insert to database
-	var gallery []*model.GalleryResponse
-	if len(newImages) > 0 {
-		now := time.Now()
-		galleryName := "foto untuk blog dengan judul " + blogDetail.Title
-		galleryData := &model.GalleryInsert{
-			IDUsers:     authorID,
-			GalleryName: galleryName,
-			GalleryType: "blog",
-			Description: "foto untuk kepentingan blog",
-			EventDate: time.Date(
-				now.Year(),
-				now.Month(),
-				now.Day(), 0, 0, 0, 0, time.UTC,
-			),
-		}
-
-		var err error
-		gallery, err = m.GalleryModel.UploadAndInsertGalleryMultiple(
+		newGalleryDataResponse, allGalleryIDS, err = m.ProcessBlogGalleries(
 			ctx,
-			galleryData,
-			fileUpload,
+			newImages,
+			blogUpdate,
 		)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, gallery := range gallery {
-			GalleryIDS = append(GalleryIDS, gallery.ID)
-		}
 	}
 
-	// update blog
-	var publishedAt *time.Time
-	if blogDetail.Status == "draft" {
-		publishedAt = nil
-	} else if blogDetail.Status == "published" {
-		now := time.Now()
-		publishedAt = &now
-	} else {
-		publishedAt = blogDetail.PublishedAt
+	requestData := &model.Blog{
+		AuthorID:  authorID,
+		Title:     blogDetail.Title,
+		Slug:      blogDetail.Slug,
+		Content:   blogDetail.Content,
+		Kategori:  pq.StringArray(blogDetail.Kategori),
+		Status:    status,
+		UpdatedAt: time.Now(),
 	}
 
-	oldData := &model.Blog{
-		AuthorID:    authorID,
-		Title:       blogDetail.Title,
-		Slug:        blogDetail.Slug,
-		Content:     blogDetail.Content,
-		Kategori:    pq.StringArray(blogDetail.Kategori),
-		PublishedAt: *publishedAt,
-		Status:      blogDetail.Status,
-		UpdatedAt:   time.Now(),
-	}
-	updatedBlog := utils.StructToMap(oldData)
-	if len(gallery) > 0 {
-		updatedBlog["thumbnail_url"] = gallery[0].FileURL
+	updatedBlog := utils.StructToMap(requestData)
+	if len(newGalleryDataResponse) > 0 {
+		updatedBlog["thumbnail_url"] = newGalleryDataResponse[0].FileURL
 	}
 
 	blogUpdate, err := m.BlogModel.UpdateBlogPartial(idBlog, updatedBlog)
@@ -323,9 +351,15 @@ func (m *BlogService) UpdateBlog(
 	}
 
 	// update blog_gallery -> jika terdapat terdapat perubahan foto
-	blogGallery, err := m.BlogGallery.UpdateBlogGallery(GalleryIDS, blogUpdate.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update gallery image %w", err)
+	var blogGallery []*model.BlogGallery
+	if galleryTouch {
+		blogGallery, err = m.BlogGallery.UpdateBlogGallery(
+			allGalleryIDS,
+			blogUpdate.ID,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update gallery image %w", err)
+		}
 	}
 
 	result := &model.BlogResponse{
@@ -343,13 +377,12 @@ func (m *BlogService) UpdateBlog(
 	return result, nil
 }
 
-func (m *BlogService) GetBlogByKategori(
+func (m *BlogService) GetAllBlogOrByKategori(
 	ctx context.Context,
 	kategori []string,
 	limit, offset int,
 ) ([]model.BlogThumbnail, int, error) {
 
-	// check whether there is a filter sent or not
 	var (
 		blog      []model.BlogThumbnail
 		totalData int
@@ -399,7 +432,7 @@ func (m *BlogService) DeleteBlogByID(
 		return fmt.Errorf("failed to delete blog : %w", err)
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := tx.Commit().Error; err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return nil

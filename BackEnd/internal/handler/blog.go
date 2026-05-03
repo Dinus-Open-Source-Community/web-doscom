@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"fmt"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
+	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/service"
 
@@ -17,6 +20,25 @@ type BlogHandler struct {
 
 func NewBlogHandler(m *service.BlogService) *BlogHandler {
 	return &BlogHandler{Service: m}
+}
+
+func (h *BlogHandler) checkRolePermission(userRole string) error {
+
+	_, err := constants.GetRoleInfo(userRole)
+	if err != nil {
+		return fmt.Errorf("role not valid %w", err)
+	}
+
+	allowedRole := map[string]bool{
+		constants.RoleKeySuperAdmin:  true,
+		constants.RoleKeyKoorMedcrev: true,
+	}
+
+	if !allowedRole[userRole] {
+		return fmt.Errorf("role have no permission")
+	}
+
+	return nil
 }
 
 // CreateBlog godoc
@@ -40,18 +62,19 @@ func NewBlogHandler(m *service.BlogService) *BlogHandler {
 // @Security ApiKeyAuth
 // @Router /api/v1/blogs/ [post]
 func (h *BlogHandler) CreateBlog(c *gin.Context) {
+	ctx := c.Request.Context()
 	user_role := c.MustGet("role").(string)
 	userID := c.MustGet("user_id").(int)
-	ctx := c.Request.Context()
 
-	if user_role != "KoorMedcrev" {
+	if err := h.checkRolePermission(user_role); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
-			"error": "you are allowed but not allowed now",
+			"error":   err.Error(),
+			"message": "forbiddennnnn",
 		})
 		return
 	}
 
-	var input model.RegisterBlog
+	var input model.CreateRequestBlog
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -67,22 +90,23 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 
 	files := form.File["files"]
 
-	blogInput := &model.RequestBlog{
+	blogInput := &model.BlogPayload{
 		AuthorID:    userID,
-		Title:       input.Title,
-		Slug:        input.Slug,
 		Content:     input.Content,
+		ExistingID:  input.ExistingID,
 		Kategori:    input.Kategori,
 		PublishedAt: input.PublishedAt,
+		Slug:        input.Slug,
 		Status:      input.Status,
+		Title:       input.Title,
 	}
 
 	// service insert blog
 	blogResponse, err := h.Service.CreateBlogImage(
 		ctx,
 		blogInput,
-		input.ExistingID,
 		files,
+		user_role,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -183,6 +207,16 @@ func (h *BlogHandler) GetBlogByID(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/blogs/{id} [put]
 func (h *BlogHandler) Update(c *gin.Context) {
+	userID := c.MustGet("user_id").(int)
+	userRole := c.MustGet("role").(string)
+	if err := h.checkRolePermission(userRole); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "forbiddennnnn",
+		})
+		return
+	}
+
 	ctx := c.Request.Context()
 	idBlog, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -190,30 +224,17 @@ func (h *BlogHandler) Update(c *gin.Context) {
 		return
 	}
 
-	userID := c.MustGet("user_id").(int)
-	userRole := c.MustGet("role").(string)
-	if userRole != "KoorMedcrev" {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "you are not allowed to access this resource",
-		})
-		return
-	}
-
 	var dataPatch model.BlogPatch
-	if err := c.ShouldBindJSON(&dataPatch); err != nil {
+	if err := c.ShouldBind(&dataPatch); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	form, err := c.MultipartForm()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read file",
-		})
-		return
+	form, _ := c.MultipartForm()
+	var files []*multipart.FileHeader
+	if form != nil {
+		files = form.File["files"]
 	}
-
-	files := form.File["files"]
 
 	// call service update blog
 	blogResponse, err := h.Service.UpdateBlog(
@@ -306,6 +327,14 @@ func (h *BlogHandler) ListBlogs(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("page", "10"))
 	offset := (page - 1) * limit
 
+	userRole := c.MustGet("role").(string)
+	if err := h.checkRolePermission(userRole); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "forbiddennnnn",
+		})
+		return
+	}
 	kategoriArray, exists := c.GetQueryArray("kategory")
 	if exists && len(kategoriArray) > 3 {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -353,23 +382,17 @@ func (h *BlogHandler) ListBlogs(c *gin.Context) {
 func (h *BlogHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
+	if err := h.checkRolePermission(userRole); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "forbiddennnnn",
+		})
+		return
+	}
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
-		return
-	}
-
-	allowedRoles := map[string]bool{
-		"KoorMedcrev": true,
-		"SuperAdmin":  true,
-	}
-
-	// check user
-	if !allowedRoles[userRole] {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "you're not allowed brotherr",
-		})
 		return
 	}
 

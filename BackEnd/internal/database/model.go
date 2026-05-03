@@ -9,6 +9,7 @@ import (
 type Models struct {
 	Users        model.UserModel
 	Works        model.WorkModel
+	WorkGallery  model.WorkGalleryModel
 	Blogs        model.BlogModel
 	BlogGallery  model.BlogGalleryModel
 	Gallery      model.GalleryModel

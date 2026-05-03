@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"mime/multipart"
 	"time"
@@ -18,11 +19,6 @@ type GalleryService struct {
 func NewGalleryService(m *model.GalleryModel, s *StorageService) *GalleryService {
 	return &GalleryService{Model: m, Storage: s}
 }
-
-const (
-	maxUploadSize = 20 << 20 // 20mb
-	maxFileSize   = 5 << 20  // 5mb
-)
 
 type validateFile struct {
 	Fileheader *multipart.FileHeader
@@ -94,12 +90,15 @@ func (m *GalleryService) UploadAndInsertGalleryMultiple(
 	gallery *model.GalleryInsert,
 	fileUpload []*model.UploadFileRequest,
 ) ([]*model.GalleryResponse, error) {
+	// Gunakan background context agar upload tidak terputus jika client disconnect prematur
+	uploadCtx := context.Background()
+
 	fileUploadHeader := make([]*multipart.FileHeader, len(fileUpload))
 	for i, file := range fileUpload {
 		fileUploadHeader[i] = file.FileHeader
 	}
 	fileUrl, fileUploadID, err := m.Storage.UploadFileAndCreateMetadataMultiple(
-		ctx,
+		uploadCtx,
 		fileUploadHeader,
 		fileUpload[0].Folder,
 		int(fileUpload[0].UserID),
@@ -123,7 +122,7 @@ func (m *GalleryService) UploadAndInsertGalleryMultiple(
 		}
 	}
 
-	// upload to database
+	// upload to database menggunakan uploadCtx agar tidak terputus
 	responseGallery, err := m.Model.InsertGalleryMultiple(galleryUpload)
 	if err != nil {
 		return nil, err
@@ -132,8 +131,7 @@ func (m *GalleryService) UploadAndInsertGalleryMultiple(
 	return responseGallery, nil
 }
 
-// wrapper for get gallery by type
-func (m *GalleryService) GetAllGalleryByDate(
+func (m *GalleryService) GetAllGalleryAndByDate(
 	ctx context.Context,
 	startDate, endDate string,
 	limit, offset int,
@@ -182,7 +180,130 @@ func (m *GalleryService) GetAllGalleryByDate(
 	return response, int64(totalPage), int64(currentPage), nil
 }
 
-// wrapper for delete gallery
-func (m *GalleryService) DeleteGallery(id int) error {
-	return m.Model.DeleteGallery(id)
+func (m *GalleryService) DeleteGallery(ctx context.Context, id int) error {
+	galleryData, err := m.Model.GetGalleryByID(id)
+	if err != nil {
+		return fmt.Errorf("gallery not found %w", err)
+	}
+
+	fileData, err := m.Storage.GetFileUploadByID(galleryData.FileUploadID)
+	if err != nil {
+		return fmt.Errorf("file upload not found %w", err)
+	}
+
+	if err := m.Storage.DeleteFile(ctx, fileData.StoredFilename); err != nil {
+		return fmt.Errorf("failed to delete file from the bucket: %w", err)
+	}
+
+	tx := m.Model.DB.Begin()
+	if tx.Error != nil {
+		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
+	}
+
+	// kurang inject tx
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := m.Model.DeleteGallery(galleryData.ID); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to gallery: %w", err)
+	}
+
+	if err := m.Storage.DeleteFileById(int(fileData.ID)); err != nil {
+		tx.Rollback()
+		log.Println("orphand DB record s3 file already deleted but DB failed to delete",
+			"file_upload_id", fileData.ID,
+			"stored_filename", fileData.StoredFilename,
+			"error: %w", err,
+		)
+		return fmt.Errorf("failed to delete file data: %w", err)
+	}
+
+	if err := m.Model.DeleteGallery(galleryData.ID); err != nil {
+		tx.Rollback()
+		log.Println("orphand DB record s3 file already deleted but DB failed to delete",
+			"gallery_id", galleryData.ID,
+			"file_upload_id", fileData.ID,
+			"error: %w", err,
+		)
+
+		return fmt.Errorf("failed to gallery: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+
+}
+
+func (m *GalleryService) DeleteGalleryMultiple(ctx context.Context, galleryIDS []int) error {
+
+	_, err := m.Model.GetGalleryByIDMultiple(ctx, galleryIDS)
+	if err != nil {
+		return fmt.Errorf("gallery not found %w", err)
+	}
+
+	fileData, err := m.Storage.GetFileUploadByIDMultiple(ctx, galleryIDS)
+	if err != nil {
+		return fmt.Errorf("file upload not found %w", err)
+	}
+
+	fileIDToDelete := make([]int, 0, len(fileData))
+	fileNamesToDelete := make([]string, 0, len(fileData))
+	for _, file := range fileData {
+		fileNamesToDelete = append(fileNamesToDelete, file.StoredFilename)
+		fileIDToDelete = append(fileIDToDelete, int(file.ID))
+	}
+	if err := m.Storage.DeleteFileMultiple(ctx, fileNamesToDelete); err != nil {
+		return fmt.Errorf("failed to delete file from bucket: %w", err)
+	}
+
+	tx := m.Model.DB.Begin()
+	if tx.Error != nil {
+		log.Printf("Warning: file deleted from storage but failed to begin transaction to delete from database")
+		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
+	}
+
+	galleryModel := m.Model.WithTx(tx)
+	storageModel := m.Storage.WithTx(tx)
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			log.Printf("Panic: file deleted from storage but failed to delete from database")
+		}
+	}()
+
+	if err := galleryModel.DeleteGalleryByIdMultiple(ctx, galleryIDS); err != nil {
+		tx.Rollback()
+		log.Printf("orphand DB record s3 file already deleted but DB failed to delete for ids %v: %v", galleryIDS, err)
+		return fmt.Errorf("failed to delete gallery %w", err)
+	}
+
+	if err := storageModel.DeleteFileUploadByIdMultiple(ctx, fileIDToDelete); err != nil {
+		tx.Rollback()
+
+		log.Printf("orphand DB record s3 file already deleted but DB failed to delete for ids %v: %v", fileIDToDelete, err)
+		return fmt.Errorf("failed to delete file data: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("Critical: file deleted and DB changes made but commit transaction failed for gallery ids %v: %v", galleryIDS, err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (s *GalleryService) CheckExistingGallery(id []*int) (bool, error) {
+	if len(id) == 0 {
+		return false, fmt.Errorf("id gallery is required not empty")
+	}
+
+	return s.Model.CheckExistingGallery(id)
 }
