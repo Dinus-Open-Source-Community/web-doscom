@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -18,6 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 )
 
 type StorageService struct {
@@ -32,11 +34,20 @@ func NewStorageService(minioClient *config.MinioClient, fileUploadModel *model.F
 	}
 }
 
+func (s *StorageService) WithTx(tx *gorm.DB) *StorageService {
+	return &StorageService{
+		fileUpload:  s.fileUpload.WithTx(tx),
+		minioClient: s.minioClient,
+	}
+}
+
 // AllowedImageExtensions defines allowed image file extensions
 var AllowedImageExtensions = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
 
-// MaxFileSize defines maximum file size (10MB)
-const MaxFileSize = 5 * 1024 * 1024
+const (
+	MaxFileSize   = 5 * 1024 * 1024
+	MaxUploadFile = 10
+)
 
 // ValidateImageFile validates file extension, size, and actual content
 func (s *StorageService) ValidateImageFile(fileHeader *multipart.FileHeader) error {
@@ -92,10 +103,14 @@ func (s *StorageService) UploadFile(
 	fileHeader *multipart.FileHeader,
 	folder string,
 ) (*model.FileUpload, error) {
+	log.Printf("[Storage] Starting upload for file: %s", fileHeader.Filename)
+
 	// Validate file
 	if err := s.ValidateImageFile(fileHeader); err != nil {
+		log.Printf("[Storage] Validation failed for %s: %v", fileHeader.Filename, err)
 		return nil, err
 	}
+	log.Printf("[Storage] Validation success for %s", fileHeader.Filename)
 
 	// Generate unique filename
 	ext := filepath.Ext(fileHeader.Filename)
@@ -106,8 +121,10 @@ func (s *StorageService) UploadFile(
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
+	log.Printf("[Storage] Content-Type for %s: %s", fileHeader.Filename, contentType)
 
 	// Upload to MinIO
+	log.Printf("[Storage] Putting object to MinIO: %s", storedFilename)
 	_, err := s.minioClient.Client.PutObject(
 		ctx,
 		s.minioClient.BucketName,
@@ -119,8 +136,10 @@ func (s *StorageService) UploadFile(
 		},
 	)
 	if err != nil {
+		log.Printf("[Storage] MinIO PutObject failed for %s: %v", fileHeader.Filename, err)
 		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
+	log.Printf("[Storage] MinIO PutObject success for %s", fileHeader.Filename)
 
 	// Generate file URL using public URL from environment
 	publicURL := os.Getenv("MINIO_PUBLIC_URL")
@@ -134,6 +153,7 @@ func (s *StorageService) UploadFile(
 		s.minioClient.BucketName,
 		storedFilename,
 	)
+	log.Printf("[Storage] Upload complete for %s. URL: %s", fileHeader.Filename, fileURL)
 
 	// return metadata to be saved in database
 	fileUpload := &model.FileUpload{
@@ -174,6 +194,7 @@ func (s *StorageService) UploadFileAndCreateMetadata(ctx context.Context, reques
 			fileURL.StoredFilename,
 			minio.RemoveObjectOptions{},
 		)
+		return "", 0, fmt.Errorf("failed to save metadata to database: %w", err)
 	}
 
 	return responseFileUpload.FileURL, int(responseFileUpload.ID), nil
@@ -188,7 +209,7 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 ) ([]string, []int, error) {
 
 	// multiple file upload max = 10 files
-	if len(files) > 10 {
+	if len(files) > MaxUploadFile {
 		return nil, nil, fmt.Errorf("maximum file upload is 5")
 	}
 
@@ -205,7 +226,7 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 	}
 
 	result := make([]*model.FileUpload, len(files))
-	eg, ctx := errgroup.WithContext(ctx)
+	eg, gCtx := errgroup.WithContext(ctx)
 	// upload file to minIO
 	for i, fileHeader := range files {
 		i, fileHeader := i, fileHeader
@@ -217,11 +238,12 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 			defer file.Close()
 
 			// upload file to minio
-			fileUpload, err := s.UploadFile(ctx, file, fileHeader, folder)
+			fileUpload, err := s.UploadFile(gCtx, file, fileHeader, folder)
 			if err != nil {
 				return fmt.Errorf("failed to upload file")
 			}
 
+			fileUpload.UserID = uint(currentUserID)
 			result[i] = fileUpload
 			return nil
 		})
@@ -231,7 +253,7 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 		return nil, nil, err
 	}
 
-	// upload to database
+	// upload to database - gunakan original ctx (bukan gCtx yang sudah dicancel)
 	responseFileUpload, err := s.fileUpload.CreateMetaDataMultiple(ctx, result)
 	if err != nil {
 		return nil, nil, err
@@ -257,6 +279,38 @@ func (s *StorageService) DeleteFile(ctx context.Context, filename string) error 
 	)
 	if err != nil {
 		return fmt.Errorf("failed to delete file: %w", err)
+	}
+
+	return nil
+}
+
+func (s *StorageService) DeleteFileMultiple(ctx context.Context, filenames []string) error {
+	if len(filenames) == 0 {
+		return fmt.Errorf("filenames is required not empty")
+	}
+	objectsCh := make(chan minio.ObjectInfo)
+	go func() {
+		defer close(objectsCh)
+		for _, filename := range filenames {
+			objectsCh <- minio.ObjectInfo{
+				Key: filename,
+			}
+		}
+	}()
+
+	opts := minio.RemoveObjectsOptions{}
+	errorCh := s.minioClient.Client.RemoveObjects(ctx, s.minioClient.BucketName, objectsCh, opts)
+
+	var errors []error
+	for err := range errorCh {
+		if err.Err != nil {
+			log.Printf("failed to delete %s: %v", err.ObjectName, err.Err)
+			errors = append(errors, fmt.Errorf("failed to delete %s: %w", err.ObjectName, err.Err))
+		}
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("failed to delete %d files", len(errors))
 	}
 
 	return nil
@@ -360,4 +414,28 @@ func (s *StorageService) DownloadFile(ctx context.Context, filename string) (io.
 	}
 
 	return object, nil
+}
+
+// wrapper to model FileUpload
+func (s *StorageService) GetFileUploadByID(id int) (*model.FileUpload, error) {
+	return s.fileUpload.GetByID(uint(id))
+}
+
+func (s *StorageService) GetFileUploadByIDMultiple(ctx context.Context, ids []int) ([]model.FileUploadResponse, error) {
+	if len(ids) == 0 {
+		return []model.FileUploadResponse{}, fmt.Errorf("ids is required, not empty, if empty what should i get")
+	}
+
+	return s.fileUpload.GetByIDMultiple(ctx, ids)
+}
+
+func (s *StorageService) DeleteFileById(id int) error {
+	return s.fileUpload.Delete(uint(id))
+}
+
+func (s *StorageService) DeleteFileUploadByIdMultiple(ctx context.Context, ids []int) error {
+	if len(ids) == 0 {
+		return fmt.Errorf("ids is required, not empty, if empty what should id delete")
+	}
+	return s.fileUpload.DeleteByIdMultiple(ctx, ids)
 }

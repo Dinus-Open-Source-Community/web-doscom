@@ -27,7 +27,8 @@ func Routes(app *config.Application) http.Handler {
 		userHandler := handler.NewUserHandler(userService)
 
 		// work
-		workHandler := handler.NewWorkHandler(&app.Model.Works)
+		workService := service.NewWorkService(&app.Model.Works, &app.Model.Gallery, &app.Model.Pengurus)
+		workHandler := handler.NewWorkHandler(workService)
 
 		// Initialize storage service if MinIO is available
 		var storageService *service.StorageService
@@ -61,7 +62,6 @@ func Routes(app *config.Application) http.Handler {
 		blogHandler := handler.NewBlogHandler(blogService)
 
 		routes.AuthRoutes(v1, authHandler)
-		// routes.UserControllerKoor(v1, userHandler)
 		routes.UserControllerRoute(v1, userHandler)
 		routes.RegisterWorkRoutes(v1, workHandler)
 		routes.GalleryRoute(v1, galleryHandler)

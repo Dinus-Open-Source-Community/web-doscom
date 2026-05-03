@@ -10,6 +10,10 @@ tmp/
 *.tmp
 *.log
 
+# --------------------------
+# folder rak penting
+# --------------------------
+storage/
 
 # --------------------------
 # Node / npm (backend might use some node scripts)
@@ -21,7 +25,6 @@ package.json
 # --------------------------
 # Docker / Air / OS
 # --------------------------
-.air.toml
 .DS_Store
 
 # --------------------------

@@ -70,6 +70,21 @@ func Verify_token(tokenString string) (*jwt.Token, error) {
 	return token, nil
 }
 
+func isRoleAllowed(User_role string, allowedRoles []string) bool {
+	for _, role := range allowedRoles {
+		if roles, exist := RoleGroups[role]; exist {
+			if slices.Contains(roles, User_role) {
+				return true
+			}
+		} else {
+			if User_role == role {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tokenString string
@@ -111,15 +126,16 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		// Set user info in context
 		c.Set("user_id", claims.UserId)
+		c.Set("role", claims.Role)
 		// c.Set("email", claims.Email)
 		// c.Set("username", claims.Username)
-		c.Set("role", claims.Role)
 
 		// Check role if specified
 		if len(allowedRoles) > 0 {
 			if !isRoleAllowed(claims.Role, allowedRoles) {
 				c.JSON(http.StatusForbidden, gin.H{
-					"error": "forbidden",
+					"error":   "forbidden",
+					"message": "you are not allowed access this resource",
 				})
 				c.Abort()
 				return
@@ -128,20 +144,4 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-// helper function for check role
-func isRoleAllowed(User_role string, allowedRoles []string) bool {
-	for _, role := range allowedRoles {
-		if roles, exist := RoleGroups[role]; exist {
-			if slices.Contains(roles, User_role) {
-				return true
-			}
-		} else {
-			if User_role == role {
-				return true
-			}
-		}
-	}
-	return false
 }

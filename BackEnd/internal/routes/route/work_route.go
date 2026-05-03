@@ -2,6 +2,7 @@ package routes
 
 import (
 	"web_doscom/internal/auth"
+	"web_doscom/internal/constants"
 	"web_doscom/internal/handler"
 
 	"github.com/gin-gonic/gin"
@@ -9,14 +10,28 @@ import (
 
 func RegisterWorkRoutes(rg *gin.RouterGroup, workHandler *handler.WorkHandler) {
 
-	workRoutes := rg.Group("/works")
-	workRoutes.Use(auth.AuthMiddleware("Super_Admin", "Kor_Pemro", "Kor_Jaringan", "Kor_Data", "Kor_Medcrev", "BPH"))
+	// public api
+	publickRoutes := rg.Group("/works")
 	{
-		workRoutes.POST("", workHandler.Create)
-		workRoutes.GET("/:id", workHandler.Get)
-		workRoutes.GET("", workHandler.List)
-		workRoutes.PUT("/:id", workHandler.Update)
-		workRoutes.DELETE("/:id", workHandler.Delete)
+		publickRoutes.GET("", workHandler.CreateWork)
+		publickRoutes.GET(
+			"/:projecttype", workHandler.GetAllWorksOrByFilterTechnologies,
+		)
+	}
+
+	// private api
+	privateRoutes := rg.Group("/admin/works")
+	privateRoutes.Use(
+		auth.AuthMiddleware(
+			constants.RoleKeySuperAdmin,
+			constants.RoleKoordinator,
+		))
+	{
+		privateRoutes.POST("", workHandler.CreateWork)
+		privateRoutes.GET("/:id", workHandler.GetWorkByID)
+		privateRoutes.GET("", workHandler.List)
+		privateRoutes.PUT("/:id", workHandler.Update)
+		privateRoutes.DELETE("/:id", workHandler.Delete)
 	}
 
 }

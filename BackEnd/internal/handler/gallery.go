@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
+	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model"
 	"web_doscom/internal/service"
 
@@ -39,21 +41,21 @@ func NewUploadHandler(galleryService *service.GalleryService, storageService *se
 // @Tags Gallery
 // @Router /api/v1/gallery/ [post]
 func (m *GalleryHandler) InsertGallery(c *gin.Context) {
-	userID := c.MustGet("user_id").(int)
-	userRole := c.MustGet("user_role").(string)
 	ctx := c.Request.Context()
+	userID := c.MustGet("user_id").(int)
+	userRole := c.MustGet("role").(string)
 
 	var input model.CreateGallery
-	if c.ShouldBind(&input) != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Missing required fields",
+			"error": "Validation failed: " + err.Error(),
 		})
 		return
 	}
 
 	allowedRole := map[string]bool{
-		"KoorMedcrev": true,
-		"SuperAdmin":  true,
+		constants.RoleKeyKoorMedcrev: true,
+		constants.RoleKeySuperAdmin:  true,
 	}
 
 	if !allowedRole[userRole] {
@@ -131,72 +133,29 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 	})
 }
 
-// get gallery by type
-
-// GetGalleryByType godoc
-// @Summary Get Gallery By Type
-// @Description Mengambil data gallery berdasarkan tipe tertentu
-// @Tags Gallery
-// @Accept json
-// @Produce json
-// @Param type query string true "Gallery type (fun, proker, achievment, work, activity, blog, pengurus, etc)"
-// @Param page query int false "Page number"
-// @Param limit query int false "Page limit"
-// @Success 200 {object} map[string]interface{} "Successfully fetch gallery data"
-// @Failure 401 {object} map[string]string "Unauthorized, role tidak valid"
-// @Failure 500 {object} map[string]string "Failed to fetch gallery data"
-// @Security ApiKeyAuth
-// @Router /api/v1/gallery/ [get]
-// func (m *GalleryHandler) GetGalleryByType(c *gin.Context) {
-//
-// 	// filtered by type
-// 	galleryType := c.Query("type")
-//
-// 	// pagination
-// 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-// 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-// 	offset := (page - 1) * limit
-//
-// 	// get all gallery by type
-// 	GalleryList, count, err := m.GalleryService.GetAllGalleryByDate(
-// 		galleryType,
-// 		page,
-// 		limit,
-// 		offset,
-// 	)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{
-// 			"error":   err.Error(),
-// 			"message": "Failed to fetch gallery data",
-// 		})
-// 		return
-// 	}
-//
-// 	totalPages := int(math.Ceil(float64(count) / float64(limit)))
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message": "Successfully fetch gallery data",
-// 		"data":    GalleryList,
-// 		"metadata": gin.H{
-// 			"page":        page,
-// 			"limit":       limit,
-// 			"total_items": count,
-// 			"total_pages": totalPages,
-// 		},
-// 	})
-// }
-
-func (m *GalleryHandler) GetAllGalleryByYear(c *gin.Context) {
+func (m *GalleryHandler) GetAllGalleryAndByYear(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageStr := c.DefaultQuery("page", "1")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		log.Println("invalid page param: ", pageStr)
+		page = 1
+	}
+
+	limitStr := c.DefaultQuery("limit", "10")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		log.Println("invalid limit param: ", limitStr)
+		limit = 10
+	}
 	offset := (page - 1) * limit
 
+	// call service
 	startYear := c.Query("start_year")
 	endYear := c.Query("end_year")
 
-	// call service
-	galleryList, totalPages, currentPage, err := m.GalleryService.GetAllGalleryByDate(
+	galleryList, totalPages, currentPage, err := m.GalleryService.GetAllGalleryAndByDate(
 		ctx,
 		startYear, endYear,
 		limit, offset,
@@ -231,6 +190,30 @@ func (m *GalleryHandler) GetAllGalleryByYear(c *gin.Context) {
 // @Security BearerAuth
 // @Router /api/v1/gallery/{id} [delete]
 func (m *GalleryHandler) DeleteGallery(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+	_, err := constants.GetRoleInfo(userRole)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "you cannot access this resource",
+		})
+		return
+	}
+
+	allowedRole := map[string]bool{
+		constants.RoleKeyKoorMedcrev: true,
+		constants.RoleKeySuperAdmin:  true,
+	}
+
+	if !allowedRole[userRole] {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   "request cannot be processed",
+			"message": "role not valid or have no permission",
+		})
+		return
+	}
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -239,7 +222,7 @@ func (m *GalleryHandler) DeleteGallery(c *gin.Context) {
 		return
 	}
 
-	if err := m.GalleryService.DeleteGallery(id); err != nil {
+	if err := m.GalleryService.DeleteGallery(ctx, id); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Gallery not found",
 		})
