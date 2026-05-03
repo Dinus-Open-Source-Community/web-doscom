@@ -137,7 +137,7 @@ func (s *WorkService) CreateWork(
 	work *model.CreateRequestWork,
 	newImages []*multipart.FileHeader,
 	userRole string,
-) (*model.WorkResponse, error) {
+) (*model.WorkResponseClient, error) {
 
 	if err := authorization.CheckRolePermission(userRole,
 		constants.RoleAdmin,
@@ -168,7 +168,7 @@ func (s *WorkService) CreateWork(
 		newGalleryIDS = append(newGalleryIDS, idGallery.ID)
 	}
 
-	var workDataResponse *model.WorkResponse
+	var workDataResponse *model.WorkResponseClient
 	err = s.WorkModel.DB.Transaction(func(tx *gorm.DB) error {
 
 		var txFailed bool
@@ -238,10 +238,10 @@ func (s *WorkService) GetAllWorksAndByTechnologi(
 	ctx context.Context,
 	offset, limit int,
 	filterProjectType string,
-) ([]model.WorkResponse, int64, error) {
+) ([]model.WorkResponseClient, int64, error) {
 
 	var (
-		worksDataResponse []model.WorkResponse
+		worksDataResponse []model.WorkResponseClient
 		totalData         int64
 		err               error
 	)
@@ -261,7 +261,30 @@ func (s *WorkService) GetAllWorksAndByTechnologi(
 	return worksDataResponse, totalData, err
 }
 
-func (s *WorkService) GetWorkByID(ctx context.Context, id int) (*model.WorkResponse, error) {
+func (s *WorkService) GetAllWorksBasedOnDivision(
+	ctx context.Context,
+	division, userRole string,
+	limit, offset int,
+) {
+	var (
+		worksDataResponse []model.WorkResponseClient
+		totalData         int64
+		err               error
+	)
+
+	if userRole == constants.RoleAdmin {
+	}
+	switch userRole {
+	case constants.RoleAdmin:
+		worksDataResponse, totalData, err = s.WorkModel.GetAllWorks(ctx, offset, limit)
+
+	case constants.RoleKoordinator:
+		worksDataResponse, totalData, err =
+	}
+
+}
+
+func (s *WorkService) GetWorkByID(ctx context.Context, id int) (*model.WorkResponseClient, error) {
 	workResponseData, err := s.WorkModel.GetWorkById(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("work not found or something wrong while fetch data %w", err)
@@ -373,13 +396,58 @@ func (s *WorkService) UpdateWorkByID(
 	return workUpdateDataResponse, nil
 }
 
-func (s *WorkService) DeleteWork(id int) error {
-	err := s.Model.DeleteWork(id)
+func (s *WorkService) DeleteWork(ctx context.Context, workID int, userRole string) error {
+
+	_, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("work not found already")
+		return fmt.Errorf("invalid user role")
+	}
+
+	if err := authorization.CheckRolePermission(
+		userRole,
+		constants.RoleAdmin,
+		constants.RoleKoordinator,
+	); err != nil {
+		return fmt.Errorf("you are not allowed to access this resource %w", err)
+	}
+
+	workData, err := s.WorkModel.GetWorkWithOutGallery(ctx, workID)
+	if err != nil {
+		return fmt.Errorf("work not found, the process cannot continue")
+	}
+
+	grantedDelete, err := workAuthorization.CanDeleteWork(userRole, workData.Status)
+	if err != nil {
+		return fmt.Errorf("something wrong or denied: %w", err)
+	}
+	if grantedDelete {
+		tx := s.WorkModel.DB.Begin()
+		if tx.Error != nil {
+			return fmt.Errorf("failed to begin transaction: %w", tx.Error)
 		}
-		return err
+
+		modelWorkGallery := s.WorkGallery.WithTx(tx)
+		modelWork := s.WorkModel.WithTx(tx)
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			}
+		}()
+
+		// delete work first
+		if err := modelWork.DeleteWork(ctx, workID); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("Failed to delete work data: %w", err)
+		}
+
+		//delete work gallery
+		if err := modelWorkGallery.DeleteWorkGalleryByID(ctx, workID); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("Failed to delete work gallery data: %w", err)
+		}
+		if err := tx.Commit().Error; err != nil {
+			return fmt.Errorf("Failed to commit transaction: %w", err)
+		}
 	}
 	return nil
 }

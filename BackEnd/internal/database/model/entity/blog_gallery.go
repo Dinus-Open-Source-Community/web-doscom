@@ -1,4 +1,4 @@
-package model
+package entity
 
 import (
 	"context"
@@ -21,11 +21,6 @@ type BlogGallery struct {
 	GalleryID int       `gorm:"column:id_gallery" json:"gallery_id"`
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
-}
-
-type BlogGalleryInsert struct {
-	BlogID    int `gorm:"column:id_blog" json:"blog_id"`
-	GalleryID int `gorm:"column:id_gallery" json:"gallery_id"`
 }
 
 func (b *BlogGalleryModel) WithTx(tx *gorm.DB) *BlogGalleryModel {

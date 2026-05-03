@@ -1,9 +1,10 @@
-package model
+package entity
 
 import (
 	"context"
 	"fmt"
 	"time"
+	"web_doscom/internal/database/model/dto"
 
 	"gorm.io/gorm"
 )
@@ -20,17 +21,6 @@ type WorkGallery struct {
 	UpdatedAt time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
 
-type WorkGalleryInsert struct {
-	IDWork    int `gorm:"column:id_work" json:"id_work" binding:"required"`
-	IDGallery int `gorm:"column:id_gallery" json:"id_gallery" binding:"required"`
-}
-
-type WorkGalleryResponse struct {
-	ID        int `json:"id"`
-	IDWork    int `json:"id_work"`
-	IDGallery int `json:"id_gallery"`
-}
-
 func (WorkGallery) TableName() string {
 	return "work_gallery"
 }
@@ -42,15 +32,15 @@ func (m *WorkGalleryModel) WithTx(tx *gorm.DB) *WorkGalleryModel {
 func (m *WorkGalleryModel) InsertWorkGallery(
 	ctx context.Context,
 	workGallery *WorkGallery,
-) (WorkGalleryResponse, error) {
+) (dto.WorkGalleryResponse, error) {
 	workGallery.CreatedAt = time.Now()
 	workGallery.UpdatedAt = time.Now()
 
 	if err := m.DB.WithContext(ctx).Create(workGallery).Error; err != nil {
-		return WorkGalleryResponse{}, fmt.Errorf("failed to insert data %w", err)
+		return dto.WorkGalleryResponse{}, fmt.Errorf("failed to insert data %w", err)
 	}
 
-	return WorkGalleryResponse{
+	return dto.WorkGalleryResponse{
 		ID:        workGallery.ID,
 		IDWork:    workGallery.IDWork,
 		IDGallery: workGallery.IDGallery,
@@ -76,7 +66,7 @@ func (m *WorkGalleryModel) InsertWorkGalleryMultiple(ctx context.Context, workGa
 	return nil
 }
 
-func (m *WorkGalleryModel) UpdateWorkGallery(galleryID []int, idWork int) ([]*WorkGalleryResponse, error) {
+func (m *WorkGalleryModel) UpdateWorkGallery(galleryID []int, idWork int) ([]*dto.WorkGalleryResponse, error) {
 	if len(galleryID) == 0 {
 		return nil, fmt.Errorf("galleryID is empty cannot update database")
 	}
@@ -116,13 +106,27 @@ func (m *WorkGalleryModel) UpdateWorkGallery(galleryID []int, idWork int) ([]*Wo
 		return nil, err
 	}
 
-	responseData := make([]*WorkGalleryResponse, len(data))
+	responseData := make([]*dto.WorkGalleryResponse, len(data))
 	for i, workGallery := range data {
-		responseData[i] = &WorkGalleryResponse{
+		responseData[i] = &dto.WorkGalleryResponse{
 			ID:        workGallery.ID,
 			IDWork:    workGallery.IDWork,
 			IDGallery: workGallery.IDGallery,
 		}
 	}
 	return responseData, nil
+}
+
+func (m *WorkGalleryModel) DeleteWorkGalleryByID(ctx context.Context, workID int) error {
+	result := m.DB.WithContext(ctx).Where("id_work = ?", workID).Delete(&WorkGallery{})
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete work gallery %w", result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("work gallery not found")
+	}
+
+	return nil
 }

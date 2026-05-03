@@ -1,4 +1,4 @@
-package model
+package entity
 
 import (
 	"gorm.io/gorm"
@@ -16,16 +16,6 @@ type RefreshToken struct {
 	Expires   *time.Time `json:"expires"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
-}
-
-type RefreshTokenSuccessResponse struct {
-	Message string `json:"message" example:"refresh token success"`
-	Token   string `json:"token" example:"new_access_token_here"`
-}
-
-type RefreshTokenErrorResponse struct {
-	Error   string `json:"error" example:"token expired"`
-	Message string `json:"message" example:"refresh token invalid or expired"`
 }
 
 func (RefreshToken) TableName() string {

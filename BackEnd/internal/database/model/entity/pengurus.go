@@ -1,10 +1,11 @@
-package model
+package entity
 
 import (
 	"context"
 	"fmt"
-	"mime/multipart"
 	"time"
+
+	"web_doscom/internal/database/model/dto"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -65,52 +66,6 @@ type Pengurus struct {
 	Period    string    `json:"period"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// DTO untuk frontend
-// UserID   int       `json:"id_user"`
-type PengurusResponse struct {
-	ID       int    `json:"id"`
-	PhotoURL string `json:"photo_url"`
-	Email    string `json:"email"`
-	Divisi   string `json:"divisi"`
-	Name     string `json:"name"`
-	Position string `json:"position"`
-	Sosmed   string `json:"sosmed"`
-	Period   string `json:"period"`
-}
-
-type PengurusPublicResponse struct {
-	ID       int    `json:"id"`
-	PhotoURL string `json:"photo_url"`
-	Divisi   string `json:"divisi"`
-	Name     string `json:"name"`
-	Position string `json:"position"`
-	Sosmed   string `json:"sosmed"`
-	Period   string `json:"period"`
-}
-
-// Untuk create/register pengurus
-type RegisterPengurusRequest struct {
-	UserID   int                   `form:"id_user"`
-	PhotoURL *multipart.FileHeader `form:"photo_url"`
-	Email    string                `form:"email"`
-	Divisi   string                `form:"divisi" binding:"required,divisi"`
-	Name     string                `form:"name" binding:"required" validate:"min=2,max=150"`
-	Position string                `form:"position" binding:"required,position"`
-	Sosmed   string                `form:"sosmed" binding:"omitempty,socialurl"`
-	Period   string                `form:"period" binding:"required" validate:"max=50"`
-}
-
-// Untuk update/patch pengurus
-type PengurusPatch struct {
-	Email    string                `form:"email" binding:"omitempty,email"`
-	Divisi   string                `form:"divisi" binding:"omitempty,divisi"`
-	Name     string                `form:"name" binding:"omitempty"`
-	Sosmed   string                `form:"sosmed" binding:"omitempty,socialurl"`
-	Period   string                `form:"period" binding:"omitempty"`
-	Position string                `form:"position" binding:"omitempty,position"`
-	PhotoURL *multipart.FileHeader `form:"file" binding:"omitempty"`
 }
 
 // Custom validator
@@ -199,7 +154,7 @@ func (m *PengurusModel) GetAllPengurusByDivisi(ctx context.Context, divisi strin
 }
 
 // Update pengurus
-func (m *PengurusModel) UpdatePengurus(Id int, patch PengurusPatch) (*Pengurus, error) {
+func (m *PengurusModel) UpdatePengurus(Id int, patch dto.PengurusPatch) (*Pengurus, error) {
 	var pengurus Pengurus
 	// find pengurus by id
 	if err := m.DB.First(&pengurus, Id).Error; err != nil {
@@ -215,7 +170,7 @@ func (m *PengurusModel) UpdatePengurus(Id int, patch PengurusPatch) (*Pengurus, 
 	return &pengurus, nil
 }
 
-func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*PengurusResponse, error) {
+func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*dto.PengurusResponse, error) {
 	var updatePengurus Pengurus
 
 	result := m.DB.Model(&updatePengurus).
@@ -231,7 +186,7 @@ func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*Pen
 		return nil, gorm.ErrRecordNotFound
 	}
 
-	return &PengurusResponse{
+	return &dto.PengurusResponse{
 		ID:       updatePengurus.ID,
 		PhotoURL: updatePengurus.PhotoURL,
 		Email:    updatePengurus.Email,
@@ -256,8 +211,8 @@ func (m *PengurusModel) DeletePengurus(ctx context.Context, id int) error {
 	return nil
 }
 
-func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string) ([]PengurusResponse, error) {
-	dataPengurus := []PengurusResponse{}
+func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string) ([]dto.PengurusResponse, error) {
+	dataPengurus := []dto.PengurusResponse{}
 
 	if division == "" {
 		return nil, fmt.Errorf("division required")

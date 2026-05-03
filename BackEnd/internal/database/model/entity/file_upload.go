@@ -1,10 +1,10 @@
-package model
+package entity
 
 import (
 	"context"
 	"fmt"
-	"mime/multipart"
 	"time"
+	"web_doscom/internal/database/model/dto"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -23,24 +23,6 @@ type FileUpload struct {
 	UpdatedAt        time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
-type FileUploadResponse struct {
-	ID               uint   `json:"id"`
-	UserID           uint   `json:"user_id"`
-	Category         string `json:"category"`
-	OriginalFilename string `json:"original_filename"`
-	StoredFilename   string `json:"stored_filename"`
-	FileSize         int64  `json:"file_size"`
-	ContentType      string `json:"content_type"`
-	FileURL          string `json:"file_url"`
-}
-
-type UploadFileRequest struct {
-	FileHeader *multipart.FileHeader
-	File       multipart.File
-	Folder     string
-	UserID     uint
-}
-
 type FileUploadModel struct {
 	DB *gorm.DB
 }
@@ -54,11 +36,14 @@ func (m *FileUploadModel) WithTx(tx *gorm.DB) *FileUploadModel {
 }
 
 // Create saves a new file upload record
-func (m *FileUploadModel) CreateMetaData(fileUpload *FileUpload) (*FileUploadResponse, error) {
+func (m *FileUploadModel) CreateMetaData(fileUpload *FileUpload) (
+	*dto.FileUploadResponse,
+	error,
+) {
 	if err := m.DB.Create(fileUpload).Error; err != nil {
 		return nil, err
 	}
-	return &FileUploadResponse{
+	return &dto.FileUploadResponse{
 		ID:               fileUpload.ID,
 		UserID:           fileUpload.UserID,
 		Category:         fileUpload.Category,
@@ -71,14 +56,14 @@ func (m *FileUploadModel) CreateMetaData(fileUpload *FileUpload) (*FileUploadRes
 }
 
 // save a new file upload record
-func (m *FileUploadModel) CreateMetaDataMultiple(ctx context.Context, fileUpload []*FileUpload) ([]*FileUploadResponse, error) {
+func (m *FileUploadModel) CreateMetaDataMultiple(ctx context.Context, fileUpload []*FileUpload) ([]*dto.FileUploadResponse, error) {
 	if err := m.DB.WithContext(ctx).Create(&fileUpload).Error; err != nil {
 		return nil, err
 	}
 
-	response := make([]*FileUploadResponse, len(fileUpload))
+	response := make([]*dto.FileUploadResponse, len(fileUpload))
 	for i, fileData := range fileUpload {
-		response[i] = &FileUploadResponse{
+		response[i] = &dto.FileUploadResponse{
 			ID:               fileData.ID,
 			UserID:           fileData.UserID,
 			Category:         fileData.Category,
@@ -103,7 +88,7 @@ func (m *FileUploadModel) GetByID(id uint) (*FileUpload, error) {
 	return &fileUpload, nil
 }
 
-func (m *FileUploadModel) GetByIDMultiple(ctx context.Context, ids []int) ([]FileUploadResponse, error) {
+func (m *FileUploadModel) GetByIDMultiple(ctx context.Context, ids []int) ([]dto.FileUploadResponse, error) {
 	if len(ids) == 0 {
 		return nil, fmt.Errorf("ids is required, not empty, if empty what should i get")
 	}
@@ -119,9 +104,9 @@ func (m *FileUploadModel) GetByIDMultiple(ctx context.Context, ids []int) ([]Fil
 		return nil, fmt.Errorf("failed to get data: %w", result.Error)
 	}
 
-	responses := make([]FileUploadResponse, 0, len(fileUploads))
+	responses := make([]dto.FileUploadResponse, 0, len(fileUploads))
 	for _, f := range fileUploads {
-		responses = append(responses, FileUploadResponse{
+		responses = append(responses, dto.FileUploadResponse{
 			ID:               f.ID,
 			UserID:           f.UserID,
 			Category:         f.Category,

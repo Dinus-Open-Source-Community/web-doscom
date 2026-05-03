@@ -1,10 +1,11 @@
-package model
+package entity
 
 import (
 	"context"
 	"fmt"
 	"strings"
 	"time"
+	"web_doscom/internal/database/model/dto"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -44,61 +45,6 @@ type Blog struct {
 	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
-// use to get input from client
-type CreateRequestBlog struct {
-	ExistingID  []*int     `form:"existingID_image"`
-	Title       string     `form:"title" binding:"required"`
-	Slug        string     `form:"slug" binding:"required"`
-	Content     string     `form:"content" binding:"required"`
-	Kategori    []string   `form:"kategori" binding:"required,dive,kategori"`
-	PublishedAt *time.Time `form:"published_at"`
-	Status      string     `form:"status" binding:"required"`
-}
-
-// use to internal process -> insert to database
-type BlogPayload struct {
-	AuthorID     int        `json:"author_id"`
-	Content      string     `json:"content"`
-	ExistingID   []*int     `json:"existingID_image"`
-	Kategori     []string   `json:"kategori"`
-	PublishedAt  *time.Time `json:"published_at"`
-	Slug         string     `json:"slug"`
-	Status       string     `json:"status" default:"draft"`
-	Title        string     `json:"title"`
-	ThumbnailURL string     `json:"thumbnail_url"`
-}
-
-// BlogPatch is used for updating a blog
-type BlogPatch struct {
-	ExistingID  []*int     `form:"existingID_image" binding:"omitempty"`
-	Title       string     `form:"title" json:"title" binding:"omitempty"`
-	Slug        string     `form:"slug" json:"slug" binding:"omitempty"`
-	Content     string     `form:"content" json:"content" binding:"omitempty"`
-	Kategori    []string   `form:"kategori" json:"kategori" binding:"omitempty,dive,kategori"`
-	Status      string     `form:"status" json:"status" binding:"omitempty"`
-	PublishedAt *time.Time `form:"published_at" json:"published_at" binding:"omitempty"`
-}
-
-type BlogResponse struct {
-	ID           int            `gorm:"primaryKey" json:"id"`
-	AuthorID     int            `json:"author_id"`
-	Title        string         `json:"title"`
-	Slug         string         `json:"slug" gorm:"unique"`
-	Content      string         `json:"content"`
-	Kategori     []string       `json:"kategori"`
-	ThumbnailURL string         `json:"thumbnail_url"`
-	PublishedAt  *time.Time     `json:"published_at"`
-	BlogImage    []*BlogGallery `json:"blog_image"`
-}
-
-type BlogThumbnail struct {
-	ID           int    `json:"id"`
-	Title        string `json:"title"`
-	Slug         string `json:"slug"`
-	Kategori     string `json:"kategori"`
-	ThumbnailURL string `json:"thumbnail_url"`
-}
-
 func init() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("kategori", func(fl validator.FieldLevel) bool {
@@ -129,8 +75,8 @@ func (m *BlogModel) InsertBlog(ctx context.Context, blog *Blog) error {
 }
 
 // GetBlogById fetches a blog by its ID
-func (m *BlogModel) GetBlogById(id int) (*BlogResponse, error) {
-	var blog BlogResponse
+func (m *BlogModel) GetBlogById(id int) (*dto.BlogResponse, error) {
+	var blog dto.BlogResponse
 
 	query := `
 		SELECT
@@ -163,8 +109,8 @@ func (m *BlogModel) GetBlogById(id int) (*BlogResponse, error) {
 }
 
 // GetAllBlogs returns all blogs ordered by creation date
-func (m *BlogModel) GetAllBlogs(ctx context.Context, limit, offset int) ([]BlogThumbnail, int, error) {
-	var blogs []BlogThumbnail
+func (m *BlogModel) GetAllBlogs(ctx context.Context, limit, offset int) ([]dto.BlogThumbnail, int, error) {
+	var blogs []dto.BlogThumbnail
 
 	// pagination
 	var totalData int64
@@ -187,7 +133,7 @@ func (m *BlogModel) GetAllBlogs(ctx context.Context, limit, offset int) ([]BlogT
 }
 
 // get all blogs and get blog with kategory
-func (m *BlogModel) GetBlogs(ctx context.Context, kategori []string, limit, offset int) ([]BlogThumbnail, int64, error) {
+func (m *BlogModel) GetBlogs(ctx context.Context, kategori []string, limit, offset int) ([]dto.BlogThumbnail, int64, error) {
 
 	query := m.DB.WithContext(ctx).Model(&Blog{})
 
@@ -200,7 +146,7 @@ func (m *BlogModel) GetBlogs(ctx context.Context, kategori []string, limit, offs
 		return nil, 0, fmt.Errorf("error while count the data")
 	}
 
-	var blogs []BlogThumbnail
+	var blogs []dto.BlogThumbnail
 	if err := query.
 		Select("id, title, slug, thumbnail_url, kategori").
 		Limit(limit).
@@ -239,8 +185,8 @@ func (m *BlogModel) DeleteBlog(ctx context.Context, tx *gorm.DB, id int) error {
 }
 
 // GetBlogsByKategori returns all blogs by kategori
-func (m *BlogModel) GetBlogsByKategori(ctx context.Context, kategori []string, limit, offset int) ([]BlogThumbnail, int, error) {
-	var blogs []BlogThumbnail
+func (m *BlogModel) GetBlogsByKategori(ctx context.Context, kategori []string, limit, offset int) ([]dto.BlogThumbnail, int, error) {
+	var blogs []dto.BlogThumbnail
 
 	var totalData int64
 	query := m.DB.WithContext(ctx).Where("kategori && ?", pq.Array(kategori))

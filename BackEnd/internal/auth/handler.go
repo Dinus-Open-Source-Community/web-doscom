@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"web_doscom/internal/constants"
+	"web_doscom/internal/authorization"
 	"web_doscom/internal/database/model"
 
 	"github.com/gin-gonic/gin"
@@ -61,7 +61,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 
 	// // check the role
 
-	_, err = constants.GetRoleInfo(userData.Role)
+	_, err = authorization.GetRoleInfo(userData.Role)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "acces denied",

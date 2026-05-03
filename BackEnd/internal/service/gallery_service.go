@@ -266,7 +266,7 @@ func (m *GalleryService) DeleteGalleryMultiple(ctx context.Context, galleryIDS [
 
 	tx := m.Model.DB.Begin()
 	if tx.Error != nil {
-		log.Printf("Warning: file deleted from storage but failed to begin transactin to delete from database")
+		log.Printf("Warning: file deleted from storage but failed to begin transaction to delete from database")
 		return fmt.Errorf("failed to begin transaction: %w", tx.Error)
 	}
 
