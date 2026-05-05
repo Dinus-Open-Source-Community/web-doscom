@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"mime/multipart"
@@ -11,24 +10,25 @@ import (
 	"web_doscom/internal/authorization"
 	workAuthorization "web_doscom/internal/authorization/work"
 	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/database/model/entity"
 	"web_doscom/internal/utils"
 
 	"gorm.io/gorm"
 )
 
 type WorkService struct {
-	WorkModel       *model.WorkModel
+	WorkModel       *entity.WorkModel
 	GalleryServices *GalleryService
-	PengurusModel   *model.PengurusModel
-	WorkGallery     *model.WorkGalleryModel
+	PengurusModel   *entity.PengurusModel
+	WorkGallery     *entity.WorkGalleryModel
 }
 
 func NewWorkService(
-	m *model.WorkModel,
+	m *entity.WorkModel,
 	g *GalleryService,
-	p *model.PengurusModel,
-	w *model.WorkGalleryModel,
+	p *entity.PengurusModel,
+	w *entity.WorkGalleryModel,
 ) *WorkService {
 	return &WorkService{
 		WorkModel:       m,
@@ -41,8 +41,8 @@ func NewWorkService(
 func (s *WorkService) ProcessWorkGalleries(
 	ctx context.Context,
 	newImages []*multipart.FileHeader,
-	workData *model.CreateRequestWork,
-) ([]*model.GalleryResponse, []int, error) {
+	workData *dto.CreateRequestWork,
+) ([]*dto.GalleryResponse, []int, error) {
 
 	var allGalleryIDS []int
 	if len(workData.ExistingID) > 0 {
@@ -81,7 +81,7 @@ func (s *WorkService) ProcessWorkGalleries(
 
 	now := time.Now()
 	galleryName := "foto untuk work dengan judul" + workData.Title
-	galleryData := &model.GalleryInsert{
+	galleryData := &dto.GalleryInsert{
 		IDUsers:     workData.PengurusID,
 		GalleryName: galleryName,
 		GalleryType: "work",
@@ -93,13 +93,13 @@ func (s *WorkService) ProcessWorkGalleries(
 		),
 	}
 
-	fileUpload := make([]*model.UploadFileRequest, len(newImages))
+	fileUpload := make([]*dto.UploadFileRequest, len(newImages))
 	for i, file := range newImages {
 		fileContent, err := file.Open()
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to open file")
 		}
-		fileUpload[i] = &model.UploadFileRequest{
+		fileUpload[i] = &dto.UploadFileRequest{
 			FileHeader: file,
 			File:       fileContent,
 			Folder:     "work",
@@ -113,7 +113,7 @@ func (s *WorkService) ProcessWorkGalleries(
 		}
 	}()
 
-	var newgalleryDataResponse []*model.GalleryResponse
+	var newgalleryDataResponse []*dto.GalleryResponse
 	if len(newImages) > 0 {
 		var err error
 		newgalleryDataResponse, err = s.GalleryServices.UploadAndInsertGalleryMultiple(
@@ -134,10 +134,15 @@ func (s *WorkService) ProcessWorkGalleries(
 
 func (s *WorkService) CreateWork(
 	ctx context.Context,
-	work *model.CreateRequestWork,
+	work *dto.CreateRequestWork,
 	newImages []*multipart.FileHeader,
 	userRole string,
-) (*model.WorkResponseClient, error) {
+) (*dto.WorkResponseClient, error) {
+
+	validDivision, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return nil, fmt.Errorf("you are not allowed to access this resource %w", err)
+	}
 
 	if err := authorization.CheckRolePermission(userRole,
 		constants.RoleAdmin,
@@ -146,14 +151,10 @@ func (s *WorkService) CreateWork(
 		return nil, fmt.Errorf("you are not allowed to access this resource %w", err)
 	}
 
-	if work.Status == "" {
-		work.Status = constants.StatusDraft
+	statusSet, err := workAuthorization.CanSetStatusWork(userRole, work.Status)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set status %w", err)
 	}
-	if userRole == constants.RoleKoordinator &&
-		(work.Status != constants.StatusDraft || work.Status != constants.StatusPending) {
-		return nil, fmt.Errorf("you are can only set status to draft or pending")
-	}
-
 	newgGalleryDataResponse, allgalleryIDS, err := s.ProcessWorkGalleries(
 		ctx,
 		newImages,
@@ -168,7 +169,7 @@ func (s *WorkService) CreateWork(
 		newGalleryIDS = append(newGalleryIDS, idGallery.ID)
 	}
 
-	var workDataResponse *model.WorkResponseClient
+	var workDataResponse *dto.WorkResponseClient
 	err = s.WorkModel.DB.Transaction(func(tx *gorm.DB) error {
 
 		var txFailed bool
@@ -190,7 +191,7 @@ func (s *WorkService) CreateWork(
 		for i, tech := range work.Technologies {
 			technologies[i] = strings.ToLower(strings.TrimSpace(tech))
 		}
-		insertData := model.Work{
+		insertData := entity.Work{
 			PengurusID:   work.PengurusID,
 			Title:        work.Title,
 			Tagline:      work.Tagline,
@@ -200,7 +201,8 @@ func (s *WorkService) CreateWork(
 			Technologies: technologies,
 			ProjectDate:  work.ProjectDate,
 			ImageURL:     newgGalleryDataResponse[0].FileURL,
-			Status:       work.Status,
+			Status:       statusSet,
+			Division:     validDivision.Divisi,
 		}
 		workDataResponse, err = modelWork.InsertWork(ctx, &insertData)
 		if err != nil {
@@ -209,9 +211,9 @@ func (s *WorkService) CreateWork(
 			return fmt.Errorf("failed while insert data to database %w", err)
 		}
 
-		workGalleryData := make([]*model.WorkGallery, len(allgalleryIDS))
+		workGalleryData := make([]*entity.WorkGallery, len(allgalleryIDS))
 		for i, id := range allgalleryIDS {
-			workGalleryData[i] = &model.WorkGallery{
+			workGalleryData[i] = &entity.WorkGallery{
 				IDWork:    workDataResponse.ID,
 				IDGallery: id,
 			}
@@ -238,10 +240,10 @@ func (s *WorkService) GetAllWorksAndByTechnologi(
 	ctx context.Context,
 	offset, limit int,
 	filterProjectType string,
-) ([]model.WorkResponseClient, int64, error) {
+) ([]dto.WorkResponseClient, int64, error) {
 
 	var (
-		worksDataResponse []model.WorkResponseClient
+		worksDataResponse []dto.WorkResponseClient
 		totalData         int64
 		err               error
 	)
@@ -261,30 +263,44 @@ func (s *WorkService) GetAllWorksAndByTechnologi(
 	return worksDataResponse, totalData, err
 }
 
-func (s *WorkService) GetAllWorksBasedOnDivision(
+func (s *WorkService) GetWorksByDivision(
 	ctx context.Context,
-	division, userRole string,
+	userRole string,
 	limit, offset int,
-) {
+) ([]dto.WorkResponseClient, int64, error) {
+
 	var (
-		worksDataResponse []model.WorkResponseClient
+		worksDataResponse []dto.WorkResponseClient
 		totalData         int64
 		err               error
 	)
 
-	if userRole == constants.RoleAdmin {
-	}
-	switch userRole {
-	case constants.RoleAdmin:
-		worksDataResponse, totalData, err = s.WorkModel.GetAllWorks(ctx, offset, limit)
-
-	case constants.RoleKoordinator:
-		worksDataResponse, totalData, err =
+	validDivision, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return nil, 0, fmt.Errorf("you are not allowed to access this resource %w", err)
 	}
 
+	validViewStatus, err := workAuthorization.GetViewableStatus(userRole)
+	if err != nil {
+		return nil, 0, fmt.Errorf("there is error: %w", err)
+	}
+
+	// call function query to get all works by division and status
+	worksDataResponse, totalData, err = s.WorkModel.GetAllWorksAdmin(
+		ctx,
+		validDivision.Divisi,
+		validViewStatus,
+		offset,
+		limit,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed while get the data %w", err)
+	}
+
+	return worksDataResponse, totalData, nil
 }
 
-func (s *WorkService) GetWorkByID(ctx context.Context, id int) (*model.WorkResponseClient, error) {
+func (s *WorkService) GetWorkByID(ctx context.Context, id int) (*dto.WorkResponseClient, error) {
 	workResponseData, err := s.WorkModel.GetWorkById(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("work not found or something wrong while fetch data %w", err)
@@ -295,10 +311,10 @@ func (s *WorkService) GetWorkByID(ctx context.Context, id int) (*model.WorkRespo
 func (s *WorkService) UpdateWorkByID(
 	ctx context.Context,
 	idWork int,
-	updatedWork *model.WorkPatch,
+	updatedWork *dto.WorkPatch,
 	newImages []*multipart.FileHeader,
 	userRole string,
-) (*model.WorkUpdateResponse, error) {
+) (*dto.WorkUpdateResponse, error) {
 
 	_, err := s.WorkModel.GetWorkById(ctx, idWork)
 	if err != nil {
@@ -319,13 +335,13 @@ func (s *WorkService) UpdateWorkByID(
 	}
 
 	var (
-		newGalleryDataResponse []*model.GalleryResponse
+		newGalleryDataResponse []*dto.GalleryResponse
 		allGalleryIDS          []int
 	)
 
 	galleryTouch := len(newImages) != 0 || len(updatedWork.ExistingID) != 0
 	if galleryTouch {
-		workUpdate := &model.CreateRequestWork{
+		workUpdate := &dto.CreateRequestWork{
 			ExistingID:   updatedWork.ExistingID,
 			PengurusID:   updatedWork.PengurusID,
 			Title:        updatedWork.Title,
@@ -345,7 +361,7 @@ func (s *WorkService) UpdateWorkByID(
 		)
 	}
 
-	workUpdateDataPayload := &model.WorkPayloadUpdate{
+	workUpdateDataPayload := &dto.WorkPayloadUpdate{
 		PengurusID:   updatedWork.PengurusID,
 		Title:        updatedWork.Title,
 		Tagline:      updatedWork.Tagline,
@@ -369,7 +385,7 @@ func (s *WorkService) UpdateWorkByID(
 		return nil, fmt.Errorf("failed to update work %w", err)
 	}
 
-	var workGallery []*model.WorkGalleryResponse
+	var workGallery []*dto.WorkGalleryResponse
 	if galleryTouch {
 		workGallery, err = s.WorkGallery.UpdateWorkGallery(allGalleryIDS, idWork)
 		if err != nil {
@@ -377,7 +393,7 @@ func (s *WorkService) UpdateWorkByID(
 		}
 	}
 
-	workUpdateDataResponse := &model.WorkUpdateResponse{
+	workUpdateDataResponse := &dto.WorkUpdateResponse{
 		ID:           workUpdateData.ID,
 		PengurusID:   workUpdateData.PengurusID,
 		Title:        workUpdateData.Title,

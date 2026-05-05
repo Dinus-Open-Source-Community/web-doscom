@@ -5,20 +5,22 @@ import (
 	"os"
 	"strings"
 	"web_doscom/internal/auth"
+	"web_doscom/internal/authorization"
 	env "web_doscom/internal/config"
 	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/database/model/entity"
 )
 
 type UserService struct {
-	UserModel *model.UserModel
+	UserModel *entity.UserModel
 }
 
-func NewUserService(m *model.UserModel) *UserService {
+func NewUserService(m *entity.UserModel) *UserService {
 	return &UserService{UserModel: m}
 }
 
-func (s *UserService) SetDefaultValue(email, fullname, creatorRole, reqRole string) (*model.DefaultValue, error) {
+func (s *UserService) SetDefaultValue(email, fullname, creatorRole, reqRole string) (*dto.DefaultValue, error) {
 	env.LoadEnv()
 	secret := os.Getenv("PASSWORD_SECRET")
 
@@ -63,16 +65,16 @@ func (s *UserService) SetDefaultValue(email, fullname, creatorRole, reqRole stri
 	username := fullnamePart + "_" + partEmail
 	defaultPassword := partEmail + secret + fullnamePart
 
-	return &model.DefaultValue{
+	return &dto.DefaultValue{
 		Username: username,
 		Password: defaultPassword,
 		Role:     assignedRole,
 	}, nil
 }
 
-// wrapper function for user model
+// wrapper function for userdto
 func (s *UserService) InsertUserWithDefaultValue(
-	userData *model.RegisterRequest,
+	userData *dto.RegisterRequest,
 	userRole string,
 ) error {
 	// validasi userRole
@@ -99,7 +101,7 @@ func (s *UserService) InsertUserWithDefaultValue(
 	// hash password
 	passowordHash := auth.HashPassword(defaultValue.Password)
 
-	user := &model.User{
+	user := &entity.User{
 		Username:  defaultValue.Username,
 		Email:     userData.Email,
 		Role:      defaultValue.Role,
@@ -115,18 +117,18 @@ func (s *UserService) InsertUserWithDefaultValue(
 	return nil
 }
 
-func (s *UserService) FindByEmail(email string) (*model.User, error) {
+func (s *UserService) FindByEmail(email string) (*entity.User, error) {
 	return s.UserModel.FindByEmail(email)
 }
 
-func (s *UserService) GetUserById(id int) (*model.User, error) {
+func (s *UserService) GetUserById(id int) (*entity.User, error) {
 	return s.UserModel.GetUserById(id)
 }
 
 func (s *UserService) GetAllUserBaseOnRole(
 	creatorRole string,
-) ([]model.UserResponse, error) {
-	validRole, err := constants.GetRoleInfo(creatorRole)
+) ([]dto.UserResponse, error) {
+	validRole, err := authorization.GetRoleInfo(creatorRole)
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +154,7 @@ func (s *UserService) GetAllUserBaseOnRole(
 	return userData, nil
 }
 
-func (s *UserService) UpdateUser(Id int, userDataToUpdate map[string]any) (*model.UserResponse, error) {
+func (s *UserService) UpdateUser(Id int, userDataToUpdate map[string]any) (*dto.UserResponse, error) {
 
 	allowedFieldToUpdate := map[string]bool{
 		"username":  true,
@@ -179,7 +181,7 @@ func (s *UserService) UpdateUser(Id int, userDataToUpdate map[string]any) (*mode
 }
 
 func (s *UserService) DeleteUserBaseOnRole(id int, userRole string) error {
-	userValidRoleGroup, err := constants.GetRoleInfo(userRole)
+	userValidRoleGroup, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
 		return fmt.Errorf("role not valid, cannot proceed this action")
 	}

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"time"
+
+	"web_doscom/internal/database/model/dto"
 )
 
 func (BlogGallery) TableName() string {
@@ -38,12 +40,28 @@ func (b *BlogGalleryModel) InsertBlogGallery(blogGallery *BlogGallery) (*BlogGal
 	return blogGallery, nil
 }
 
-func (b *BlogGalleryModel) InsertBlogGalleryMultiple(BlogGallery []*BlogGallery) ([]*BlogGallery, error) {
-	if err := b.DB.Create(&BlogGallery).Error; err != nil {
-		return nil, err
+func (b *BlogGalleryModel) InsertBlogGalleryMultiple(ctx context.Context, galleries []*BlogGallery) ([]*dto.BlogGalleryResponse, error) {
+
+	if len(galleries) == 0 {
+		return nil, fmt.Errorf("gallery cannot be empty")
 	}
 
-	return BlogGallery, nil
+	result := b.DB.WithContext(ctx).Create(&galleries)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to insert data: %w", result.Error)
+	}
+
+	response := make([]*dto.BlogGalleryResponse, len(galleries))
+	for i, data := range galleries {
+		response[i] = &dto.BlogGalleryResponse{
+			ID:        data.ID,
+			BlogID:    data.BlogID,
+			GalleryID: data.GalleryID,
+		}
+	}
+
+	return response, nil
+
 }
 
 func (b *BlogGalleryModel) UpdateBlogGallery(galleryID []int, idBlog int) ([]*BlogGallery, error) {

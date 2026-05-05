@@ -3,14 +3,13 @@ package seeder
 import (
 	"log"
 	"time"
-
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/entity"
 
 	"gorm.io/gorm"
 )
 
 func SeedFileUploads(db *gorm.DB) {
-	files := []model.FileUpload{
+	files := []entity.FileUpload{
 		{
 			UserID:           1,
 			Category:         "gallery",
@@ -36,7 +35,7 @@ func SeedFileUploads(db *gorm.DB) {
 	}
 
 	for _, f := range files {
-		db.FirstOrCreate(&f, model.FileUpload{StoredFilename: f.StoredFilename})
+		db.FirstOrCreate(&f, entity.FileUpload{StoredFilename: f.StoredFilename})
 	}
 
 	log.Println("Seed table 'file_uploads' completed.")

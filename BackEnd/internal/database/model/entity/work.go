@@ -28,6 +28,7 @@ type Work struct {
 	ProjectDate  time.Time `gorm:"column:project_date" json:"project_date"`
 	ImageURL     string    `gorm:"column:image_url" json:"image_url"`
 	Status       string    `gorm:"column:status" json:"status"`
+	Division     string    `gorm:"column:division" json:"division"`
 	CreatedAt    time.Time `gorm:"column:created_at" json:"created_at"`
 	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at"`
 }
@@ -147,13 +148,33 @@ func (m *WorkModel) GetAllWorks(ctx context.Context, offset, limit int) ([]dto.W
 	return worksDataResponse, totalData, nil
 }
 
-// func (m *WorkModel) GetAllWorksAdmin(
-// 	ctx context.Context,
-// 	division, status string,
-// 	offset, limit int,
-// ) ([]dto.WorkResponseClient, int64, error) {
-//
-// }
+func (m *WorkModel) GetAllWorksAdmin(
+	ctx context.Context,
+	division string,
+	status []string,
+	offset, limit int,
+) ([]dto.WorkResponseClient, int64, error) {
+
+	baseQuery := m.DB.WithContext(ctx).Model(&Work{}).Where("division = ? AND status IN ?", division, status)
+
+	var totalData int64
+	if err := baseQuery.Session(&gorm.Session{}).Count(&totalData).Error; err != nil {
+		return nil, 0, fmt.Errorf("error while count the data %w", err)
+	}
+
+	var worksDataResponse []dto.WorkResponseClient
+	if err := baseQuery.
+		Select("id, title, tagline, description, slug, project_type, technologies, Project_date, image_url").
+		Offset(offset).
+		Limit(limit).
+		Order("created_at DESC").
+		Scan(&worksDataResponse).
+		Error; err != nil {
+		return nil, 0, fmt.Errorf("failed while get the data %w", err)
+	}
+
+	return worksDataResponse, totalData, nil
+}
 
 func (m *WorkModel) GetAllWorksByProjectType(
 	ctx context.Context,

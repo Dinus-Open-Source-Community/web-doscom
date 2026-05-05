@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"web_doscom/internal/database/model"
+	// "web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
 	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -47,7 +48,7 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	// email_user := c.MustGet("email").(string)
 	ctx := c.Request.Context()
 
-	var input model.RegisterPengurusRequest
+	var input dto.RegisterPengurusRequest
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read req body: " + err.Error(),
@@ -73,7 +74,7 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	}
 	defer file.Close()
 
-	uploadFile := &model.UploadFileRequest{
+	uploadFile := &dto.UploadFileRequest{
 		FileHeader: fileHeader,
 		File:       file,
 		Folder:     "pengurus",
@@ -152,7 +153,7 @@ func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 		})
 		return
 	}
-	resp := model.PengurusResponse{
+	resp := dto.PengurusResponse{
 		ID:       pengurus.ID,
 		PhotoURL: pengurus.PhotoURL,
 		Email:    pengurus.Email,
@@ -182,9 +183,9 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 		return
 	}
 
-	pengurusDataResponse := make([]model.PengurusPublicResponse, 0, len(pengurusList))
+	pengurusDataResponse := make([]dto.PengurusPublicResponse, 0, len(pengurusList))
 	for _, p := range pengurusList {
-		pengurusDataResponse = append(pengurusDataResponse, model.PengurusPublicResponse{
+		pengurusDataResponse = append(pengurusDataResponse, dto.PengurusPublicResponse{
 			ID:       p.ID,
 			PhotoURL: p.PhotoURL,
 			Divisi:   p.Divisi,
@@ -250,14 +251,14 @@ func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
-	var patch model.PengurusPatch
+	var patch dto.PengurusPatch
 	if err := c.ShouldBind(&patch); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind data, please use form-data for updates"})
 		return
 	}
 
 	fileheader, err := c.FormFile("file")
-	var fileUpload *model.UploadFileRequest
+	var fileUpload *dto.UploadFileRequest
 	if err == nil {
 		file, err := fileheader.Open()
 		if err != nil {
@@ -269,7 +270,7 @@ func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 		defer file.Close()
 
 		// file request to upload to MinIO
-		fileUpload = &model.UploadFileRequest{
+		fileUpload = &dto.UploadFileRequest{
 			FileHeader: fileheader,
 			File:       file,
 			Folder:     "pengurus",

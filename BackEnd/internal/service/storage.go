@@ -14,7 +14,8 @@ import (
 	"time"
 
 	"web_doscom/internal/config"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/database/model/entity"
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
@@ -24,10 +25,10 @@ import (
 
 type StorageService struct {
 	minioClient *config.MinioClient
-	fileUpload  *model.FileUploadModel
+	fileUpload  *entity.FileUploadModel
 }
 
-func NewStorageService(minioClient *config.MinioClient, fileUploadModel *model.FileUploadModel) *StorageService {
+func NewStorageService(minioClient *config.MinioClient, fileUploadModel *entity.FileUploadModel) *StorageService {
 	return &StorageService{
 		minioClient: minioClient,
 		fileUpload:  fileUploadModel,
@@ -102,7 +103,7 @@ func (s *StorageService) UploadFile(
 	file multipart.File,
 	fileHeader *multipart.FileHeader,
 	folder string,
-) (*model.FileUpload, error) {
+) (*entity.FileUpload, error) {
 	log.Printf("[Storage] Starting upload for file: %s", fileHeader.Filename)
 
 	// Validate file
@@ -156,7 +157,7 @@ func (s *StorageService) UploadFile(
 	log.Printf("[Storage] Upload complete for %s. URL: %s", fileHeader.Filename, fileURL)
 
 	// return metadata to be saved in database
-	fileUpload := &model.FileUpload{
+	fileUpload := &entity.FileUpload{
 		Category:         folder,
 		OriginalFilename: fileHeader.Filename,
 		StoredFilename:   storedFilename,
@@ -168,14 +169,14 @@ func (s *StorageService) UploadFile(
 	return fileUpload, nil
 }
 
-func (s *StorageService) UploadFileAndCreateMetadata(ctx context.Context, request *model.UploadFileRequest) (string, int, error) {
+func (s *StorageService) UploadFileAndCreateMetadata(ctx context.Context, request *dto.UploadFileRequest) (string, int, error) {
 	// upload file to minIO
 	fileURL, err := s.UploadFile(ctx, request.File, request.FileHeader, request.Folder)
 	if err != nil {
 		return "", 0, err
 	}
 
-	uploadedFile := &model.FileUpload{
+	uploadedFile := &entity.FileUpload{
 		UserID:           request.UserID,
 		Category:         fileURL.Category,
 		OriginalFilename: fileURL.OriginalFilename,
@@ -225,7 +226,7 @@ func (s *StorageService) UploadFileAndCreateMetadataMultiple(
 		defer fileContent.Close()
 	}
 
-	result := make([]*model.FileUpload, len(files))
+	result := make([]*entity.FileUpload, len(files))
 	eg, gCtx := errgroup.WithContext(ctx)
 	// upload file to minIO
 	for i, fileHeader := range files {
@@ -319,7 +320,7 @@ func (s *StorageService) DeleteFileMultiple(ctx context.Context, filenames []str
 func (s *StorageService) UpdateFile(
 	ctx context.Context,
 	oldfilename string,
-	request *model.UploadFileRequest,
+	request *dto.UploadFileRequest,
 ) (string, error) {
 	// remove old file first
 	err := s.DeleteFile(ctx, oldfilename)
@@ -417,13 +418,13 @@ func (s *StorageService) DownloadFile(ctx context.Context, filename string) (io.
 }
 
 // wrapper to model FileUpload
-func (s *StorageService) GetFileUploadByID(id int) (*model.FileUpload, error) {
+func (s *StorageService) GetFileUploadByID(id int) (*entity.FileUpload, error) {
 	return s.fileUpload.GetByID(uint(id))
 }
 
-func (s *StorageService) GetFileUploadByIDMultiple(ctx context.Context, ids []int) ([]model.FileUploadResponse, error) {
+func (s *StorageService) GetFileUploadByIDMultiple(ctx context.Context, ids []int) ([]dto.FileUploadResponse, error) {
 	if len(ids) == 0 {
-		return []model.FileUploadResponse{}, fmt.Errorf("ids is required, not empty, if empty what should i get")
+		return []dto.FileUploadResponse{}, fmt.Errorf("ids is required, not empty, if empty what should i get")
 	}
 
 	return s.fileUpload.GetByIDMultiple(ctx, ids)

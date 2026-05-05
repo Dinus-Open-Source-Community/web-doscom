@@ -26,10 +26,6 @@ func Routes(app *config.Application) http.Handler {
 		userService := service.NewUserService(&app.Model.Users)
 		userHandler := handler.NewUserHandler(userService)
 
-		// work
-		workService := service.NewWorkService(&app.Model.Works, &app.Model.Gallery, &app.Model.Pengurus)
-		workHandler := handler.NewWorkHandler(workService)
-
 		// Initialize storage service if MinIO is available
 		var storageService *service.StorageService
 		if app.MinioClient != nil {
@@ -49,6 +45,14 @@ func Routes(app *config.Application) http.Handler {
 		galleryService := service.NewGalleryService(&app.Model.Gallery, storageService)
 		galleryHandler := handler.NewUploadHandler(galleryService, storageService)
 
+		// work
+		workService := service.NewWorkService(
+			&app.Model.Works,
+			galleryService,
+			&app.Model.Pengurus,
+			&app.Model.WorkGallery,
+		)
+		workHandler := handler.NewWorkHandler(workService)
 		// pengurus
 		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
 		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)

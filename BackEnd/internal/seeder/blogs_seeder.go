@@ -3,8 +3,7 @@ package seeder
 import (
 	"log"
 	"time"
-
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/entity"
 
 	"github.com/lib/pq"
 	"gorm.io/gorm"
@@ -13,7 +12,7 @@ import (
 func SeedBlogs(db *gorm.DB) {
 	now := time.Now()
 
-	blogList := []model.Blog{
+	blogList := []entity.Blog{
 		{
 			AuthorID:     1,
 			Title:        "Pengenalan Open Source",
@@ -41,7 +40,7 @@ func SeedBlogs(db *gorm.DB) {
 	}
 
 	for _, b := range blogList {
-		var existing model.Blog
+		var existing entity.Blog
 
 		err := db.Where("slug = ?", b.Slug).First(&existing).Error
 		if err == gorm.ErrRecordNotFound {

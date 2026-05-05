@@ -1,1 +1,2 @@
 DROP TABLE IF EXISTS work;
+DROP TYPE IF EXISTS work_status;

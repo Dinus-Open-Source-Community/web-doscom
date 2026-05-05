@@ -3,8 +3,7 @@ package seeder
 import (
 	"log"
 	"time"
-
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/entity"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +11,7 @@ import (
 func SeedWorks(db *gorm.DB) {
 	now := time.Now()
 
-	workList := []model.Work{
+	workList := []entity.Work{
 		{
 			PengurusID:   2,
 			Title:        "Website Profil Doscom",
@@ -29,7 +28,7 @@ func SeedWorks(db *gorm.DB) {
 	}
 
 	for _, w := range workList {
-		db.FirstOrCreate(&w, model.Work{Slug: w.Slug})
+		db.FirstOrCreate(&w, entity.Work{Slug: w.Slug})
 	}
 
 	log.Println("Seed table 'work' completed.")

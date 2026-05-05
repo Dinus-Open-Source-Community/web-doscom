@@ -25,36 +25,6 @@ var workRoleStatusGroup = map[string]workStatusGroup{
 	constants.RoleKeySuperAdmin:   statusAll,
 }
 
-var workGroupAllowedStatus = map[workStatusGroup]map[string]struct{}{
-	statusEditable: {
-		constants.StatusDraft:   {},
-		constants.StatusPending: {},
-	},
-
-	// untuk user validasi
-	statusModerated: {
-		constants.StatusPublished: {},
-		constants.StatusScheduled: {},
-		constants.StatusUnpublish: {},
-		constants.StatusRejected:  {},
-	},
-
-	statusAll: {
-		constants.StatusDraft:     {},
-		constants.StatusPending:   {},
-		constants.StatusPublished: {},
-		constants.StatusScheduled: {},
-		constants.StatusUnpublish: {},
-		constants.StatusRejected:  {},
-	},
-}
-
-var workStatusDefault = map[workStatusGroup]string{
-	statusEditable:  constants.StatusDraft,
-	statusModerated: constants.StatusPending,
-	statusAll:       constants.StatusPending,
-}
-
 var workStatusToGroup = map[string]workStatusGroup{
 	constants.StatusDraft:     statusEditable,
 	constants.StatusPending:   statusEditable,
@@ -62,6 +32,46 @@ var workStatusToGroup = map[string]workStatusGroup{
 	constants.StatusScheduled: statusModerated,
 	constants.StatusUnpublish: statusModerated,
 	constants.StatusRejected:  statusModerated,
+}
+
+var workGroupAllowedStatus = map[workStatusGroup]map[string]struct{}{}
+var workGroupViewStatus = map[workStatusGroup]map[string]struct{}{}
+
+func copyMap(oldMap map[string]struct{}) map[string]struct{} {
+	newMap := make(map[string]struct{}, len(oldMap))
+
+	for key, value := range oldMap {
+		newMap[key] = value
+	}
+
+	return newMap
+}
+
+func init() {
+	workGroupAllowedStatus = map[workStatusGroup]map[string]struct{}{
+		statusEditable:  {},
+		statusModerated: {},
+		statusAll:       {},
+	}
+
+	for status, group := range workStatusToGroup {
+		workGroupAllowedStatus[group][status] = struct{}{}
+		workGroupAllowedStatus[statusAll][status] = struct{}{}
+	}
+
+	workGroupViewStatus = map[workStatusGroup]map[string]struct{}{
+		statusEditable:  workGroupAllowedStatus[statusEditable],
+		statusModerated: copyMap(workGroupAllowedStatus[statusModerated]),
+		statusAll:       workGroupAllowedStatus[statusAll],
+	}
+	delete(workGroupViewStatus[statusModerated], constants.StatusDraft)
+
+}
+
+var workStatusDefault = map[workStatusGroup]string{
+	statusEditable:  constants.StatusDraft,
+	statusModerated: constants.StatusPending,
+	statusAll:       constants.StatusPending,
 }
 
 func getRoleGroup(userRole string) (workStatusGroup, bool) {
@@ -136,4 +146,28 @@ func CanDeleteWork(userRole, status string) (bool, error) {
 		return true, nil
 	}
 	return false, fmt.Errorf("denied: role %s cannot delete work with status %s", userRole, status)
+}
+
+func GetViewableStatus(userRole string) ([]string, error) {
+	_, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return nil, fmt.Errorf("invalid userRole")
+	}
+
+	group, ok := getRoleGroup(userRole)
+	if !ok {
+		return nil, fmt.Errorf("permissions denied for this role %s", userRole)
+	}
+
+	viewStatus, ok := workGroupViewStatus[group]
+	if !ok {
+		return nil, fmt.Errorf("tidak ada status untuk role ini")
+	}
+
+	resultStatus := make([]string, 0, len(viewStatus))
+	for status := range viewStatus {
+		resultStatus = append(resultStatus, status)
+	}
+
+	return resultStatus, nil
 }
