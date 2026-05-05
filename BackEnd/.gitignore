@@ -26,6 +26,7 @@ package.json
 # Docker / Air / OS
 # --------------------------
 .DS_Store
+database.sql
 
 # --------------------------
 # Go / bin
