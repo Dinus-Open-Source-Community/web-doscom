@@ -8,9 +8,10 @@ import (
 
 	"web_doscom/internal/authorization"
 	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
+
+	// "web_doscom/internal/database/model"
 	"web_doscom/internal/service"
-	"web_doscom/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,7 +39,7 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 		return
 	}
 
-	var work model.CreateRequestWork
+	var work dto.CreateRequestWork
 	if err := c.ShouldBindJSON(&work); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   err.Error(),
@@ -78,7 +79,7 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 	})
 }
 
-func (h *WorkHandler) GetAllWorksOrByFilterTechnologies(c *gin.Context) {
+func (h *WorkHandler) GetAllWorks(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -110,6 +111,52 @@ func (h *WorkHandler) GetAllWorksOrByFilterTechnologies(c *gin.Context) {
 	})
 }
 
+func (h *WorkHandler) GetAllWorksByDivision(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset := (page - 1) * limit
+
+	if err := authorization.CheckRolePermission(
+		userRole,
+		constants.RoleAdmin,
+		constants.RoleKoordinator,
+	); err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "role is not allowed to access this resource",
+		})
+		return
+	}
+
+	worksResponseData, totalData, err := h.Service.GetWorksByDivision(
+		ctx,
+		userRole,
+		limit,
+		offset,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "Failed to fetch data, something went wrong",
+		})
+		return
+	}
+
+	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+	currentPage := (offset / limit) * 1
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":     "Success fetching all works",
+		"worksData":   worksResponseData,
+		"totalPage":   totalPage,
+		"currentPage": currentPage,
+	})
+
+}
+
 func (h *WorkHandler) GetWorkByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	id, err := strconv.Atoi(c.Param("id"))
@@ -135,7 +182,7 @@ func (h *WorkHandler) GetWorkByID(c *gin.Context) {
 	})
 }
 
-func (h *WorkHandler) UpdateWorkByID(c *gin.Context) {
+func (h *WorkHandler) UpdateWork(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
 	if err := authorization.CheckRolePermission(
@@ -158,7 +205,7 @@ func (h *WorkHandler) UpdateWorkByID(c *gin.Context) {
 		return
 	}
 
-	var workDataToUpdate model.WorkPatch
+	var workDataToUpdate dto.WorkPatch
 	if err := c.ShouldBindJSON(&workDataToUpdate); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   err.Error(),

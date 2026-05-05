@@ -1,14 +1,13 @@
 package handler
 
 import (
-	"fmt"
 	"math"
 	"mime/multipart"
 	"net/http"
 	"strconv"
 
-	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
+	blogAuthorization "web_doscom/internal/authorization/blog"
+	"web_doscom/internal/database/model/dto"
 	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -20,25 +19,6 @@ type BlogHandler struct {
 
 func NewBlogHandler(m *service.BlogService) *BlogHandler {
 	return &BlogHandler{Service: m}
-}
-
-func (h *BlogHandler) checkRolePermission(userRole string) error {
-
-	_, err := constants.GetRoleInfo(userRole)
-	if err != nil {
-		return fmt.Errorf("role not valid %w", err)
-	}
-
-	allowedRole := map[string]bool{
-		constants.RoleKeySuperAdmin:  true,
-		constants.RoleKeyKoorMedcrev: true,
-	}
-
-	if !allowedRole[userRole] {
-		return fmt.Errorf("role have no permission")
-	}
-
-	return nil
 }
 
 // CreateBlog godoc
@@ -66,7 +46,7 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 	user_role := c.MustGet("role").(string)
 	userID := c.MustGet("user_id").(int)
 
-	if err := h.checkRolePermission(user_role); err != nil {
+	if err := blogAuthorization.CheckRolePermission(user_role); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
 			"message": "forbiddennnnn",
@@ -74,7 +54,7 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 		return
 	}
 
-	var input model.CreateRequestBlog
+	var input dto.CreateRequestBlog
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -90,7 +70,7 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 
 	files := form.File["files"]
 
-	blogInput := &model.BlogPayload{
+	blogInput := &dto.BlogPayload{
 		AuthorID:    userID,
 		Content:     input.Content,
 		ExistingID:  input.ExistingID,
@@ -102,7 +82,7 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 	}
 
 	// service insert blog
-	blogResponse, err := h.Service.CreateBlogImage(
+	blogResponse, err := h.Service.CreateBlog(
 		ctx,
 		blogInput,
 		files,
@@ -209,7 +189,7 @@ func (h *BlogHandler) GetBlogByID(c *gin.Context) {
 func (h *BlogHandler) Update(c *gin.Context) {
 	userID := c.MustGet("user_id").(int)
 	userRole := c.MustGet("role").(string)
-	if err := h.checkRolePermission(userRole); err != nil {
+	if err := blogAuthorization.CheckRolePermission(userRole); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
 			"message": "forbiddennnnn",
@@ -224,7 +204,7 @@ func (h *BlogHandler) Update(c *gin.Context) {
 		return
 	}
 
-	var dataPatch model.BlogPatch
+	var dataPatch dto.BlogPatch
 	if err := c.ShouldBind(&dataPatch); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -243,6 +223,7 @@ func (h *BlogHandler) Update(c *gin.Context) {
 		userID,
 		&dataPatch,
 		files,
+		userRole,
 	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -276,13 +257,13 @@ func (h *BlogHandler) ListByKategori(c *gin.Context) {
 	}
 
 	var (
-		blogs     []model.BlogThumbnail
+		blogs     []dto.BlogThumbnail
 		totalData int
 		err       error
 	)
 
 	if exists {
-		blogs, totalData, err = h.Service.GetBlogByKategori(
+		blogs, totalData, err = h.Service.GetAllBlogOrByKategori(
 			ctx,
 			kategoriArray,
 			limit,
@@ -328,7 +309,7 @@ func (h *BlogHandler) ListBlogs(c *gin.Context) {
 	offset := (page - 1) * limit
 
 	userRole := c.MustGet("role").(string)
-	if err := h.checkRolePermission(userRole); err != nil {
+	if err := blogAuthorization.CheckRolePermission(userRole); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
 			"message": "forbiddennnnn",
@@ -382,7 +363,7 @@ func (h *BlogHandler) ListBlogs(c *gin.Context) {
 func (h *BlogHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
-	if err := h.checkRolePermission(userRole); err != nil {
+	if err := blogAuthorization.CheckRolePermission(userRole); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
 			"message": "forbiddennnnn",

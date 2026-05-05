@@ -7,16 +7,16 @@ import (
 	"math"
 	"mime/multipart"
 	"time"
-
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/database/model/entity"
 )
 
 type GalleryService struct {
-	Model   *model.GalleryModel
+	Model   *entity.GalleryModel
 	Storage *StorageService
 }
 
-func NewGalleryService(m *model.GalleryModel, s *StorageService) *GalleryService {
+func NewGalleryService(m *entity.GalleryModel, s *StorageService) *GalleryService {
 	return &GalleryService{Model: m, Storage: s}
 }
 
@@ -48,9 +48,9 @@ func ParseYearRange(startYear, endYear string) (*time.Time, *time.Time, error) {
 
 func (m *GalleryService) InsertGalleryAndFileUpload(
 	ctx context.Context,
-	gallery *model.GalleryInsert,
-	fileUpload *model.UploadFileRequest,
-) (*model.GalleryResponse, string, error) {
+	gallery *dto.GalleryInsert,
+	fileUpload *dto.UploadFileRequest,
+) (*dto.GalleryResponse, string, error) {
 	// insert file first
 	fileURL, fileUploadID, err := m.Storage.UploadFileAndCreateMetadata(ctx, fileUpload)
 	if err != nil {
@@ -58,7 +58,7 @@ func (m *GalleryService) InsertGalleryAndFileUpload(
 	}
 
 	// insert gallery
-	galleryUpload := &model.Gallery{
+	galleryUpload := &entity.Gallery{
 		IDUsers:      gallery.IDUsers,
 		FileUploadID: fileUploadID,
 		GalleryName:  gallery.GalleryName,
@@ -74,7 +74,7 @@ func (m *GalleryService) InsertGalleryAndFileUpload(
 		return nil, "", err
 	}
 
-	return &model.GalleryResponse{
+	return &dto.GalleryResponse{
 		ID:           galleryResponse.ID,
 		IDUsers:      galleryResponse.IDUsers,
 		FileUploadID: galleryResponse.FileUploadID,
@@ -87,9 +87,9 @@ func (m *GalleryService) InsertGalleryAndFileUpload(
 
 func (m *GalleryService) UploadAndInsertGalleryMultiple(
 	ctx context.Context,
-	gallery *model.GalleryInsert,
-	fileUpload []*model.UploadFileRequest,
-) ([]*model.GalleryResponse, error) {
+	gallery *dto.GalleryInsert,
+	fileUpload []*dto.UploadFileRequest,
+) ([]*dto.GalleryResponse, error) {
 	// Gunakan background context agar upload tidak terputus jika client disconnect prematur
 	uploadCtx := context.Background()
 
@@ -107,9 +107,9 @@ func (m *GalleryService) UploadAndInsertGalleryMultiple(
 		return nil, err
 	}
 
-	galleryUpload := make([]*model.Gallery, len(fileUpload))
+	galleryUpload := make([]*entity.Gallery, len(fileUpload))
 	for i, _ := range fileUpload {
-		galleryUpload[i] = &model.Gallery{
+		galleryUpload[i] = &entity.Gallery{
 			IDUsers:      gallery.IDUsers,
 			FileUploadID: fileUploadID[i],
 			GalleryName:  gallery.GalleryName,
@@ -135,7 +135,7 @@ func (m *GalleryService) GetAllGalleryAndByDate(
 	ctx context.Context,
 	startDate, endDate string,
 	limit, offset int,
-) ([]*model.GalleryResponse, int64, int64, error) {
+) ([]*dto.GalleryResponse, int64, int64, error) {
 
 	var (
 		dateStart, dateEnd *time.Time
@@ -151,7 +151,7 @@ func (m *GalleryService) GetAllGalleryAndByDate(
 		dateEnd = nil
 	}
 
-	var response []*model.GalleryResponse
+	var response []*dto.GalleryResponse
 	galleries, count, err := m.Model.GetAllGalleryAndByYear(
 		ctx,
 		dateStart,
@@ -164,7 +164,7 @@ func (m *GalleryService) GetAllGalleryAndByDate(
 	}
 
 	for _, data := range galleries {
-		response = append(response, &model.GalleryResponse{
+		response = append(response, &dto.GalleryResponse{
 			ID:          data.ID,
 			GalleryName: data.GalleryName,
 			GalleryType: data.GalleryType,

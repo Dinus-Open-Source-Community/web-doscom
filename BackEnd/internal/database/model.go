@@ -1,33 +1,34 @@
 package database
 
 import (
-	"web_doscom/internal/database/model"
+	// "web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/entity"
 
 	"gorm.io/gorm"
 )
 
 type Models struct {
-	Users        model.UserModel
-	Works        model.WorkModel
-	WorkGallery  model.WorkGalleryModel
-	Blogs        model.BlogModel
-	BlogGallery  model.BlogGalleryModel
-	Gallery      model.GalleryModel
-	Pengurus     model.PengurusModel
-	FileUploads  model.FileUploadModel
-	RefreshToken model.RefreshTokenModel
+	Users        entity.UserModel
+	Works        entity.WorkModel
+	WorkGallery  entity.WorkGalleryModel
+	Blogs        entity.BlogModel
+	BlogGallery  entity.BlogGalleryModel
+	Gallery      entity.GalleryModel
+	Pengurus     entity.PengurusModel
+	FileUploads  entity.FileUploadModel
+	RefreshToken entity.RefreshTokenModel
 }
 
 func NewModel(db *gorm.DB) Models {
 	return Models{
-		Users:       model.UserModel{DB: db},
-		Works:       model.WorkModel{DB: db},
-		Blogs:       model.BlogModel{DB: db},
-		BlogGallery: model.BlogGalleryModel{DB: db},
-		Gallery:     model.GalleryModel{DB: db},
-		Pengurus:    model.PengurusModel{DB: db},
-		FileUploads: model.FileUploadModel{DB: db},
-		RefreshToken: model.RefreshTokenModel{
+		Users:       entity.UserModel{DB: db},
+		Works:       entity.WorkModel{DB: db},
+		Blogs:       entity.BlogModel{DB: db},
+		BlogGallery: entity.BlogGalleryModel{DB: db},
+		Gallery:     entity.GalleryModel{DB: db},
+		Pengurus:    entity.PengurusModel{DB: db},
+		FileUploads: entity.FileUploadModel{DB: db},
+		RefreshToken: entity.RefreshTokenModel{
 			DB: db,
 		},
 	}

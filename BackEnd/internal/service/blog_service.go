@@ -9,7 +9,8 @@ import (
 	"web_doscom/internal/authorization"
 	blogAuthorization "web_doscom/internal/authorization/blog"
 	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/database/model/entity"
 	"web_doscom/internal/utils"
 
 	"github.com/lib/pq"
@@ -18,12 +19,12 @@ import (
 
 type BlogService struct {
 	DB             *gorm.DB
-	BlogModel      *model.BlogModel
-	BlogGallery    *model.BlogGalleryModel
+	BlogModel      *entity.BlogModel
+	BlogGallery    *entity.BlogGalleryModel
 	GalleryService *GalleryService
 }
 
-func NewBlogService(db *gorm.DB, n *model.BlogModel, m *model.BlogGalleryModel, g *GalleryService) *BlogService {
+func NewBlogService(db *gorm.DB, n *entity.BlogModel, m *entity.BlogGalleryModel, g *GalleryService) *BlogService {
 	return &BlogService{
 		DB:             db,
 		BlogModel:      n,
@@ -35,8 +36,8 @@ func NewBlogService(db *gorm.DB, n *model.BlogModel, m *model.BlogGalleryModel, 
 func (m *BlogService) ProcessBlogGalleries(
 	ctx context.Context,
 	newImages []*multipart.FileHeader,
-	blogDetail *model.BlogPayload,
-) ([]*model.GalleryResponse, []int, error) {
+	blogDetail *dto.BlogPayload,
+) ([]*dto.GalleryResponse, []int, error) {
 
 	var allGalleryIDS []int
 	if len(blogDetail.ExistingID) > 0 {
@@ -76,7 +77,7 @@ func (m *BlogService) ProcessBlogGalleries(
 
 	now := time.Now()
 	galleryName := "foto untuk blog dengan judul " + blogDetail.Title
-	galleryData := &model.GalleryInsert{
+	galleryData := &dto.GalleryInsert{
 		IDUsers:     blogDetail.AuthorID,
 		GalleryName: galleryName,
 		GalleryType: "blog",
@@ -88,14 +89,14 @@ func (m *BlogService) ProcessBlogGalleries(
 		),
 	}
 
-	fileUpload := make([]*model.UploadFileRequest, len(newImages))
+	fileUpload := make([]*dto.UploadFileRequest, len(newImages))
 	for i, file := range newImages {
 		fileContent, err := file.Open()
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to open file")
 		}
 
-		fileUpload[i] = &model.UploadFileRequest{
+		fileUpload[i] = &dto.UploadFileRequest{
 			FileHeader: file,
 			File:       fileContent,
 			Folder:     "blog",
@@ -109,7 +110,7 @@ func (m *BlogService) ProcessBlogGalleries(
 		}
 	}()
 
-	var newGalleryDataResponse []*model.GalleryResponse
+	var newGalleryDataResponse []*dto.GalleryResponse
 	if len(newImages) > 0 {
 		var err error
 		newGalleryDataResponse, err = m.GalleryService.UploadAndInsertGalleryMultiple(
@@ -128,12 +129,12 @@ func (m *BlogService) ProcessBlogGalleries(
 	return newGalleryDataResponse, allGalleryIDS, nil
 }
 
-func (m *BlogService) CreateBlogImage(
+func (m *BlogService) CreateBlog(
 	ctx context.Context,
-	blogDetail *model.BlogPayload,
+	blogDetail *dto.BlogPayload,
 	newImages []*multipart.FileHeader,
 	userRole string,
-) (*model.BlogResponse, error) {
+) (*dto.BlogResponse, error) {
 
 	if err := authorization.CheckRolePermission(
 		userRole,
@@ -168,7 +169,7 @@ func (m *BlogService) CreateBlogImage(
 		newGalleryIDS = append(newGalleryIDS, idGallery.ID)
 	}
 
-	var blogDataResponse model.BlogResponse
+	var blogDataResponse dto.BlogResponse
 	err = m.DB.Transaction(func(tx *gorm.DB) error {
 
 		var txFailed bool
@@ -187,7 +188,7 @@ func (m *BlogService) CreateBlogImage(
 			thumbnailURL = newGalleryDataResponse[0].FileURL
 		}
 
-		blog := &model.Blog{
+		blog := &entity.Blog{
 			AuthorID:     blogDetail.AuthorID,
 			Title:        blogDetail.Title,
 			Slug:         blogDetail.Slug,
@@ -204,26 +205,26 @@ func (m *BlogService) CreateBlogImage(
 			return fmt.Errorf("failed to insert blog %w", err)
 		}
 
-		blogGallery := make([]*model.BlogGallery, len(allGalleryIDS))
+		blogGallery := make([]*entity.BlogGallery, len(allGalleryIDS))
 		for i, id := range blogDetail.ExistingID {
 			if id == nil {
 				txFailed = true
 				return fmt.Errorf("gallery id is nil/empty, issue on backend side")
 			}
-			blogGallery[i] = &model.BlogGallery{
+			blogGallery[i] = &entity.BlogGallery{
 				BlogID:    blog.ID,
 				GalleryID: *id,
 			}
 		}
 
-		blogGalleryResponse, err := modelBlogGallery.InsertBlogGalleryMultiple(blogGallery)
+		blogGalleryResponse, err := modelBlogGallery.InsertBlogGalleryMultiple(ctx, blogGallery)
 		if err != nil {
 			txFailed = true
 			log.Printf("Failed to insert blog gallery %v: %v", blogGallery, err)
 			return fmt.Errorf("failed to insert blog gallery %w", err)
 		}
 
-		blogDataResponse = model.BlogResponse{
+		blogDataResponse = dto.BlogResponse{
 			ID:           blog.ID,
 			AuthorID:     blog.AuthorID,
 			Title:        blog.Title,
@@ -245,7 +246,7 @@ func (m *BlogService) CreateBlogImage(
 	return &blogDataResponse, nil
 }
 
-func (m *BlogService) GetAllBlogsForAdmin(ctx context.Context, kategori []string, offset, limit int) ([]model.BlogThumbnail, int, error) {
+func (m *BlogService) GetAllBlogsForAdmin(ctx context.Context, kategori []string, offset, limit int) ([]dto.BlogThumbnail, int, error) {
 	// validasi kategory max 3
 	if len(kategori) > 3 {
 		return nil, 0, fmt.Errorf("max filter is 3 kategori")
@@ -258,7 +259,7 @@ func (m *BlogService) GetAllBlogsForAdmin(ctx context.Context, kategori []string
 	return blogs, int(totalData), nil
 }
 
-func (m *BlogService) GetAllBlogs(ctx context.Context, page, limit int) ([]model.BlogThumbnail, int, error) {
+func (m *BlogService) GetAllBlogs(ctx context.Context, page, limit int) ([]dto.BlogThumbnail, int, error) {
 
 	offset := (page - 1) * limit
 
@@ -270,7 +271,7 @@ func (m *BlogService) GetAllBlogs(ctx context.Context, page, limit int) ([]model
 	return blogs, totalData, nil
 }
 
-func (m *BlogService) GetBlogByID(id int) (*model.BlogResponse, error) {
+func (m *BlogService) GetBlogByID(id int) (*dto.BlogResponse, error) {
 
 	// get blog by id
 	blog, err := m.BlogModel.GetBlogById(id)
@@ -284,10 +285,10 @@ func (m *BlogService) GetBlogByID(id int) (*model.BlogResponse, error) {
 func (m *BlogService) UpdateBlog(
 	ctx context.Context,
 	idBlog, authorID int,
-	blogDetail *model.BlogPatch,
+	blogDetail *dto.BlogPatch,
 	newImages []*multipart.FileHeader,
 	userRole string,
-) (*model.BlogResponse, error) {
+) (*dto.BlogResponse, error) {
 
 	_, err := m.BlogModel.GetBlogById(idBlog)
 	if err != nil {
@@ -307,13 +308,13 @@ func (m *BlogService) UpdateBlog(
 		return nil, fmt.Errorf("failed to set status %w", err)
 	}
 	var (
-		newGalleryDataResponse []*model.GalleryResponse
+		newGalleryDataResponse []*dto.GalleryResponse
 		allGalleryIDS          []int
 	)
 
 	galleryTouch := len(newImages) != 0 || len(blogDetail.ExistingID) != 0
 	if galleryTouch {
-		blogUpdate := &model.BlogPayload{
+		blogUpdate := &dto.BlogPayload{
 			AuthorID:    authorID,
 			Content:     blogDetail.Content,
 			ExistingID:  blogDetail.ExistingID,
@@ -330,7 +331,7 @@ func (m *BlogService) UpdateBlog(
 		)
 	}
 
-	requestData := &model.Blog{
+	requestData := &entity.Blog{
 		AuthorID:  authorID,
 		Title:     blogDetail.Title,
 		Slug:      blogDetail.Slug,
@@ -351,18 +352,25 @@ func (m *BlogService) UpdateBlog(
 	}
 
 	// update blog_gallery -> jika terdapat terdapat perubahan foto
-	var blogGallery []*model.BlogGallery
+	var blogGallery []*dto.BlogGalleryResponse
 	if galleryTouch {
-		blogGallery, err = m.BlogGallery.UpdateBlogGallery(
+		blogGalleryInsert, err := m.BlogGallery.UpdateBlogGallery(
 			allGalleryIDS,
 			blogUpdate.ID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update gallery image %w", err)
 		}
+		for _, data := range blogGalleryInsert {
+			blogGallery = append(blogGallery, &dto.BlogGalleryResponse{
+				ID:        data.ID,
+				BlogID:    data.BlogID,
+				GalleryID: data.GalleryID,
+			})
+		}
 	}
 
-	result := &model.BlogResponse{
+	result := &dto.BlogResponse{
 		ID:           blogUpdate.ID,
 		AuthorID:     blogUpdate.AuthorID,
 		Title:        blogUpdate.Title,
@@ -381,10 +389,10 @@ func (m *BlogService) GetAllBlogOrByKategori(
 	ctx context.Context,
 	kategori []string,
 	limit, offset int,
-) ([]model.BlogThumbnail, int, error) {
+) ([]dto.BlogThumbnail, int, error) {
 
 	var (
-		blog      []model.BlogThumbnail
+		blog      []dto.BlogThumbnail
 		totalData int
 		err       error
 	)

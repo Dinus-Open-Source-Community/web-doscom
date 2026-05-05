@@ -4,8 +4,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"web_doscom/internal/authorization"
 	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
 	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,7 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 	userID := c.MustGet("user_id").(int)
 	userRole := c.MustGet("role").(string)
 
-	var input model.CreateGallery
+	var input dto.CreateGallery
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Validation failed: " + err.Error(),
@@ -87,14 +88,14 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 		return
 	}
 
-	galleryData := &model.GalleryInsert{
+	galleryData := &dto.GalleryInsert{
 		IDUsers:     userID,
 		GalleryName: input.GalleryName,
 		GalleryType: input.GalleryType,
 		Description: input.Description,
 		EventDate:   input.EventDate,
 	}
-	fileUploadData := make([]*model.UploadFileRequest, len(files))
+	fileUploadData := make([]*dto.UploadFileRequest, len(files))
 	for i, fileHeader := range files {
 		fileContent, err := fileHeader.Open()
 		if err != nil {
@@ -106,7 +107,7 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 		}
 		defer fileContent.Close()
 
-		fileUploadData[i] = &model.UploadFileRequest{
+		fileUploadData[i] = &dto.UploadFileRequest{
 			FileHeader: fileHeader,
 			File:       fileContent,
 			Folder:     "gallery",
@@ -192,7 +193,7 @@ func (m *GalleryHandler) GetAllGalleryAndByYear(c *gin.Context) {
 func (m *GalleryHandler) DeleteGallery(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
-	_, err := constants.GetRoleInfo(userRole)
+	_, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),

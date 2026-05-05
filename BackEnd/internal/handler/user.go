@@ -4,8 +4,11 @@ import (
 	"net/http"
 	"strconv"
 	"web_doscom/internal/auth"
+	"web_doscom/internal/authorization"
 	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
+
+	// "web_doscom/internal/database/model"
 	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +26,7 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 	// get the user role
 	creatorRole := c.MustGet("role").(string)
 
-	validRole, err := constants.GetRoleInfo(creatorRole)
+	validRole, err := authorization.GetRoleInfo(creatorRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "Role not valid, who are u??",
@@ -38,7 +41,7 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	var input model.RegisterRequest
+	var input dto.RegisterRequest
 	// get the req body
 	if c.ShouldBind(&input) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -83,7 +86,7 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 	creatorRole := c.MustGet("role").(string)
 
-	validRole, err := constants.GetRoleInfo(creatorRole)
+	validRole, err := authorization.GetRoleInfo(creatorRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
@@ -99,7 +102,7 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 		return
 	}
 
-	var input model.RegisterRequest
+	var input dto.RegisterRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read req body",
@@ -125,7 +128,7 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 
 	passwordHash := auth.HashPassword(input.Password)
 
-	user := model.RegisterRequest{
+	user := dto.RegisterRequest{
 		Username: input.Fullname,
 		Email:    input.Email,
 		Password: passwordHash,
@@ -147,7 +150,7 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 
 func (m *UserHandler) GetUser(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
-	validRole, err := constants.GetRoleInfo(userRole)
+	validRole, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
@@ -179,7 +182,7 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 		})
 	}
 
-	userData := model.UserResponse{
+	userData := dto.UserResponse{
 		Id:        int(user.ID),
 		Username:  user.Username,
 		Email:     user.Email,
@@ -196,7 +199,7 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 func (m *UserHandler) GetAllUserBasedOnRole(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
 
-	validRole, error := constants.GetRoleInfo(userRole)
+	validRole, error := authorization.GetRoleInfo(userRole)
 	if error != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": error.Error(),
@@ -229,7 +232,7 @@ func (m *UserHandler) GetAllUserBasedOnRole(c *gin.Context) {
 
 func (m *UserHandler) UpdateUser(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
-	_, err := constants.GetRoleInfo(userRole)
+	_, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
@@ -245,7 +248,7 @@ func (m *UserHandler) UpdateUser(c *gin.Context) {
 		})
 	}
 
-	var userUpdateData model.UserPatch
+	var userUpdateData dto.UserPatch
 	if err := c.ShouldBindJSON(&userUpdateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read req body",
@@ -272,7 +275,7 @@ func (m *UserHandler) UpdateUser(c *gin.Context) {
 
 func (m *UserHandler) DeleteUser(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
-	validRole, err := constants.GetRoleInfo(userRole)
+	validRole, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
