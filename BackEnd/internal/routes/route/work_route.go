@@ -15,7 +15,7 @@ func RegisterWorkRoutes(rg *gin.RouterGroup, workHandler *handler.WorkHandler) {
 	{
 		publickRoutes.GET("", workHandler.CreateWork)
 		publickRoutes.GET(
-			"/:projecttype", workHandler.GetAllWorksOrByFilterTechnologies,
+			"/:projecttype", workHandler.GetAllWorks,
 		)
 	}
 
@@ -29,8 +29,8 @@ func RegisterWorkRoutes(rg *gin.RouterGroup, workHandler *handler.WorkHandler) {
 	{
 		privateRoutes.POST("", workHandler.CreateWork)
 		privateRoutes.GET("/:id", workHandler.GetWorkByID)
-		privateRoutes.GET("", workHandler.List)
-		privateRoutes.PUT("/:id", workHandler.Update)
+		privateRoutes.GET("", workHandler.GetAllWorksByDivision)
+		privateRoutes.PUT("/:id", workHandler.UpdateWork)
 		privateRoutes.DELETE("/:id", workHandler.Delete)
 	}
 

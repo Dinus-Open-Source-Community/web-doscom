@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"web_doscom/internal/auth"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/entity"
 
 	"gorm.io/gorm"
 )
@@ -15,7 +15,7 @@ func SeedUsers(db *gorm.DB) {
 
 	passwordHash := auth.HashPassword("password123")
 
-	users := []model.User{
+	users := []entity.User{
 		{
 			Username:  "superadmin",
 			Email:     "superadmin@doscom.org",
@@ -46,8 +46,8 @@ func SeedUsers(db *gorm.DB) {
 	}
 
 	for _, user := range users {
-		db.Where(model.User{Email: user.Email}).
-			Or(model.User{Username: user.Username}).
+		db.Where(entity.User{Email: user.Email}).
+			Or(entity.User{Username: user.Username}).
 			FirstOrCreate(&user)
 	}
 

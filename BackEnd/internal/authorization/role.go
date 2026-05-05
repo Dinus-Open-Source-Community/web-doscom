@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
 	"web_doscom/internal/utils"
 )
 
@@ -58,7 +58,7 @@ func SetDivitionAndPositionByRole(position, requestedDivisi, userRole string) (s
 	return divisi, position, nil
 }
 
-func FilterRoleFieldPermission(userRole string, data *model.PengurusPatch) (map[string]any, error) {
+func FilterRoleFieldPermission(userRole string, data *dto.PengurusPatch) (map[string]any, error) {
 	role, ok := constants.RoleGroup[userRole]
 	if !ok {
 		return nil, fmt.Errorf("invalid user role")

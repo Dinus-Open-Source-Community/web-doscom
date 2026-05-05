@@ -3,14 +3,13 @@ package seeder
 import (
 	"log"
 	"time"
-
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/entity"
 
 	"gorm.io/gorm"
 )
 
 func SeedGallery(db *gorm.DB) {
-	galleryList := []model.Gallery{
+	galleryList := []entity.Gallery{
 		{
 			IDUsers:      1,
 			FileUploadID: 1,
@@ -36,7 +35,7 @@ func SeedGallery(db *gorm.DB) {
 	}
 
 	for _, g := range galleryList {
-		db.FirstOrCreate(&g, model.Gallery{GalleryName: g.GalleryName})
+		db.FirstOrCreate(&g, entity.Gallery{GalleryName: g.GalleryName})
 	}
 
 	log.Println("Seed table 'gallery' completed.")
