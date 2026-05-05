@@ -93,3 +93,22 @@ func CanSetStatusBlog(userRole, status string) (string, error) {
 
 	return "", fmt.Errorf("permissions denied for this role %s", userRole)
 }
+
+func CheckRolePermission(userRole string) error {
+
+	_, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return fmt.Errorf("role not valid %w", err)
+	}
+
+	allowedRole := map[string]bool{
+		constants.RoleKeySuperAdmin:  true,
+		constants.RoleKeyKoorMedcrev: true,
+	}
+
+	if !allowedRole[userRole] {
+		return fmt.Errorf("role have no permission")
+	}
+
+	return nil
+}

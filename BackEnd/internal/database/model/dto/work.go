@@ -16,6 +16,7 @@ type CreateRequestWork struct {
 	Technologies []string  `form:"technologies[]" binding:"required"`
 	ProjectDate  time.Time `form:"project_date" binding:"required"`
 	Status       string    `form:"status" binding:"required"`
+	Division     string    `form:"division"`
 }
 
 type WorkResponseClient struct {

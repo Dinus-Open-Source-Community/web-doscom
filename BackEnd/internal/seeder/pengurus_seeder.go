@@ -3,8 +3,7 @@ package seeder
 import (
 	"log"
 	"time"
-
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/entity"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +11,7 @@ import (
 func SeedPengurus(db *gorm.DB) {
 	now := time.Now()
 
-	pengurusList := []model.Pengurus{
+	pengurusList := []entity.Pengurus{
 		{
 			UserID:    1,
 			PhotoURL:  "https://dummyimage.com/200x200/000/fff&text=SuperAdmin",
@@ -52,7 +51,7 @@ func SeedPengurus(db *gorm.DB) {
 	}
 
 	for _, p := range pengurusList {
-		var existing model.Pengurus
+		var existing entity.Pengurus
 
 		err := db.Where("email = ?", p.Email).
 			Or("id_user = ?", p.UserID).

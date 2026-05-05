@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 	env "web_doscom/internal/config"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/entity"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/gin-gonic/gin"
@@ -17,11 +17,11 @@ import (
 )
 
 type AuthService struct {
-	Model        *model.UserModel
-	RefreshToken *model.RefreshTokenModel
+	Model        *entity.UserModel
+	RefreshToken *entity.RefreshTokenModel
 }
 
-func NewAuthService(u *model.UserModel, m *model.RefreshTokenModel) *AuthService {
+func NewAuthService(u *entity.UserModel, m *entity.RefreshTokenModel) *AuthService {
 	return &AuthService{Model: u, RefreshToken: m}
 }
 
@@ -132,7 +132,7 @@ func generateSecureToken() (string, error) {
 	return base64.StdEncoding.EncodeToString(bytes), nil
 }
 
-func generateRefreshToken(userId int) (*model.RefreshToken, string, error) {
+func generateRefreshToken(userId int) (*entity.RefreshToken, string, error) {
 	tokenString, err := generateSecureToken()
 	if err != nil {
 		return nil, "", err
@@ -140,7 +140,7 @@ func generateRefreshToken(userId int) (*model.RefreshToken, string, error) {
 	// tokenHash := HashPassword(tokenString)
 	expiredAt := time.Now().Add(5 * 24 * time.Hour)
 
-	refreshToken := &model.RefreshToken{
+	refreshToken := &entity.RefreshToken{
 		UserId:    userId,
 		Token:     tokenString,
 		Expires:   &expiredAt,
@@ -187,15 +187,15 @@ func (h *AuthService) validateRefreshToken(tokenString string) (string, error) {
 }
 
 // wrapper model user
-func (h *AuthService) FindByEmail(email string) (*model.User, error) {
+func (h *AuthService) FindByEmail(email string) (*entity.User, error) {
 	return h.Model.FindByEmail(email)
 }
 
-func (h *AuthService) InsertUser(user *model.User) error {
+func (h *AuthService) InsertUser(user *entity.User) error {
 	return h.Model.InsertUser(user)
 }
 
-// wrapper model refreshToken
-func (h *AuthService) CreateRefreshToken(refreshToken *model.RefreshToken) error {
+// wrapper entity refreshToken
+func (h *AuthService) CreateRefreshToken(refreshToken *entity.RefreshToken) error {
 	return h.RefreshToken.CreateRefreshToken(refreshToken)
 }

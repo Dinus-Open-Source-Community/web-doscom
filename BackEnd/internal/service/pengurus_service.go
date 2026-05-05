@@ -4,19 +4,20 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"web_doscom/internal/authorization"
 	"web_doscom/internal/constants"
-	"web_doscom/internal/database/model"
-	"web_doscom/internal/utils"
+	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/database/model/entity"
 
 	"github.com/mitchellh/mapstructure"
 )
 
 type PengurusService struct {
-	PengurusModel  *model.PengurusModel
+	PengurusModel  *entity.PengurusModel
 	GalleryService *GalleryService
 }
 
-func NewPengurusService(m *model.PengurusModel, g *GalleryService) *PengurusService {
+func NewPengurusService(m *entity.PengurusModel, g *GalleryService) *PengurusService {
 	return &PengurusService{
 		PengurusModel:  m,
 		GalleryService: g,
@@ -65,12 +66,12 @@ func (p *PengurusService) CreatePengurus(
 	ctx context.Context,
 	currentUserID int,
 	userRole string,
-	dataPengurus *model.RegisterPengurusRequest,
-	fileUpload *model.UploadFileRequest,
-) (*model.PengurusResponse, error) {
+	dataPengurus *dto.RegisterPengurusRequest,
+	fileUpload *dto.UploadFileRequest,
+) (*dto.PengurusResponse, error) {
 
 	// auto assign position and divisi
-	divisi, validPosition, err := utils.SetDivitionAndPositionByRole(dataPengurus.Position, dataPengurus.Divisi, userRole)
+	divisi, validPosition, err := authorization.SetDivitionAndPositionByRole(dataPengurus.Position, dataPengurus.Divisi, userRole)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +95,7 @@ func (p *PengurusService) CreatePengurus(
 	}
 
 	// filter field insert by role
-	data := model.PengurusPatch{
+	data := dto.PengurusPatch{
 		Email:    dataPengurus.Email,
 		Divisi:   divisi,
 		Name:     dataPengurus.Name,
@@ -103,12 +104,12 @@ func (p *PengurusService) CreatePengurus(
 		Period:   dataPengurus.Period,
 		PhotoURL: dataPengurus.PhotoURL,
 	}
-	fillableFields, err := utils.FilterRoleFieldPermission(userRole, &data)
+	fillableFields, err := authorization.FilterRoleFieldPermission(userRole, &data)
 	if err != nil {
 		return nil, err
 	}
 
-	var finalData *model.Pengurus
+	var finalData *entity.Pengurus
 	if err := mapstructure.Decode(fillableFields, &finalData); err != nil {
 		return nil, fmt.Errorf("failed to decode data")
 	}
@@ -120,7 +121,7 @@ func (p *PengurusService) CreatePengurus(
 	// upload photo
 	if _, canUploadPhoto := fillableFields["photo_url"]; canUploadPhoto {
 		now := time.Now()
-		gallery := &model.GalleryInsert{
+		gallery := &dto.GalleryInsert{
 			IDUsers:     finalData.UserID,
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
@@ -150,7 +151,7 @@ func (p *PengurusService) CreatePengurus(
 		return nil, err
 	}
 
-	return &model.PengurusResponse{
+	return &dto.PengurusResponse{
 		ID:       finalData.ID,
 		PhotoURL: finalData.PhotoURL,
 		Email:    finalData.Email,
@@ -168,12 +169,12 @@ func (p *PengurusService) UpdateDataPengurus(
 	idParams int,
 	currentUserID int,
 	userRole string,
-	dataPengurus *model.PengurusPatch,
-	fileUpload *model.UploadFileRequest,
-) (*model.PengurusResponse, error) {
+	dataPengurus *dto.PengurusPatch,
+	fileUpload *dto.UploadFileRequest,
+) (*dto.PengurusResponse, error) {
 
 	var (
-		updatedPengurus *model.PengurusResponse
+		updatedPengurus *dto.PengurusResponse
 		error           error
 	)
 
@@ -184,7 +185,7 @@ func (p *PengurusService) UpdateDataPengurus(
 	}
 
 	// filter fileld update by role and update profile
-	editableFields, err := utils.FilterRoleFieldPermission(userRole, dataPengurus)
+	editableFields, err := authorization.FilterRoleFieldPermission(userRole, dataPengurus)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +206,7 @@ func (p *PengurusService) UpdateDataPengurus(
 
 		// update file upload and gallery
 		now := time.Now()
-		gallery := &model.GalleryInsert{
+		gallery := &dto.GalleryInsert{
 			IDUsers:     targetPengurus.UserID, // Correctly link to the UserID, not Pengurus ID
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
@@ -240,7 +241,7 @@ func (p *PengurusService) UpdateDataPengurus(
 func (p *PengurusService) GetAllPengurusBaseOnDivision(
 	ctx context.Context,
 	userRole, divisi string,
-) ([]model.PengurusResponse, error) {
+) ([]dto.PengurusResponse, error) {
 	// cek role
 	role, ok := constants.RoleGroup[userRole]
 	if !ok {
@@ -248,7 +249,7 @@ func (p *PengurusService) GetAllPengurusBaseOnDivision(
 	}
 
 	var (
-		pengurusResponse []model.PengurusResponse
+		pengurusResponse []dto.PengurusResponse
 		err              error
 	)
 	switch role.Role {
@@ -278,7 +279,7 @@ func (p *PengurusService) GetAllPengurusBaseOnDivision(
 func (p *PengurusService) GetAllPengurusByDivision(
 	ctx context.Context,
 	division string,
-) ([]model.PengurusResponse, error) {
+) ([]dto.PengurusResponse, error) {
 	if division == "" {
 		return nil, fmt.Errorf("division must be provided")
 	}
@@ -288,9 +289,9 @@ func (p *PengurusService) GetAllPengurusByDivision(
 		return nil, fmt.Errorf("terjadi error ketika ambil data %w", err)
 	}
 
-	dataPengurus := make([]model.PengurusResponse, 0, len(pengurusResponse))
+	dataPengurus := make([]dto.PengurusResponse, 0, len(pengurusResponse))
 	for _, data := range pengurusResponse {
-		dataPengurus = append(dataPengurus, model.PengurusResponse{
+		dataPengurus = append(dataPengurus, dto.PengurusResponse{
 			ID:       data.ID,
 			PhotoURL: data.PhotoURL,
 			Email:    data.Email,
@@ -305,31 +306,31 @@ func (p *PengurusService) GetAllPengurusByDivision(
 	return dataPengurus, nil
 }
 
-func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole string, userID int) (model.PengurusResponse, error) {
-	validRole, err := constants.GetRoleInfo(userRole)
+func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole string, userID int) (dto.PengurusResponse, error) {
+	validRole, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
-		return model.PengurusResponse{}, fmt.Errorf("role not valid")
+		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
 
 	pengurusResponse, err := p.PengurusModel.GetPengurusById(ctx, id)
 	if err != nil {
-		return model.PengurusResponse{}, fmt.Errorf("error while getting the data %w", err)
+		return dto.PengurusResponse{}, fmt.Errorf("error while getting the data %w", err)
 	}
 
 	switch validRole.Role {
 	case constants.RoleKoordinator:
 		if validRole.Divisi != pengurusResponse.Divisi {
-			return model.PengurusResponse{}, fmt.Errorf("you can not see other division bro %w", err)
+			return dto.PengurusResponse{}, fmt.Errorf("you can not see other division bro %w", err)
 		}
 	case constants.RolePengurus:
 		if userID != pengurusResponse.ID {
-			return model.PengurusResponse{}, fmt.Errorf("you can't see other data bro")
+			return dto.PengurusResponse{}, fmt.Errorf("you can't see other data bro")
 		}
 	default:
-		return model.PengurusResponse{}, fmt.Errorf("role not valid")
+		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
 
-	pengurusDataResponse := model.PengurusResponse{
+	pengurusDataResponse := dto.PengurusResponse{
 		ID:       pengurusResponse.ID,
 		PhotoURL: pengurusResponse.PhotoURL,
 		Email:    pengurusResponse.Email,

@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"web_doscom/internal/authorization"
-	"web_doscom/internal/database/model"
+	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/database/model/entity"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,7 +34,7 @@ func NewUserauth(a *AuthService) *AuthHandler {
 func (h *AuthHandler) LoginHandler(c *gin.Context) {
 
 	// get the email and password from the req body
-	var input model.LoginRequest
+	var input dto.LoginRequest
 	if c.Bind(&input) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to read req body",
@@ -133,7 +134,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 func (h *AuthHandler) RegisterUser(c *gin.Context) {
 
 	// get the request body
-	var input model.RegisterRequest
+	var input dto.RegisterRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body or missing fields"})
 		return
@@ -153,7 +154,7 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 	passwordHash := HashPassword(input.Password)
 
 	// mapping data user
-	user := model.User{
+	user := entity.User{
 		Username:  input.Username,
 		Email:     input.Email,
 		Password:  passwordHash,

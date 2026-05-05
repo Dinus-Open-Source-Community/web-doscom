@@ -18,9 +18,13 @@ CREATE TABLE IF NOT EXISTS work (
   project_date TIMESTAMP,
   image_url TEXT,-- thumbnail
   status work_status NOT NULL DEFAULT 'draft',
+  division VARCHAR(50),
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- indexing
-CREATE INDEX IF NOT EXISTS idx_work_image_url ON work(image_url);
+-- CREATE INDEX IF NOT EXISTS idx_work_image_url ON work(image_url);
+CREATE INDEX idx_work_technologies_gin ON work USING gin (technologies);
+CREATE INDEX idx_work_status ON work(status);
+
