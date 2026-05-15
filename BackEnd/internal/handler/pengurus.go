@@ -45,7 +45,6 @@ func NewPengurusHandler(pengurusService *service.PengurusService, storageService
 func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	user_role := c.MustGet("role").(string)
 	user_ID := c.MustGet("user_id").(int)
-	// email_user := c.MustGet("email").(string)
 	ctx := c.Request.Context()
 
 	var input dto.RegisterPengurusRequest
