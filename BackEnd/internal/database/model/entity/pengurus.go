@@ -42,7 +42,6 @@ var ValidPosition = map[string]bool{
 	"DataAng":      true,
 }
 
-// "BPH":          true,
 var ValidSosmed = map[string]bool{
 	"instagram": true,
 	"linkedin":  true,
@@ -62,7 +61,6 @@ type Pengurus struct {
 	Email     string    `gorm:"uniqueIndex" json:"email"`
 	Divisi    string    `gorm:"column:divisi" json:"divisi"`
 	Position  string    `json:"position"`
-	Sosmed    string    `json:"sosmed"`
 	Period    string    `json:"period"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -76,10 +74,6 @@ func init() {
 		})
 		v.RegisterValidation("position", func(fl validator.FieldLevel) bool {
 			return ValidPosition[fl.Field().String()]
-		})
-		v.RegisterValidation("sosmed", func(fl validator.FieldLevel) bool {
-			val := fl.Field().String()
-			return val == "" || ValidSosmed[val]
 		})
 	}
 }
@@ -193,7 +187,6 @@ func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*dto
 		Divisi:   updatePengurus.Divisi,
 		Name:     updatePengurus.Name,
 		Position: updatePengurus.Position,
-		Sosmed:   updatePengurus.Sosmed,
 		Period:   updatePengurus.Period,
 	}, nil
 }
@@ -220,7 +213,7 @@ func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string
 
 	if err := m.DB.WithContext(ctx).
 		Model(&Pengurus{}).
-		Select("id, photo_url, email, divisi, name, position, sosmed,  period").
+		Select("id, photo_url, email, divisi, name, position,  period").
 		Where("divisi = ?", division).
 		Order("name ASC").
 		Scan(&dataPengurus).
