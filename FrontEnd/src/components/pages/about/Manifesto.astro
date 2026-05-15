@@ -1,0 +1,39 @@
+---
+import Button from '../../ui/Button.astro'
+---
+
+<section class="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-24">
+  <div class="relative z-10 flex max-w-[90rem] flex-col items-center gap-12 text-center text-white">
+    <div class="flex flex-col items-center justify-center gap-6">
+      <div class="flex flex-col items-center gap-2">
+        <p class="text-xs font-medium tracking-[0.4em] uppercase sm:text-sm md:text-base">More than just a community</p>
+        <h2 class="text-xl font-light tracking-[0.15em] uppercase opacity-90 sm:text-3xl md:text-4xl">
+          Driven by Open Source
+        </h2>
+      </div>
+
+      <h1 class="text-5xl leading-[0.95] font-black tracking-tighter uppercase sm:text-7xl md:text-8xl lg:text-[120px]">
+        United by <br class="hidden md:block" />
+        <span class="text-white">Collaboration</span>
+      </h1>
+
+      <p class="max-w-2xl text-lg font-light italic opacity-80 sm:text-xl md:text-2xl lg:text-3xl">
+        "We Learn, We Share, We Create Impact."
+      </p>
+    </div>
+
+    <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
+      <Button
+        variant="primary"
+        class="min-w-[180px] px-10 py-4 text-lg font-medium tracking-wider text-white transition-all hover:scale-105"
+      >
+        Our Story
+      </Button>
+      <Button variant="outline" class="min-w-[180px] px-6 py-4 text-lg font-medium text-white"> Who We Are? </Button>
+    </div>
+  </div>
+
+  <img src="/assets/photos/about-2.webp" alt="foto doscom" class="absolute inset-0 h-full w-full object-cover" />
+
+  <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/80"></div>
+</section>

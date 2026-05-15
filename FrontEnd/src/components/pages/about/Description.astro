@@ -1,0 +1,54 @@
+---
+import VectorLeft from '../../../assets/vectors/vector-left-1.svg?raw'
+import VectorRight from '../../../assets/vectors/vector-right-1.svg?raw'
+---
+
+<section
+  class="relative flex min-h-screen items-center justify-center overflow-hidden bg-white pt-32 pb-20 lg:pt-10 lg:pb-10"
+>
+  <div
+    class="z-10 flex w-full max-w-[96rem] flex-col items-center justify-between gap-16 px-6 lg:flex-row lg:gap-[5rem] lg:px-10 xl:gap-[10rem]"
+  >
+    <div class="relative h-[25rem] w-full max-w-[36rem] sm:h-[35rem] lg:h-[35rem] lg:w-[45%] xl:h-[42rem]">
+      <img
+        class="absolute top-0 left-0 w-[70%] rounded-2xl shadow-lg lg:w-[36rem]"
+        src="/assets/photos/about-back-1.webp"
+        alt="foto belakang"
+      />
+      <img
+        class="absolute right-0 bottom-6 w-[65%] rounded-2xl shadow-2xl lg:-right-20 lg:bottom-0 lg:w-[32rem]"
+        src="/assets/photos/about-front-1.webp"
+        alt="foto depan"
+      />
+    </div>
+
+    <div class="flex flex-col gap-6 lg:w-[50%] lg:gap-10">
+      <h2 class="text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl xl:text-6xl">
+        Komunitas Open Source untuk Belajar, Berbagi, dan Berkarya.
+      </h2>
+      <div class="flex flex-col gap-5 text-base font-normal text-black sm:text-lg lg:text-xl">
+        <p>
+          DOSCOM adalah komunitas open source di Universitas Dian Nuswantoro yang berfokus pada pengembangan, edukasi,
+          dan kolaborasi dalam dunia teknologi terbuka.
+        </p>
+        <p>
+          Kami percaya bahwa semangat open source bukan hanya tentang kode, tetapi juga tentang berbagi pengetahuan,
+          membangun bersama, dan tumbuh sebagai satu komunitas.
+        </p>
+        <p class="hidden sm:block">
+          Melalui berbagai kegiatan seperti workshop, seminar, dan project kolaboratif, DOSCOM menjadi tempat bagi
+          mahasiswa untuk meningkatkan kemampuan, berkontribusi, dan menciptakan dampak nyata di dunia teknologi.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <span
+    class="absolute top-52 left-0 w-[30rem] text-[var(--color-primary)] lg:w-[64rem] lg:opacity-100"
+    set:html={VectorLeft}
+  />
+  <span
+    class="absolute right-0 -bottom-40 w-[15rem] text-[var(--color-primary)] lg:w-[28rem] lg:opacity-100"
+    set:html={VectorRight}
+  />
+</section>

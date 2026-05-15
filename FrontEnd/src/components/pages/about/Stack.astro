@@ -1,0 +1,43 @@
+---
+const stacks = [
+  { title: 'Frontend', items: 'React, Next, Astro, Vue' },
+  { title: 'CyberSecurity', items: 'Wireshark, Metasploit, Burp Suite, Nmap' },
+  { title: 'Data Analisis', items: 'Excel, Power BI, Tableau, Google Data Studio' },
+  { title: 'UI/UX Design', items: 'Figma, Adobe XD, Sketch, InVision' },
+  { title: 'Backend', items: 'Node.js, Express, Django, Flask' },
+  { title: 'Networking', items: 'Cisco, MikroTik, pfSense, OpenVPN', special: true },
+  { title: 'Data Science', items: 'Python, Pandas, NumPy, Jupyter, R' },
+  { title: 'Video Editor', items: 'Adobe Premiere, Final Cut Pro, DaVinci Resolve' },
+  { title: 'DevOps', items: 'Docker, Kubernetes, Jenkins, AWS' },
+  { title: 'Machine Learning', items: 'scikit-learn, TensorFlow, PyTorch, Keras' },
+  { title: 'Photoshoot', items: 'Adobe Photoshop, Lightroom, Capture One' },
+]
+---
+
+<section class="flex justify-center bg-[#0A84DC] px-6 py-24 lg:px-10">
+  <div class="flex w-full max-w-7xl flex-col gap-16 lg:flex-row lg:items-start lg:gap-24">
+    <div class="h-fit lg:sticky lg:top-32 lg:w-1/5">
+      <h2 class="text-3xl font-black tracking-tighter text-white md:text-4xl">
+        Technology <br class="hidden lg:block" /> Stack
+      </h2>
+    </div>
+
+    <div class="grid flex-1 grid-cols-1 gap-x-0 gap-y-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-y-16">
+      {
+        stacks.map(stack => (
+          <div class={`${stack.special ? 'lg:row-span-2' : ''}`}>
+            <div class="group flex h-fit cursor-default flex-col gap-3 border-l border-white/40 pl-8 transition-all duration-300 hover:border-white lg:border-white/20">
+              <h3 class="text-xl font-bold text-white transition-colors duration-300 group-hover:text-white lg:text-2xl lg:text-white/70">
+                {stack.title}
+              </h3>
+
+              <p class="text-sm leading-relaxed font-light text-blue-100 transition-colors duration-300 group-hover:text-blue-100 md:text-base lg:text-blue-100/50">
+                {stack.items}
+              </p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
