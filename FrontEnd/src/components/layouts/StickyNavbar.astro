@@ -1,5 +1,5 @@
 ---
-import Button from '../ui/Button.astro'
+import { Join } from '../../assets/icons'
 import Logo from '../../assets/logo-doscom.svg?raw'
 
 const navItems = [
@@ -16,52 +16,57 @@ const currentPath = Astro.url.pathname
 
 <nav
   id="sticky-nav"
-  class="fixed top-0 left-0 z-50 w-full -translate-y-full transform bg-white px-10 py-4 text-black shadow-lg transition-transform duration-500 ease-out"
+  class="font-jakarta fixed top-0 left-0 z-[60] w-full -translate-y-full transform bg-white/90 px-6 py-4 text-black shadow-lg backdrop-blur-md transition-all duration-500 ease-out md:px-10"
 >
-  <div class="mx-auto flex max-w-[96rem] items-center justify-between">
-    <span
-      class="w-36 text-[var(--color-primary)] [&>svg]:h-full [&>svg]:w-full"
-      set:html={Logo}
-    />
+  <div class="mx-auto flex max-w-[1500px] items-center justify-between">
+    <a href="/" class="w-32 text-[#0A84DC] md:w-36 [&>svg]:h-full [&>svg]:w-full" set:html={Logo} />
 
-    <ul class="flex justify-center gap-10 text-lg font-normal">
+    <ul class="hidden gap-8 text-base font-normal tracking-wider lg:flex">
       {
-        navItems.map(item => {
-          const isActive =
-            currentPath === item.href ||
-            (item.href !== '/' && currentPath.startsWith(item.href))
-
-          return (
-            <li>
-              <a
-                href={item.href}
-                class:list={[
-                  'cursor-pointer transition-colors duration-200 hover:text-[#0A84DC]',
-                  isActive ? 'font-semibold text-[#0A84DC]' : '',
-                ]}
-              >
-                {item.name}
-              </a>
-            </li>
-          )
-        })
+        navItems.map(item => (
+          <li>
+            <a
+              href={item.href}
+              class:list={[
+                'transition-colors duration-200 hover:text-[#0A84DC]',
+                currentPath === item.href ? 'font-bold text-[#0A84DC]' : '',
+              ]}
+            >
+              {item.name}
+            </a>
+          </li>
+        ))
       }
     </ul>
 
-    <Button variant="primary" class="font-semibold text-white">Join Us</Button>
+    <div class="flex items-center gap-3">
+      <button
+        class="flex items-center justify-center rounded-full bg-[#0A84DC] px-4 py-2 font-semibold text-white transition-transform hover:scale-105 active:scale-95 md:px-6 md:py-2"
+      >
+        <span class="hidden md:block">Join Us</span>
+        <div class="h-5 w-5 md:hidden [&>svg]:h-full [&>svg]:w-full" set:html={Join} />
+      </button>
+
+      <button
+        id="sticky-menu-trigger"
+        class="flex h-10 w-10 flex-col items-center justify-center gap-1 rounded-full bg-gray-100 lg:hidden"
+      >
+        <span class="h-0.5 w-4 bg-black"></span>
+        <span class="h-0.5 w-4 bg-black"></span>
+      </button>
+    </div>
   </div>
 </nav>
 
 <script>
   const nav = document.getElementById('sticky-nav')
+  const stickyTrigger = document.getElementById('sticky-menu-trigger')
+  let isMenuOpen = false // Flag status menu
 
   function handleScroll() {
-    if (!nav) return
+    if (!nav || isMenuOpen) return // Jika menu buka, abaikan logic scroll
 
-    // Trik: Gunakan tinggi layar (viewport) sebagai patokan trigger
-    // 0.8 berarti navbar muncul setelah scroll melewati 80% tinggi layar
     const triggerPoint = window.innerHeight * 0.8
-
     if (window.scrollY > triggerPoint) {
       nav.classList.remove('-translate-y-full')
     } else {
@@ -69,6 +74,23 @@ const currentPath = Astro.url.pathname
     }
   }
 
-  // Event Listener
+  // Dengerin sinyal dari React untuk sembunyi/muncul
+  window.addEventListener('toggle-sticky-visibility', ((e: CustomEvent) => {
+    isMenuOpen = e.detail.hidden
+
+    if (isMenuOpen) {
+      // Geser ke atas dengan smooth saat menu dibuka
+      nav?.classList.add('-translate-y-full')
+    } else {
+      // Cek lagi posisi scroll saat menu ditutup
+      handleScroll()
+    }
+  }) as EventListener)
+
+  stickyTrigger?.addEventListener('click', () => {
+    const event = new CustomEvent('open-mobile-menu')
+    window.dispatchEvent(event)
+  })
+
   window.addEventListener('scroll', handleScroll)
 </script>

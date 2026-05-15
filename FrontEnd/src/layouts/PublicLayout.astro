@@ -1,10 +1,12 @@
 ---
 import BaseLayout from './BaseLayout.astro'
 import StickyNavbar from '../components/layouts/StickyNavbar.astro'
-import HeroNavbar from '../components/layouts/HeroNavbar.astro'
+import HeroNavbar from '../components/layouts/HeroNavbar.tsx'
 import Footer from '../components/layouts/Footer.astro'
+import LogoRaw from '../assets/logo-doscom.svg?raw'
 
 const { title } = Astro.props
+const currentPath = Astro.url.pathname
 ---
 
 <BaseLayout title={title}>
@@ -12,7 +14,7 @@ const { title } = Astro.props
     <StickyNavbar />
 
     <main class="font-jakarta relative z-10 flex-1 bg-white">
-      <HeroNavbar />
+      <HeroNavbar logoHtml={LogoRaw} currentPath={currentPath} client:load />
       <slot />
     </main>
 
