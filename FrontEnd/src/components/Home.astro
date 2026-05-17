@@ -2,27 +2,47 @@
 import Button from './ui/Button.astro'
 ---
 
-<div class="w-full h-screen relative">
-    <img src="/assets/image/home.jpg" alt="Image-Doscom" class="w-full h-full object-cover" loading="lazy" />
-    <div class="absolute inset-0 bg-black/60"></div>
-    <div class="absolute inset-0 flex flex-col justify-between px-6 md:px-12 lg:px-50 py-26">
-        <div class="mt-10 md:mt-24 lg:mt-32">
-            <h1 class="text-white font-bold font-jakarta tracking-tighter leading-[0.9]
-            text-[48px] sm:text-[64px] md:text-[80px] lg:text-[100px]">
-                DINUS<br />OPEN<br />SOURCE<br />COMMUNITY
-            </h1>
-        </div>
+<div class="relative h-dvh w-full overflow-hidden bg-white">
+  <img
+    src="/assets/image/home.jpg"
+    alt="Image-Doscom"
+    class="absolute inset-0 z-0 h-full w-full object-cover"
+    loading="lazy"
+  />
 
-        <div class="flex flex-col items-end gap-4 mb-6 md:mb-12 lg:mb-16">
-            <p class="text-white font-normal font-jakarta leading-tight tracking-tight text-end
-          text-[24px] sm:text-[32px] md:text-[40px] lg:text-[42px]">
-                Open Your Mind<br />With Open Source
-            </p>
+  <div class="absolute inset-0 z-10 bg-black/60"></div>
 
-            <div class="flex flex-row gap-3">
-                <Button variant="primary" size="default" class="font-medium text-white text-2xl"> About </Button>
-                <Button variant="outline" size="large" class="text-white font-medium text-2xl"> Contribute </Button>
-            </div>
-        </div>
+  <div class="relative inset-0 z-20 flex flex-col justify-between px-6 py-12 md:px-20 md:py-20 xl:px-32 xl:py-24">
+    <div class="mt-40 max-w-4xl pl-0 md:mt-25 md:pl-16">
+      <h1
+        class="font-jakarta text-center text-4xl leading-none font-bold tracking-tighter text-white md:text-left md:text-[100px]"
+      >
+        DINUS <br class="hidden md:block" /> OPEN <br class="hidden md:block" />
+        SOURCE <br />COMMUNITY
+      </h1>
     </div>
+
+    <div class="mt-3 mb-4 flex flex-col items-center gap-4 md:mt-10 md:mb-10 md:items-end md:gap-6">
+      <p class="font-jakarta text-right text-xl leading-none font-normal tracking-tight text-white md:text-[42px]">
+        Open Your Mind<br class="hidden md:block" />With Open Source
+      </p>
+
+      <div class="flex w-3xs flex-col gap-2 md:w-full md:flex-row md:justify-end md:gap-4">
+        <Button
+          variant="primary"
+          size="default"
+          class="px-7 py-1 text-base font-medium text-white md:px-6 md:py-3 md:text-xl"
+        >
+          About
+        </Button>
+        <Button
+          variant="outline"
+          size="default"
+          class="px-7 py-1 text-base font-medium text-white md:px-6 md:py-3 md:text-xl"
+        >
+          Contribute
+        </Button>
+      </div>
+    </div>
+  </div>
 </div>
