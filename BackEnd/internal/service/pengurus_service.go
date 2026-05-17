@@ -5,61 +5,67 @@ import (
 	"fmt"
 	"time"
 	"web_doscom/internal/authorization"
+	pengurusAuthorization "web_doscom/internal/authorization/pengurus"
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model/dto"
 	"web_doscom/internal/database/model/entity"
+	"web_doscom/internal/utils"
 
 	"github.com/mitchellh/mapstructure"
 )
 
 type PengurusService struct {
-	PengurusModel  *entity.PengurusModel
-	GalleryService *GalleryService
+	PengurusModel       *entity.PengurusModel
+	PengurusSosmedModel *entity.PengurusSosmedModel
+	GalleryService      *GalleryService
 }
 
-func NewPengurusService(m *entity.PengurusModel, g *GalleryService) *PengurusService {
+func NewPengurusService(m *entity.PengurusModel, p *entity.PengurusSosmedModel, g *GalleryService) *PengurusService {
 	return &PengurusService{
-		PengurusModel:  m,
-		GalleryService: g,
+		PengurusModel:       m,
+		PengurusSosmedModel: p,
+		GalleryService:      g,
 	}
 }
 
-func (p *PengurusService) RolePositionAuthorization(ctx context.Context, idParams, currentUserID int, userRole string) (string, error) {
-	// check if data exist
-	userValid, err := p.PengurusModel.GetPengurusById(ctx, idParams)
+func (p *PengurusService) UpdatePengurusSosmed(ctx context.Context, pengurusID int, sosmedUrl []string) ([]dto.PengurusSosmedResponse, error) {
+	if len(sosmedUrl) == 0 {
+		// delete all sosmed
+		if err := p.PengurusSosmedModel.DeleteByPengurusID(ctx, pengurusID); err != nil {
+			return nil, err
+		}
+	}
+
+	// extract url info
+	socialMediaInfo, err := utils.ExtractSocialMediaBatch(sosmedUrl)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("failed to extract social media info: %w", err)
 	}
 
-	// white list role
-	actor, ok := constants.RoleGroup[userRole]
-	if !ok {
-		return "", fmt.Errorf("role not valid")
+	sosmedPayload := make([]dto.CreatePengurusSosmedPayload, 0, len(sosmedUrl))
+	for i, url := range socialMediaInfo {
+		sosmedPayload[i] = dto.CreatePengurusSosmedPayload{
+			PengurusID: pengurusID,
+			Platform:   url.Platform,
+			Username:   url.Username,
+			Url:        url.URL,
+			IsPrimary:  i == 0, // true hanya untuk index 0
+		}
 	}
 
-	actorRole := actor.Role
-	// SuperAdmin bypass
-	if actorRole == constants.RoleAdmin {
-		return actorRole, nil
+	//delete all sosmed
+	if err := p.PengurusSosmedModel.DeleteByPengurusID(ctx, pengurusID); err != nil {
+		return nil, fmt.Errorf("failed to delete data pengurus sosmed: %w", err)
 	}
 
-	// cek role pengurus
-	if actorRole == constants.RolePengurus && currentUserID != idParams {
-		return "", fmt.Errorf("You are not allowed to update this data")
+	// re insert data sosmed
+	sosmedResponse, err := p.PengurusSosmedModel.InsertPengurusSosmed(ctx, sosmedPayload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert data pengurus sosmed: %w", err)
 	}
 
-	// whitelist position
-	targetPositionRole := constants.ValidPosition[userValid.Position]
+	return sosmedResponse, nil
 
-	// ckeck user level role
-	actorLevel := constants.RoleLevel[actorRole]
-	targetLevel := constants.RoleLevel[targetPositionRole]
-
-	if actorLevel >= targetLevel && currentUserID != idParams {
-		return "", fmt.Errorf("You are not allowed to update this data")
-	}
-
-	return actorRole, nil
 }
 
 func (p *PengurusService) CreatePengurus(
@@ -75,7 +81,6 @@ func (p *PengurusService) CreatePengurus(
 	if err != nil {
 		return nil, err
 	}
-
 	// auto assign user_id
 	roleUser, ok := constants.RoleGroup[userRole]
 	if !ok {
@@ -95,15 +100,15 @@ func (p *PengurusService) CreatePengurus(
 	}
 
 	// filter field insert by role
-	data := dto.PengurusPatch{
+	data := dto.PengurusPayload{
 		Email:    dataPengurus.Email,
 		Divisi:   divisi,
 		Name:     dataPengurus.Name,
 		Position: validPosition,
-		Sosmed:   dataPengurus.Sosmed,
 		Period:   dataPengurus.Period,
 		PhotoURL: dataPengurus.PhotoURL,
 	}
+
 	fillableFields, err := authorization.FilterRoleFieldPermission(userRole, &data)
 	if err != nil {
 		return nil, err
@@ -114,10 +119,6 @@ func (p *PengurusService) CreatePengurus(
 		return nil, fmt.Errorf("failed to decode data")
 	}
 
-	finalData.UserID = dataPengurus.UserID
-	if finalData.Sosmed == "" {
-		finalData.Sosmed = "instagram"
-	}
 	// upload photo
 	if _, canUploadPhoto := fillableFields["photo_url"]; canUploadPhoto {
 		now := time.Now()
@@ -146,9 +147,35 @@ func (p *PengurusService) CreatePengurus(
 		finalData.PhotoURL = fileURL
 	}
 
-	// insert data
+	// insert data pengurus
 	if err := p.PengurusModel.InsertPengurus(finalData); err != nil {
 		return nil, err
+	}
+
+	// insert data sosmed pengurus
+	var socialMediaResponse []dto.PengurusSosmedResponse
+	if len(dataPengurus.Sosmed) != 0 {
+
+		socialMediaInfo, err := utils.ExtractSocialMediaBatch(dataPengurus.Sosmed)
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract social media info %w", err)
+		}
+
+		socialMediaInsert := make([]dto.CreatePengurusSosmedPayload, len(socialMediaInfo))
+		for i, info := range socialMediaInfo {
+			socialMediaInsert[i] = dto.CreatePengurusSosmedPayload{
+				PengurusID: finalData.ID,
+				Platform:   info.Platform,
+				Username:   info.Username,
+				Url:        info.URL,
+				IsPrimary:  i == 0, // true hanya untuk index 0
+			}
+		}
+
+		socialMediaResponse, err = p.PengurusSosmedModel.InsertPengurusSosmed(ctx, socialMediaInsert)
+		if err != nil {
+			return nil, fmt.Errorf("failed to insert social media data %w", err)
+		}
 	}
 
 	return &dto.PengurusResponse{
@@ -158,7 +185,7 @@ func (p *PengurusService) CreatePengurus(
 		Divisi:   finalData.Divisi,
 		Name:     finalData.Name,
 		Position: finalData.Position,
-		Sosmed:   finalData.Sosmed,
+		Sosmed:   socialMediaResponse,
 		Period:   finalData.Period,
 	}, nil
 
@@ -171,21 +198,39 @@ func (p *PengurusService) UpdateDataPengurus(
 	userRole string,
 	dataPengurus *dto.PengurusPatch,
 	fileUpload *dto.UploadFileRequest,
-) (*dto.PengurusResponse, error) {
+) (*dto.PengurusPublicResponse, error) {
 
 	var (
 		updatedPengurus *dto.PengurusResponse
 		error           error
 	)
 
+	userData, err := p.PengurusModel.GetPengurusById(ctx, idParams)
+	if err != nil {
+		return nil, err
+	}
 	// authorization check for update data
-	roleUser, err := p.RolePositionAuthorization(ctx, idParams, currentUserID, userRole)
+	roleUser, err := pengurusAuthorization.RolePositionAuthorization(
+		ctx,
+		idParams,
+		currentUserID,
+		userRole,
+		*userData,
+	)
 	if err != nil {
 		return nil, err
 	}
 
+	dataPengurusPayload := dto.PengurusPayload{
+		Email:    dataPengurus.Email,
+		Divisi:   dataPengurus.Divisi,
+		Name:     dataPengurus.Name,
+		Period:   dataPengurus.Period,
+		Position: dataPengurus.Position,
+		PhotoURL: dataPengurus.PhotoURL,
+	}
 	// filter fileld update by role and update profile
-	editableFields, err := authorization.FilterRoleFieldPermission(userRole, dataPengurus)
+	editableFields, err := authorization.FilterRoleFieldPermission(userRole, &dataPengurusPayload)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +280,24 @@ func (p *PengurusService) UpdateDataPengurus(
 		return nil, error
 	}
 
-	return updatedPengurus, nil
+	// update data sosmed
+	var sosmedResponse []dto.PengurusSosmedResponse
+	if len(dataPengurus.Sosmed) != 0 {
+		sosmedResponse, err = p.UpdatePengurusSosmed(ctx, updatedPengurus.ID, dataPengurus.Sosmed)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &dto.PengurusPublicResponse{
+		ID:       updatedPengurus.ID,
+		PhotoURL: updatedPengurus.PhotoURL,
+		Divisi:   updatedPengurus.Divisi,
+		Name:     updatedPengurus.Name,
+		Position: updatedPengurus.Position,
+		Sosmed:   sosmedResponse,
+		Period:   updatedPengurus.Period,
+	}, nil
 }
 
 func (p *PengurusService) GetAllPengurusBaseOnDivision(

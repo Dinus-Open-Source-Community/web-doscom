@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS pengurus (
   divisi VARCHAR(50) CHECK (divisi IN ('bph', 'pemro', 'jaringan', 'medcrev', 'data')),
   name VARCHAR(150) NOT NULL,
   position VARCHAR(100) CHECK (position IN ('ketum', 'sdm','pr','pm','pmAng', 'sekum', 'bendum','sekAng','bendAng', 'KoorPemro','KoorJaringan','KoorMedcrev','KoorData','anggotaAktif','PemroAng','JaringanAng','MedcrevAng','DataAng')),
-  sosmed VARCHAR(50) CHECK ( sosmed in ('instagram','linkedin', 'github')),
   period VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

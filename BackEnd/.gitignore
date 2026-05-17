@@ -27,7 +27,7 @@ package.json
 # --------------------------
 .DS_Store
 database.sql
-
+database_structure_dump.sql
 # --------------------------
 # Go / bin
 # --------------------------

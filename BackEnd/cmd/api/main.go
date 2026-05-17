@@ -10,11 +10,12 @@ import (
 	env "web_doscom/internal/config"
 	"web_doscom/internal/database"
 	"web_doscom/internal/server"
-	"web_doscom/internal/service"
+	"web_doscom/internal/utils"
+
+	_ "web_doscom/docs"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	_ "web_doscom/docs"
 )
 
 // Test user creation API handler
@@ -31,7 +32,7 @@ func main() {
 
 	// load costum binding
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("socialurl", service.ValidateURL)
+		v.RegisterValidation("socialurl", utils.ValidateURL)
 	}
 
 	// connect database
