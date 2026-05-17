@@ -1,6 +1,6 @@
 # 🧩 Web Doscom Project - Backend & Frontend
 
-Web Doscom adalah aplikasi web modern untuk **Dinus Open Source Community (Doscom)** yang dibangun dengan arsitektur **Microservices (Dockerized)**. Proyek ini memisahkan Backend (Golang) dan Frontend (Astro) yang saling berkomunikasi via REST API.
+Web Doscom adalah aplikasi web modern untuk **Dinus Open Source Community (Doscom)** yang dibangun dengan arsitektur **Monolith**. Proyek ini memisahkan Backend (Golang) dan Frontend (Astro) yang saling berkomunikasi via REST API.
 
 ---
 
