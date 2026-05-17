@@ -14,7 +14,7 @@ type CreateRequestWork struct {
 	Slug         string    `form:"slug" binding:"required"`
 	ProjectType  string    `form:"project_type" binding:"required"`
 	Technologies []string  `form:"technologies[]" binding:"required"`
-	ProjectDate  time.Time `form:"project_date" binding:"required"`
+	ProjectDate  time.Time `form:"project_date" time_format:"2006-01-02" binding:"required"`
 	Status       string    `form:"status" binding:"required"`
 	Division     string    `form:"division"`
 }
