@@ -33,7 +33,7 @@ type BlogModel struct {
 // Blog represents a blog post
 type Blog struct {
 	ID           int            `gorm:"primaryKey" json:"id"`
-	AuthorID     int            `json:"author_id"`
+	AuthorID     int            `json:"author_id"` // -> reference to pengurus(id)
 	Title        string         `json:"title"`
 	Slug         string         `json:"slug" gorm:"unique"`
 	Content      string         `json:"content"`

@@ -126,10 +126,36 @@ func (m *PengurusModel) FindByEmail(email string) (*Pengurus, error) {
 }
 
 // Get pengurus by id
-func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*Pengurus, error) {
-	var pengurus Pengurus
-	if err := m.DB.WithContext(ctx).First(&pengurus, id).Error; err != nil {
-		return nil, err
+func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.PengurusResponse, error) {
+	var pengurus dto.PengurusResponse
+
+	query := `
+		SELECT
+			p.id,
+			p.id_user,
+			p.photo_url,
+			p.name,
+			p.email,
+			p.divisi,
+			p.position,
+			p.period,
+			p.created_at,
+			p.updated_at,
+			COALESCE(sosmed.urls, '[]'::json) AS sosmed
+		FROM pengurus p
+		LEFT JOIN LATERAL (
+			SELECT json_agg(
+				json_build_object(
+					'platform', ps.platform,
+					'username', ps.username,
+					'url', ps.url
+				)
+			) AS urls FROM pengurus_sosmed ps WHERE ps.pengurus_id = p.id
+		)sosmed ON true WHERE p.id = $1
+	`
+
+	if err := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurus).Error; err != nil {
+		return nil, fmt.Errorf("error while getting the data: %w", err)
 	}
 	return &pengurus, nil
 }

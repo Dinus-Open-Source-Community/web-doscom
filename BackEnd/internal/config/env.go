@@ -22,4 +22,3 @@ type Application struct {
 	Model       database.Models
 	MinioClient *MinioClient
 }
-

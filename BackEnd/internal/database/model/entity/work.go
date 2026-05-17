@@ -9,6 +9,7 @@ import (
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model/dto"
 
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -17,20 +18,20 @@ type WorkModel struct {
 }
 
 type Work struct {
-	ID           int       `gorm:"primaryKey" json:"id"`
-	PengurusID   int       `gorm:"column:pengurus_id" json:"pengurus_id"`
-	Title        string    `gorm:"column:title" json:"title"`
-	Tagline      string    `gorm:"column:tagline" json:"tagline"`
-	Description  string    `gorm:"column:description" json:"description"`
-	Slug         string    `gorm:"column:slug" json:"slug"`
-	ProjectType  string    `gorm:"column:project_type" json:"project_type"`
-	Technologies []string  `gorm:"type:text[]" json:"technologies"`
-	ProjectDate  time.Time `gorm:"column:project_date" json:"project_date"`
-	ImageURL     string    `gorm:"column:image_url" json:"image_url"`
-	Status       string    `gorm:"column:status" json:"status"`
-	Division     string    `gorm:"column:division" json:"division"`
-	CreatedAt    time.Time `gorm:"column:created_at" json:"created_at"`
-	UpdatedAt    time.Time `gorm:"column:updated_at" json:"updated_at"`
+	ID           int            `gorm:"primaryKey" json:"id"`
+	PengurusID   int            `gorm:"column:pengurus_id" json:"pengurus_id"`
+	Title        string         `gorm:"column:title" json:"title"`
+	Tagline      string         `gorm:"column:tagline" json:"tagline"`
+	Description  string         `gorm:"column:description" json:"description"`
+	Slug         string         `gorm:"column:slug" json:"slug"`
+	ProjectType  string         `gorm:"column:project_type" json:"project_type"`
+	Technologies pq.StringArray `gorm:"type:text[]" json:"technologies"`
+	ProjectDate  time.Time      `gorm:"column:project_date" json:"project_date"`
+	ImageURL     string         `gorm:"column:image_url" json:"image_url"`
+	Status       string         `gorm:"column:status" json:"status"`
+	Division     string         `gorm:"column:division" json:"division"`
+	CreatedAt    time.Time      `gorm:"column:created_at" json:"created_at"`
+	UpdatedAt    time.Time      `gorm:"column:updated_at" json:"updated_at"`
 }
 
 func (Work) TableName() string {
