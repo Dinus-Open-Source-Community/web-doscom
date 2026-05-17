@@ -42,7 +42,7 @@ func (p *PengurusService) UpdatePengurusSosmed(ctx context.Context, pengurusID i
 		return nil, fmt.Errorf("failed to extract social media info: %w", err)
 	}
 
-	sosmedPayload := make([]dto.CreatePengurusSosmedPayload, 0, len(sosmedUrl))
+	sosmedPayload := make([]dto.CreatePengurusSosmedPayload, len(sosmedUrl))
 	for i, url := range socialMediaInfo {
 		sosmedPayload[i] = dto.CreatePengurusSosmedPayload{
 			PengurusID: pengurusID,
@@ -209,13 +209,23 @@ func (p *PengurusService) UpdateDataPengurus(
 	if err != nil {
 		return nil, err
 	}
+	dataUser := entity.Pengurus{
+		ID:       userData.ID,
+		UserID:   userData.UserID,
+		PhotoURL: userData.PhotoURL,
+		Email:    userData.Email,
+		Divisi:   userData.Divisi,
+		Name:     userData.Name,
+		Position: userData.Position,
+		Period:   userData.Period,
+	}
 	// authorization check for update data
 	roleUser, err := pengurusAuthorization.RolePositionAuthorization(
 		ctx,
 		idParams,
 		currentUserID,
 		userRole,
-		*userData,
+		dataUser,
 	)
 	if err != nil {
 		return nil, err
@@ -300,7 +310,7 @@ func (p *PengurusService) UpdateDataPengurus(
 	}, nil
 }
 
-func (p *PengurusService) GetAllPengurusBaseOnDivision(
+func (p *PengurusService) GetPengurusBaseOnDivision(
 	ctx context.Context,
 	userRole, divisi string,
 ) ([]dto.PengurusResponse, error) {
@@ -335,7 +345,6 @@ func (p *PengurusService) GetAllPengurusBaseOnDivision(
 	}
 
 	return pengurusResponse, nil
-
 }
 
 func (p *PengurusService) GetAllPengurusByDivision(
@@ -360,7 +369,6 @@ func (p *PengurusService) GetAllPengurusByDivision(
 			Divisi:   data.Divisi,
 			Name:     data.Name,
 			Position: data.Position,
-			Sosmed:   data.Sosmed,
 			Period:   data.Period,
 		})
 	}
@@ -393,15 +401,19 @@ func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole 
 	}
 
 	pengurusDataResponse := dto.PengurusResponse{
-		ID:       pengurusResponse.ID,
-		PhotoURL: pengurusResponse.PhotoURL,
-		Email:    pengurusResponse.Email,
-		Divisi:   pengurusResponse.Divisi,
-		Name:     pengurusResponse.Name,
-		Position: pengurusResponse.Position,
-		Sosmed:   pengurusResponse.Sosmed,
-		Period:   pengurusResponse.Period,
+		ID:        pengurusResponse.ID,
+		UserID:    pengurusResponse.UserID,
+		PhotoURL:  pengurusResponse.PhotoURL,
+		Email:     pengurusResponse.Email,
+		Divisi:    pengurusResponse.Divisi,
+		Name:      pengurusResponse.Name,
+		Position:  pengurusResponse.Position,
+		Period:    pengurusResponse.Period,
+		Sosmed:    pengurusResponse.Sosmed,
+		CreatedAt: pengurusResponse.CreatedAt,
+		UpdatedAt: pengurusResponse.UpdatedAt,
 	}
+
 	return pengurusDataResponse, nil
 }
 

@@ -2,19 +2,25 @@ package dto
 
 import (
 	"mime/multipart"
+	"time"
 )
 
+// admin consume
 type PengurusResponse struct {
-	ID       int                      `json:"id"`
-	PhotoURL string                   `json:"photo_url"`
-	Email    string                   `json:"email"`
-	Divisi   string                   `json:"divisi"`
-	Name     string                   `json:"name"`
-	Position string                   `json:"position"`
-	Sosmed   []PengurusSosmedResponse `json:"sosmed"`
-	Period   string                   `json:"period"`
+	ID        int                      `json:"id"`
+	UserID    int                      `json:"user_id"`
+	PhotoURL  string                   `json:"photo_url"`
+	Email     string                   `json:"email"`
+	Divisi    string                   `json:"divisi"`
+	Name      string                   `json:"name"`
+	Position  string                   `json:"position"`
+	Sosmed    []PengurusSosmedResponse `json:"sosmed"`
+	Period    string                   `json:"period"`
+	CreatedAt time.Time                `json:"created_at"`
+	UpdatedAt time.Time                `json:"updated_at"`
 }
 
+// public consume
 type PengurusPublicResponse struct {
 	ID       int                      `json:"id"`
 	PhotoURL string                   `json:"photo_url"`

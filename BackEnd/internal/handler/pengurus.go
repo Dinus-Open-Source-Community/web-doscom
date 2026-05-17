@@ -207,7 +207,7 @@ func (h *PengurusHandler) GetAllPengurusByDivision(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
 
 	// call service GetAllPengurusbaseonddivision
-	pengurusResponse, err := h.Service.GetAllPengurusBaseOnDivision(
+	pengurusResponse, err := h.Service.GetPengurusBaseOnDivision(
 		ctx,
 		userRole,
 		divisi,
