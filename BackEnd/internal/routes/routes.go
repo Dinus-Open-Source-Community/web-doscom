@@ -54,7 +54,11 @@ func Routes(app *config.Application) http.Handler {
 		)
 		workHandler := handler.NewWorkHandler(workService)
 		// pengurus
-		pengurusService := service.NewPengurusService(&app.Model.Pengurus, galleryService)
+		pengurusService := service.NewPengurusService(
+			&app.Model.Pengurus,
+			&app.Model.PengurusSosmed,
+			galleryService,
+		)
 		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
 
 		blogService := service.NewBlogService(

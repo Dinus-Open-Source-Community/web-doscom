@@ -204,6 +204,7 @@ func (s *WorkService) CreateWork(
 			Status:       statusSet,
 			Division:     validDivision.Divisi,
 		}
+
 		workDataResponse, err = modelWork.InsertWork(ctx, &insertData)
 		if err != nil {
 			txFailed = true

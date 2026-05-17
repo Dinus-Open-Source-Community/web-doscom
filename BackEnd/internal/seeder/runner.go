@@ -17,11 +17,9 @@ func RunAllSeeders(db *gorm.DB) {
 
 	seeders := []Seeder{
 		{"users", SeedUsers},
-		{"pengurus", SeedPengurus},
-		{"file_uploads", SeedFileUploads},
-		{"gallery", SeedGallery},
-		{"work", SeedWorks},
-		{"blog", SeedBlogs},
+		{"pengurus", RunSeedPengurus},
+		{"work", RunSeedWorks},
+		{"blog", RunSeedBlogs},
 	}
 
 	for _, s := range seeders {
