@@ -1,9 +1,12 @@
 ---
-import PublicLayout from "../layouts/PublicLayout.astro";
+import PublicLayout from '../layouts/PublicLayout.astro'
+import Section1 from '../components/pages/blog/Section1.astro'
+import Section2 from '../components/pages/blog/Section2.astro'
+import Section3 from '../components/pages/blog/Section3.astro'
 ---
 
-<PublicLayout title="Blog">
-  <section class="flex justify-center">
-    <p class="text-7xl">HALAMAN BLOG</p>
-  </section>
+<PublicLayout title="Blogs">
+  <Section1 />
+  <Section2 />
+  <Section3 />
 </PublicLayout>

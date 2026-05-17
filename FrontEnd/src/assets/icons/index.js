@@ -17,3 +17,5 @@ export { default as Logout } from "./logout.svg?raw";
 export { default as Collapse } from "./collapse.svg?raw";
 export { default as Expand } from "./expand.svg?raw";
 export { default as ChevronDown } from "./chevron-down.svg?raw";
+export { default as Close } from "./close.svg?raw";
+export { default as Join } from "./join.svg?raw";

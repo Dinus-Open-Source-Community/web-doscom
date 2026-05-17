@@ -1,3 +1,276 @@
-<nav class="mt-20 flex w-1/6 justify-center">
-  <p>ini sidebar</p>
-</nav>
+---
+import SidebarItem from './SidebarItem.astro'
+import {
+  Grid,
+  SuperAdmin,
+  Admin,
+  CoreTeam,
+  Blog,
+  Gallery,
+  Profile,
+  Help,
+  Logout,
+  Collapse,
+  Expand,
+} from '../../assets/icons'
+
+const menuGroups = [
+  // contoh struktur menu, bisa kamu sesuaikan dengan kebutuhanmu
+  // {
+  //   header: "DASHBOARD",
+  //   items: [
+  //     {
+  //       name: "Dashboard",
+  //       icon: Grid,
+  //       href: "#",
+  //       active: true,
+  //       submenu: [
+  //         { name: "Overview", href: "/admin/dashboard", icon: <replace with import svg(capitalize)> },
+  //         { name: "Analytics", href: "/admin/analytics", icon: <replace with import svg(capitalize)> },
+  //         { name: "Reports", href: "/admin/reports", icon: <replace with import svg(capitalize)> },
+  //       ],
+  //     },
+  //     { name: "Sales", icon: "dollar", href: "/admin/sales", active: false },
+  //   ],
+  // },
+
+  {
+    header: 'Main',
+    items: [{ name: 'Dashboard', icon: Grid, href: '#', active: true }],
+  },
+  {
+    header: 'Account',
+    items: [
+      { name: 'Super Admin', icon: SuperAdmin, href: '#', active: false },
+      { name: 'BPH', icon: Admin, href: '#', active: false },
+      { name: 'Core Team', icon: CoreTeam, href: '#', active: false },
+    ],
+  },
+  {
+    header: 'Activity',
+    items: [
+      { name: 'Blog', icon: Blog, href: '#', active: false },
+      { name: 'Gallery', icon: Gallery, href: '#', active: false },
+    ],
+  },
+  {
+    header: 'Control',
+    items: [{ name: 'Profile', icon: Profile, href: '#', active: false }],
+  },
+]
+
+const bottomItems = [
+  { name: 'Help', icon: Help, href: '/admin/help' },
+  { name: 'Log out', icon: Logout, href: '/logout' },
+]
+---
+
+<aside
+  id="sidebar"
+  class="group relative z-50 flex h-screen w-64 flex-col overflow-visible border-r border-gray-200 bg-white transition-[width] duration-300 ease-in-out"
+  data-collapsed="false"
+>
+  <div
+    class="flex h-20 shrink-0 items-center justify-between border-b border-gray-100 px-6"
+  >
+    <div class="brand-wrapper flex items-center overflow-hidden">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center">
+        <img
+          src="/assets/image/admin/template.png"
+          alt="profile"
+          class="h-full w-full rounded-lg object-cover"
+        />
+      </div>
+
+      <div class="sidebar-text flex min-w-0 flex-col justify-center">
+        <span
+          class="truncate text-sm font-bold text-gray-800"
+          title="Husnul Fikri Averus"
+        >
+          Husnul Fikri Averus
+        </span>
+
+        <span
+          class="truncate text-xs text-gray-400"
+          title="111202412345@mhs.dinus.ac.id"
+        >
+          111202412345@mhs.dinus.ac.id
+        </span>
+      </div>
+    </div>
+
+    <button
+      id="toggle-sidebar"
+      class="shrink-0 rounded-md p-1 text-gray-500 transition-colors hover:text-gray-700 focus:outline-none"
+    >
+      <span id="icon-collapse">
+        <span set:html={Collapse} class="[&>svg]:h-[20px] [&>svg]:w-[22px]" />
+      </span>
+      <span id="icon-expand" class="hidden"
+        ><span
+          set:html={Expand}
+          class="[&>svg]:h-[20px] [&>svg]:w-[22px]"
+        /></span
+      >
+    </button>
+  </div>
+
+  <div class="relative w-full flex-1">
+    <div
+      class="no-scrollbar pointer-events-none absolute top-0 -right-[250px] bottom-0 left-0 overflow-x-hidden overflow-y-auto pr-[250px]"
+    >
+      <div class="pointer-events-auto min-h-full w-full space-y-6 px-4 py-4">
+        {
+          menuGroups.map(group => (
+            <div>
+              <p class="sidebar-header mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase">
+                {group.header}
+              </p>
+              <ul class="space-y-1">
+                {group.items.map(item => (
+                  <SidebarItem item={item} />
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-1 border-t border-gray-100 p-4">
+    <ul class="space-y-1">
+      {bottomItems.map(item => <SidebarItem item={item} />)}
+    </ul>
+  </div>
+</aside>
+
+<script>
+  const sidebar = document.getElementById('sidebar')
+  const toggleBtn = document.getElementById('toggle-sidebar')
+  const iconCollapse = document.getElementById('icon-collapse')
+  const iconExpand = document.getElementById('icon-expand')
+
+  function setSidebarState(isCollapsed: boolean) {
+    if (isCollapsed) {
+      sidebar?.classList.remove('w-64')
+      sidebar?.classList.add('w-20')
+      sidebar?.setAttribute('data-collapsed', 'true')
+      iconCollapse?.classList.add('hidden')
+      iconExpand?.classList.remove('hidden')
+    } else {
+      sidebar?.classList.remove('w-20')
+      sidebar?.classList.add('w-64')
+      sidebar?.setAttribute('data-collapsed', 'false')
+      iconExpand?.classList.add('hidden')
+      iconCollapse?.classList.remove('hidden')
+    }
+    localStorage.setItem('sidebar-collapsed', String(isCollapsed))
+  }
+
+  toggleBtn?.addEventListener('click', () => {
+    const isCollapsed = sidebar?.getAttribute('data-collapsed') === 'true'
+    setSidebarState(!isCollapsed)
+  })
+
+  const savedState = localStorage.getItem('sidebar-collapsed') === 'true'
+  setSidebarState(savedState)
+
+  const submenuToggles = document.querySelectorAll('.submenu-toggle')
+  submenuToggles.forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      e.preventDefault()
+      const button = e.currentTarget as HTMLElement
+      const parent = button.closest('.menu-item-with-submenu')
+      const wrapper = parent?.querySelector('.submenu-wrapper')
+      const arrow = button.querySelector('.submenu-arrow')
+
+      if (wrapper?.classList.contains('grid-rows-[0fr]')) {
+        wrapper.classList.replace('grid-rows-[0fr]', 'grid-rows-[1fr]')
+        arrow?.classList.add('rotate-180')
+      } else {
+        wrapper?.classList.replace('grid-rows-[1fr]', 'grid-rows-[0fr]')
+        arrow?.classList.remove('rotate-180')
+      }
+    })
+  })
+</script>
+
+<style is:global>
+  #sidebar .sidebar-text,
+  #sidebar .brand-wrapper {
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 1;
+    width: 100%;
+    margin-left: 0.5rem;
+    transition:
+      width 0.3s ease-in-out,
+      margin-left 0.3s ease-in-out,
+      opacity 0.3s ease-in-out 0.1s;
+  }
+
+  #sidebar .brand-wrapper {
+    max-width: 200px;
+    margin-left: 0;
+  }
+
+  #sidebar .sidebar-header {
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 1;
+    max-height: 20px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  #sidebar .submenu-arrow {
+    overflow: hidden;
+    opacity: 1;
+    width: 1rem;
+    transition:
+      width 0.3s ease-in-out,
+      opacity 0.3s ease-in-out 0.1s,
+      transform 0.3s ease-in-out;
+  }
+
+  #sidebar .submenu-list {
+    padding-left: 0.5rem;
+    transition: padding-left 0.3s ease-in-out;
+  }
+
+  /* --- MODE TERTUTUP (COLLAPSED) --- */
+  #sidebar[data-collapsed='true'] .sidebar-text,
+  #sidebar[data-collapsed='true'] .brand-wrapper,
+  #sidebar[data-collapsed='true'] .submenu-arrow {
+    opacity: 0;
+    width: 0;
+    margin-left: 0;
+    transition:
+      width 0.3s ease-in-out,
+      margin-left 0.3s ease-in-out,
+      opacity 0.1s ease-in-out;
+  }
+
+  #sidebar[data-collapsed='true'] .brand-wrapper {
+    max-width: 0;
+  }
+
+  #sidebar[data-collapsed='true'] .sidebar-header {
+    max-height: 1px;
+    margin: 0.5rem 0.75rem;
+    background-color: #e5e7eb;
+    color: transparent;
+  }
+
+  #sidebar[data-collapsed='true'] .submenu-list {
+    padding-left: 0;
+  }
+
+  /* TOOLTIP LOGIC */
+  #sidebar .simple-tooltip {
+    display: none;
+  }
+  #sidebar[data-collapsed='true'] .simple-tooltip {
+    display: block;
+  }
+</style>
