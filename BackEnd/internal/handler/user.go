@@ -178,7 +178,8 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 	user, err := m.Service.GetUserById(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "User Not Found",
+			"error":   "User Not Found",
+			"message": "ihh cari siapa sii, kok id ngga ada di cari cari uhmmmm",
 		})
 	}
 

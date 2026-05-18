@@ -93,7 +93,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// Hapus token lama dulu agar tidak duplicate key error
-	h.Auth.RefreshToken.DeleteRefreshTokenByUserId(userData.ID)
+	// h.Auth.RefreshToken.DeleteRefreshTokenByUserId(userData.ID)
 
 	// insert to database
 	if err := h.Auth.CreateRefreshToken(refreshToken); err != nil {
@@ -108,7 +108,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	SetCustomCookie(c, Cookies{
 		Name:     "RefreshToken",
 		Value:    plainToken,
-		Path:     "/api/v1/auth/refresh",
+		Path:     "/api/v1/auth",
 		Expires:  time.Now().Add(5 * 24 * time.Hour),
 		Secure:   true,
 		HttpOnly: true,
@@ -187,11 +187,27 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 // @Router       /api/v1/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 
-	// delete cookie
+	// delete refresh token from database
+	refreshToken, err := c.Cookie("RefreshToken")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   err.Error(),
+			"message": "Cookie not found, what are you doing here????",
+		})
+		return
+	}
+	if err := h.Auth.DeleteRefreshToken(refreshToken); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "there was an error deleting the refresh token",
+		})
+		return
+	}
+	// delete Cookie
 	SetCustomCookie(c, Cookies{
 		Name:     "RefreshToken",
 		Value:    "",
-		Path:     "/",
+		Path:     "/api/v1/auth",
 		Expires:  time.Now().Add(-time.Hour),
 		Secure:   true,
 		HttpOnly: true,
@@ -217,7 +233,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":   err.Error(),
-			"message": "Refresh token not found",
+			"message": "Refresh token not found, what are you doing heree????",
 		})
 		return
 	}
@@ -228,7 +244,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		SetCustomCookie(c, Cookies{
 			Name:     "RefreshToken",
 			Value:    "",
-			Path:     "/",
+			Path:     "/api/v1/auth",
 			Expires:  time.Now().Add(-time.Hour),
 			Secure:   true,
 			HttpOnly: true,
