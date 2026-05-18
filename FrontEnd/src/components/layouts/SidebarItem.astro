@@ -6,6 +6,15 @@ interface Props {
 }
 
 const { item } = Astro.props
+
+const currentPath = Astro.url.pathname
+
+const isAbsoluteActive =
+  item.href === '/'
+    ? currentPath === '/'
+    : item.submenu
+      ? currentPath === item.href || currentPath.startsWith(item.href + '/')
+      : currentPath === item.href
 ---
 
 <li class="group/item relative">
@@ -15,7 +24,7 @@ const { item } = Astro.props
         <button
           class:list={[
             'submenu-toggle flex w-full cursor-pointer items-center rounded-lg px-2 py-2.5 transition-colors duration-200',
-            item.active
+            isAbsoluteActive
               ? 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100/70'
               : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
           ]}
@@ -23,9 +32,7 @@ const { item } = Astro.props
           <span class="flex w-8 shrink-0 justify-center">
             <span class="[&>svg]:h-full [&>svg]:w-full" set:html={item.icon} />
           </span>
-          <span class="sidebar-text grow text-left text-sm font-semibold">
-            {item.name}
-          </span>
+          <span class="sidebar-text grow text-left text-sm font-semibold">{item.name}</span>
 
           <span
             set:html={ChevronDown}
@@ -43,14 +50,9 @@ const { item } = Astro.props
                     class="group/subitem relative flex w-full items-center rounded-lg px-2 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900"
                   >
                     <span class="flex w-8 shrink-0 justify-center opacity-70">
-                      <span
-                        class="[&>svg]:h-full [&>svg]:w-full"
-                        set:html={subitem.icon}
-                      />
+                      <span class="[&>svg]:h-full [&>svg]:w-full" set:html={subitem.icon} />
                     </span>
-                    <span class="sidebar-text grow text-left text-sm font-semibold">
-                      {subitem.name}
-                    </span>
+                    <span class="sidebar-text grow text-left text-sm font-semibold">{subitem.name}</span>
 
                     <div class="simple-tooltip pointer-events-none invisible absolute left-full z-50 ml-4 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-all duration-200 group-hover/subitem:visible group-hover/subitem:opacity-100">
                       {subitem.name}
@@ -67,7 +69,7 @@ const { item } = Astro.props
         href={item.href}
         class:list={[
           'flex w-full items-center rounded-lg px-2 py-2.5 transition-colors duration-200',
-          item.active
+          isAbsoluteActive
             ? 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100/70'
             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
         ]}
@@ -75,9 +77,7 @@ const { item } = Astro.props
         <span class="flex w-8 shrink-0 justify-center">
           <span class="[&>svg]:h-4 [&>svg]:w-4" set:html={item.icon} />
         </span>
-        <span class="sidebar-text grow text-left text-sm font-semibold">
-          {item.name}
-        </span>
+        <span class="sidebar-text grow text-left text-sm font-semibold">{item.name}</span>
 
         <div class="simple-tooltip pointer-events-none invisible absolute left-full z-50 ml-3 -translate-x-2 opacity-0 transition-all duration-300 ease-out group-hover/item:visible group-hover/item:translate-x-0 group-hover/item:opacity-100">
           <div class="relative rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white shadow-lg">

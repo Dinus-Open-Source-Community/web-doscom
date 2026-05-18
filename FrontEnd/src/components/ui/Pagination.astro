@@ -1,21 +1,112 @@
 ---
+import type { HTMLAttributes } from 'astro/types'
 import nextIcon from '../../assets/icon-next.svg?raw'
+
+interface Props extends HTMLAttributes<'div'> {
+  variant?: 'default' | 'datatable'
+  currentPage?: number
+  totalPages?: number
+  startEntry?: number
+  endEntry?: number
+  totalEntries?: number
+  class?: string
+}
+
+const {
+  variant = 'default',
+  currentPage = 1,
+  totalPages = 12,
+  startEntry = 1,
+  endEntry = 4,
+  totalEntries = 24,
+  class: extraClass = '',
+  ...rest
+} = Astro.props
+
+const baseStyles = 'flex select-none items-center'
+
+const variantStyles = {
+  default: 'grid-cols-4 gap-1',
+  datatable: 'flex-col justify-between gap-4 border-t border-gray-100 pt-6 sm:flex-row w-full',
+}
+
+const displayPages: (number | string)[] = []
+for (let i = 1; i <= totalPages; i++) {
+  if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+    displayPages.push(i)
+  } else if (displayPages[displayPages.length - 1] !== '...') {
+    displayPages.push('...')
+  }
+}
 ---
 
-<div class="flex grid-cols-4 gap-1">
-  <div class="relative h-10 w-10 rounded-full bg-[var(--color-primary)]">
-    <span class="absolute inset-0 m-auto h-5 w-5 text-white [&>svg]:h-full [&>svg]:w-full" set:html={nextIcon} />
-  </div>
-  <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)]">
-    <p class="text-xl font-semibold text-white">1</p>
-  </div>
-  <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
-    <p class="text-xl font-semibold">2</p>
-  </div>
-  <div class="relative h-10 w-10 rounded-full bg-[var(--color-primary)]">
-    <span
-      class="absolute inset-0 m-auto h-5 w-5 rotate-180 text-white [&>svg]:h-full [&>svg]:w-full"
-      set:html={nextIcon}
-    />
-  </div>
+<div class={`${extraClass} ${baseStyles} ${variantStyles[variant]}`} {...rest}>
+  {
+    variant === 'default' && (
+      <>
+        <div class="relative h-10 w-10 rounded-full bg-[var(--color-primary)]">
+          <span class="absolute inset-0 m-auto h-5 w-5 text-white [&>svg]:h-full [&>svg]:w-full" set:html={nextIcon} />
+        </div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)]">
+          <p class="text-xl font-semibold text-white">1</p>
+        </div>
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
+          <p class="text-xl font-semibold">2</p>
+        </div>
+        <div class="relative h-10 w-10 rounded-full bg-[var(--color-primary)]">
+          <span
+            class="absolute inset-0 m-auto h-5 w-5 rotate-180 text-white [&>svg]:h-full [&>svg]:w-full"
+            set:html={nextIcon}
+          />
+        </div>
+      </>
+    )
+  }
+
+  {
+    variant === 'datatable' && (
+      <>
+        <span class="text-sm font-light text-gray-400">
+          Showing {startEntry}-{endEntry} of <span class="font-medium text-gray-700">{totalEntries}</span> entries
+        </span>
+
+        <div class="flex items-center gap-1.5">
+          {/* Previous Button */}
+          <button
+            class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-all hover:border-gray-300 hover:bg-gray-100/70 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40"
+            disabled={currentPage === 1}
+          >
+            <span class="h-4 w-4 rotate-180 [&>svg]:h-full [&>svg]:w-full" set:html={nextIcon} />
+          </button>
+
+          {displayPages.map(page => {
+            if (page === '...') {
+              return <span class="cursor-default px-1 text-gray-400 select-none">...</span>
+            }
+
+            const isActive = page === currentPage
+            return (
+              <button
+                class:list={[
+                  'flex h-9 min-w-[36px] items-center justify-center rounded-lg px-3 py-1.5 text-sm font-semibold transition-all',
+                  isActive
+                    ? 'pointer-events-none cursor-default border border-gray-900 bg-gray-900 text-white shadow-sm'
+                    : 'cursor-pointer border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-100/70 hover:text-gray-900',
+                ]}
+              >
+                {page}
+              </button>
+            )
+          })}
+
+          <button
+            class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-all hover:border-gray-300 hover:bg-gray-100/70 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40"
+            disabled={currentPage === totalPages}
+          >
+            <span class="h-4 w-4 [&>svg]:h-full [&>svg]:w-full" set:html={nextIcon} />
+          </button>
+        </div>
+      </>
+    )
+  }
 </div>
