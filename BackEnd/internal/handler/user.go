@@ -178,7 +178,8 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 	user, err := m.Service.GetUserById(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "User Not Found",
+			"error":   "User Not Found",
+			"message": "ihh cari siapa sii, kok id ngga ada di cari cari uhmmmm",
 		})
 	}
 
@@ -191,8 +192,8 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Get user",
-		"user":    userData,
+		"message":  "Get user",
+		"userData": userData,
 	})
 }
 
@@ -225,8 +226,8 @@ func (m *UserHandler) GetAllUserBasedOnRole(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "List of users data",
-		"users":   usersData,
+		"message":   "List of users data",
+		"usersData": usersData,
 	})
 }
 
@@ -268,8 +269,8 @@ func (m *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully update user data",
-		"user":    updatedDataUser,
+		"message":         "Successfully update user data",
+		"userUpdatedData": updatedDataUser,
 	})
 }
 

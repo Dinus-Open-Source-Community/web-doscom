@@ -87,32 +87,26 @@ func isRoleAllowed(User_role string, allowedRoles []string) bool {
 
 func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var tokenString string
 
 		// Try to get token from Authorization header first (Bearer token)
 		authHeader := c.GetHeader("Authorization")
-		if authHeader != "" {
-			// Check if it's a Bearer token
-			if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
-				tokenString = authHeader[7:]
-			} else {
-				// If Authorization header exists but not Bearer format, use it as-is
-				tokenString = authHeader
-			}
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"errors": "Authroization header is required",
+			})
+			c.Abort()
+			return
 		}
 
-		// If no Authorization header, try to get token from cookie
-		if tokenString == "" {
-			var err error
-			tokenString, err = c.Cookie("RefreshToken")
-			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{
-					"error": "Authentication required. Please provide a valid token in Authorization header or cookie",
-				})
-				c.Abort()
-				return
-			}
+		if len(authHeader) <= 7 || authHeader[:7] != "Bearer " {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"errors": "Authorization header must be bearer token",
+			})
+			c.Abort()
+			return
 		}
+
+		tokenString := authHeader[7:]
 
 		// Validate token
 		claims, err := ValidateAuth(tokenString)
@@ -127,8 +121,6 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		// Set user info in context
 		c.Set("user_id", claims.UserId)
 		c.Set("role", claims.Role)
-		// c.Set("email", claims.Email)
-		// c.Set("username", claims.Username)
 
 		// Check role if specified
 		if len(allowedRoles) > 0 {
