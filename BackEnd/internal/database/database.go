@@ -23,10 +23,6 @@ func ConnectDB() *service {
 		port       = os.Getenv("DB_PORT")
 		dbInstance *service
 	)
-	// reuse connection
-	// if dbInstance != nil {
-	// 	return dbInstance
-	// }
 
 	var err error
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=public", username, password, host, port, database)
