@@ -1,0 +1,141 @@
+---
+import { Edit, More } from '../../assets/icons'
+import Badge from './Badge.astro'
+
+interface Props {
+  headers: string[]
+  data: Array<{
+    id: string
+    name: string
+    email: string
+    date: string
+    status: string
+    avatar?: string
+    selected?: boolean
+  }>
+}
+
+const { headers, data } = Astro.props
+---
+
+<div class="w-full overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
+  <table class="w-full border-collapse text-left" id="data-table">
+    <thead>
+      <tr class="border-b border-gray-100 bg-gray-50/50">
+        <th class="w-12 px-6 py-3.5">
+          <input
+            type="checkbox"
+            id="select-all-checkbox"
+            class="h-4 w-4 cursor-default rounded border border-gray-300 bg-white text-gray-900 accent-gray-900 transition-all focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:outline-none"
+          />
+        </th>
+        {
+          headers.map(header => (
+            <th class="cursor-default px-6 py-3.5 text-xs font-medium tracking-tight text-gray-400 uppercase select-none">
+              {header}
+            </th>
+          ))
+        }
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {
+        data.map(row => (
+          <tr
+            class:list={[
+              'table-row transition-colors duration-200 hover:bg-gray-50/70',
+              row.selected ? 'bg-gray-100/40 font-medium' : '',
+            ]}
+            data-state={row.selected ? 'selected' : undefined}
+          >
+            <td class="px-6 py-4 align-middle">
+              <input
+                type="checkbox"
+                checked={row.selected}
+                class="row-checkbox h-4 w-4 cursor-default rounded border border-gray-300 bg-white text-gray-900 accent-gray-900 transition-all focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:outline-none"
+              />
+            </td>
+            <td class="cursor-default px-6 py-4 text-sm font-medium text-gray-900 select-none">{row.id}</td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <img
+                  src={row.avatar || '/assets/photos/default-avatar.webp'}
+                  alt={row.name}
+                  class="h-10 w-10 cursor-default rounded-full border border-gray-100 object-cover select-none"
+                />
+                <div class="flex flex-col">
+                  <span class="cursor-default text-sm font-semibold text-gray-900 select-none">{row.name}</span>
+                  <span class="cursor-default text-xs font-light text-gray-400 select-none">{row.email}</span>
+                </div>
+              </div>
+            </td>
+            <td class="cursor-default px-6 py-4 text-sm text-gray-500 select-none">{row.date}</td>
+            <td class="px-6 py-4">
+              <Badge status={row.status} />
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-1.5">
+                <button class="cursor-default rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600">
+                  <span
+                    class="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                    set:html={Edit}
+                  />
+                </button>
+                <button class="cursor-default rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600">
+                  <span
+                    class="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                    set:html={More}
+                  />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const selectAll = document.getElementById('select-all-checkbox') as HTMLInputElement
+  const rowCheckboxes = document.querySelectorAll('.row-checkbox') as NodeListOf<HTMLInputElement>
+
+  rowCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', e => {
+      const target = e.target as HTMLInputElement
+      const row = target.closest('.table-row')
+      if (row) {
+        if (target.checked) {
+          row.classList.add('bg-gray-100/40', 'font-medium')
+          row.setAttribute('data-state', 'selected')
+        } else {
+          row.classList.remove('bg-gray-100/40', 'font-medium')
+          row.removeAttribute('data-state')
+        }
+      }
+
+      if (selectAll) {
+        const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked)
+        selectAll.checked = allChecked
+      }
+    })
+  })
+
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      rowCheckboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked
+        const row = checkbox.closest('.table-row')
+        if (row) {
+          if (selectAll.checked) {
+            row.classList.add('bg-gray-100/40', 'font-medium')
+            row.setAttribute('data-state', 'selected')
+          } else {
+            row.classList.remove('bg-gray-100/40', 'font-medium')
+            row.removeAttribute('data-state')
+          }
+        }
+      })
+    })
+  }
+</script>
