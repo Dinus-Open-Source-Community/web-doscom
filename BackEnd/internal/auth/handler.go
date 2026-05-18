@@ -60,7 +60,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// // check the role
+	// check the role
 
 	_, err = authorization.GetRoleInfo(userData.Role)
 	if err != nil {
@@ -108,7 +108,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	SetCustomCookie(c, Cookies{
 		Name:     "RefreshToken",
 		Value:    plainToken,
-		Path:     "/",
+		Path:     "/api/v1/auth/refresh",
 		Expires:  time.Now().Add(5 * 24 * time.Hour),
 		Secure:   true,
 		HttpOnly: true,
@@ -243,15 +243,9 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// production response
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"message": "refresh token success created",
-	// })
-
-	// development response
 	c.JSON(http.StatusOK, gin.H{
-		"message": "refresh token success",
-		"token":   newAccessToken,
+		"message":      "refresh token success",
+		"access_token": newAccessToken,
 	})
 
 }
