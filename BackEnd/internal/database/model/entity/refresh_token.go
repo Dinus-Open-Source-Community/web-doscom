@@ -47,6 +47,14 @@ func (r *RefreshTokenModel) DeleteRefreshTokenByUserId(userId int) error {
 	return nil
 }
 
+func (r *RefreshTokenModel) DeleteRefreshToken(tokenHash string) error {
+	if err := r.DB.Where("token = ?", &tokenHash).Delete(&RefreshToken{}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *RefreshTokenModel) UpdatePartial(refreshToken string, data map[string]any) error {
 	// return p.DB.WithContext(ctx).
 	// 	Model(&Payment{}).

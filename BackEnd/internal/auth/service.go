@@ -1,12 +1,16 @@
 package auth
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 	env "web_doscom/internal/config"
 	"web_doscom/internal/database/model/entity"
@@ -42,8 +46,6 @@ type Cookies struct {
 	HttpOnly bool
 	SameSite http.SameSite
 }
-
-var REFRESH_TOKEN_SIZE = 32
 
 func Create_token(UserId int, email, username, role string) (string, error) {
 	env.LoadEnv()
@@ -92,6 +94,36 @@ func verifyPassword(password, hash string) bool {
 	return match
 }
 
+func HashRefreshToken(token string) (string, error) {
+	env.LoadEnv()
+	secret := os.Getenv("REFRESH_TOKEN_HASH_SECRET")
+
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, err := mac.Write([]byte(token))
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(mac.Sum(nil)), nil
+}
+
+func VerifyRefreshToken(token, tokenHash string) (bool, error) {
+	env.LoadEnv()
+	sig, err := hex.DecodeString(tokenHash)
+	if err != nil {
+		return false, err
+	}
+	log.Println(tokenHash)
+	secret := os.Getenv("REFRESH_TOKEN_HASH_SECRET")
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, err = mac.Write([]byte(token))
+	if err != nil {
+		return false, err
+	}
+
+	return hmac.Equal(sig, mac.Sum(nil)), nil
+}
+
 func SetCustomCookie(c *gin.Context, cfg Cookies) {
 	cookie := &http.Cookie{
 		Name:     cfg.Name,
@@ -122,14 +154,18 @@ func GetCookie(r *http.Request, tokenName string) (string, error) {
 }
 
 func generateSecureToken() (string, error) {
-	bytes := make([]byte, REFRESH_TOKEN_SIZE)
+	env.LoadEnv()
+	tokenSize, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_SIZE"))
 
-	_, err := rand.Read(bytes)
+	bytes := make([]byte, tokenSize)
+
+	_, err = rand.Read(bytes)
 	if err != nil {
 		return "", err
 	}
 
-	return base64.StdEncoding.EncodeToString(bytes), nil
+	// return base64.StdEncoding.EncodeToString(bytes), nil
+	return base64.RawURLEncoding.EncodeToString(bytes), nil
 }
 
 func generateRefreshToken(userId int) (*entity.RefreshToken, string, error) {
@@ -137,12 +173,13 @@ func generateRefreshToken(userId int) (*entity.RefreshToken, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	// tokenHash := HashPassword(tokenString)
+
+	tokenHash, err := HashRefreshToken(tokenString)
 	expiredAt := time.Now().Add(5 * 24 * time.Hour)
 
 	refreshToken := &entity.RefreshToken{
 		UserId:    userId,
-		Token:     tokenString,
+		Token:     tokenHash,
 		Expires:   &expiredAt,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -152,10 +189,14 @@ func generateRefreshToken(userId int) (*entity.RefreshToken, string, error) {
 }
 
 func (h *AuthService) validateRefreshToken(tokenString string) (string, error) {
-	// take refresh token from database
-	// refreshTokenHash := HashPassword(tokenString)
-	refreshToken, err := h.RefreshToken.GetRefreshToken(tokenString)
+	tokenHash, err := HashRefreshToken(tokenString)
 	if err != nil {
+		return "", err
+	}
+	// take refresh token from database
+	refreshToken, err := h.RefreshToken.GetRefreshToken(tokenHash)
+	if err != nil {
+		log.Println("errornya disini")
 		return "", err
 	}
 
@@ -198,4 +239,16 @@ func (h *AuthService) InsertUser(user *entity.User) error {
 // wrapper entity refreshToken
 func (h *AuthService) CreateRefreshToken(refreshToken *entity.RefreshToken) error {
 	return h.RefreshToken.CreateRefreshToken(refreshToken)
+}
+
+func (h *AuthService) DeleteRefreshToken(tokenString string) error {
+	tokenhash, err := HashRefreshToken(tokenString)
+	if err != nil {
+		return err
+	}
+	if err := h.RefreshToken.DeleteRefreshToken(tokenhash); err != nil {
+		return err
+	}
+
+	return nil
 }
