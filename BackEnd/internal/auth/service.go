@@ -164,7 +164,8 @@ func generateSecureToken() (string, error) {
 		return "", err
 	}
 
-	return base64.StdEncoding.EncodeToString(bytes), nil
+	// return base64.StdEncoding.EncodeToString(bytes), nil
+	return base64.RawURLEncoding.EncodeToString(bytes), nil
 }
 
 func generateRefreshToken(userId int) (*entity.RefreshToken, string, error) {
@@ -172,12 +173,13 @@ func generateRefreshToken(userId int) (*entity.RefreshToken, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	// tokenHash := HashPassword(tokenString)
+
+	tokenHash, err := HashRefreshToken(tokenString)
 	expiredAt := time.Now().Add(5 * 24 * time.Hour)
 
 	refreshToken := &entity.RefreshToken{
 		UserId:    userId,
-		Token:     tokenString,
+		Token:     tokenHash,
 		Expires:   &expiredAt,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -187,10 +189,14 @@ func generateRefreshToken(userId int) (*entity.RefreshToken, string, error) {
 }
 
 func (h *AuthService) validateRefreshToken(tokenString string) (string, error) {
-	// take refresh token from database
-	// refreshTokenHash := HashPassword(tokenString)
-	refreshToken, err := h.RefreshToken.GetRefreshToken(tokenString)
+	tokenHash, err := HashRefreshToken(tokenString)
 	if err != nil {
+		return "", err
+	}
+	// take refresh token from database
+	refreshToken, err := h.RefreshToken.GetRefreshToken(tokenHash)
+	if err != nil {
+		log.Println("errornya disini")
 		return "", err
 	}
 
@@ -233,4 +239,16 @@ func (h *AuthService) InsertUser(user *entity.User) error {
 // wrapper entity refreshToken
 func (h *AuthService) CreateRefreshToken(refreshToken *entity.RefreshToken) error {
 	return h.RefreshToken.CreateRefreshToken(refreshToken)
+}
+
+func (h *AuthService) DeleteRefreshToken(tokenString string) error {
+	tokenhash, err := HashRefreshToken(tokenString)
+	if err != nil {
+		return err
+	}
+	if err := h.RefreshToken.DeleteRefreshToken(tokenhash); err != nil {
+		return err
+	}
+
+	return nil
 }
