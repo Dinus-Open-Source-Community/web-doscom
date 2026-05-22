@@ -33,7 +33,7 @@ var ValidPosition = map[string]string{
 	"KoorData":     RoleKoordinator,
 	"sekum":        RoleKoordinator,
 	"sekAng":       RoleKoordinator,
-	"pr":           RolePengurus,
+	"pr":           RoleKoordinator,
 	"bendum":       RolePengurus,
 	"humas":        RolePengurus,
 	"bendAng":      RolePengurus,
@@ -77,9 +77,9 @@ var RoleLevel = map[string]int{
 }
 
 var RoleFieldPermission = map[string][]string{
-	RoleAdmin:       {"name", "email", "divisi", "position", "period", "photo_url"},
-	RoleKoordinator: {"name", "email", "divisi", "position", "period"},
-	RolePengurus:    {"name", "email", "divisi", "period", "photo_url"},
+	RoleAdmin:       {"name", "email", "divisi", "position", "start_periode_year", "end_periode_year", "photo_url"},
+	RoleKoordinator: {"name", "email", "divisi", "position", "start_periode_year", "end_periode_year"},
+	RolePengurus:    {"name", "email", "divisi", "start_periode_year", "end_periode_year", "photo_url"},
 }
 
 // map auto assign role koor to anggota role

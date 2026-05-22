@@ -2,6 +2,7 @@ package entity
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -54,16 +55,17 @@ type PengurusModel struct {
 
 // Model GORM
 type Pengurus struct {
-	ID        int       `gorm:"primaryKey" json:"id"`
-	UserID    int       `gorm:"column:id_user" json:"id_user"`
-	PhotoURL  string    `gorm:"column:photo_url" json:"url_asset"`
-	Name      string    `json:"name"`
-	Email     string    `gorm:"uniqueIndex" json:"email"`
-	Divisi    string    `gorm:"column:divisi" json:"divisi"`
-	Position  string    `json:"position"`
-	Period    string    `json:"period"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID               int       `gorm:"primaryKey" json:"id"`
+	IDUser           int       `gorm:"column:id_user" json:"id_user"`
+	PhotoURL         string    `gorm:"column:photo_url" json:"url_asset"`
+	Name             string    `json:"name"`
+	Email            string    `gorm:"uniqueIndex" json:"email"`
+	Divisi           string    `gorm:"column:divisi" json:"divisi"`
+	Position         string    `json:"position"`
+	StartPeriodeYear int       `json:"start_periode_year"`
+	EndPeriodeYear   int       `json:"end_periode_year"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }
 
 // Custom validator
@@ -93,7 +95,7 @@ type UserGet struct {
 func (m *PengurusModel) InsertPengurus(pengurus *Pengurus) error {
 	// Validasi user_id ke tabel users (pseudo, harus ada model User)
 	var user User
-	if err := m.DB.First(&user, pengurus.UserID).Error; err != nil {
+	if err := m.DB.First(&user, pengurus.IDUser).Error; err != nil {
 		return fmt.Errorf("user_id tidak ditemukan")
 	}
 	// Validasi email unik
@@ -127,7 +129,7 @@ func (m *PengurusModel) FindByEmail(email string) (*Pengurus, error) {
 
 // Get pengurus by id
 func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.PengurusResponse, error) {
-	var pengurus dto.PengurusResponse
+	var pengurusRow dto.PengurusRow
 
 	query := `
 		SELECT
@@ -138,7 +140,8 @@ func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.Pengu
 			p.email,
 			p.divisi,
 			p.position,
-			p.period,
+			p.start_periode_year,
+			p.end_periode_year,
 			p.created_at,
 			p.updated_at,
 			COALESCE(sosmed.urls, '[]'::json) AS sosmed
@@ -148,16 +151,36 @@ func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.Pengu
 				json_build_object(
 					'platform', ps.platform,
 					'username', ps.username,
-					'url', ps.url
+					'url', ps.url,
+					'is_primary', ps.is_primary
 				)
 			) AS urls FROM pengurus_sosmed ps WHERE ps.pengurus_id = p.id
 		)sosmed ON true WHERE p.id = $1
 	`
 
-	if err := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurus).Error; err != nil {
+	if err := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurusRow).Error; err != nil {
 		return nil, fmt.Errorf("error while getting the data: %w", err)
 	}
-	return &pengurus, nil
+
+	var sosmed []dto.PengurusSosmedResponse
+	if err := json.Unmarshal(pengurusRow.Sosmed, &sosmed); err != nil {
+		return nil, fmt.Errorf("error while unmarshalling sosmed: %w", err)
+	}
+
+	return &dto.PengurusResponse{
+		ID:               pengurusRow.ID,
+		IDUser:           pengurusRow.IDUser,
+		PhotoURL:         pengurusRow.PhotoURL,
+		Email:            pengurusRow.Email,
+		Divisi:           pengurusRow.Divisi,
+		Name:             pengurusRow.Name,
+		Position:         pengurusRow.Position,
+		Sosmed:           sosmed,
+		StartPeriodeYear: pengurusRow.StartPeriodeYear,
+		EndPeriodeYear:   pengurusRow.EndPeriodeYear,
+		CreatedAt:        pengurusRow.CreatedAt,
+		UpdatedAt:        pengurusRow.UpdatedAt,
+	}, nil
 }
 
 // Get all pengurus data
@@ -207,13 +230,14 @@ func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*dto
 	}
 
 	return &dto.PengurusResponse{
-		ID:       updatePengurus.ID,
-		PhotoURL: updatePengurus.PhotoURL,
-		Email:    updatePengurus.Email,
-		Divisi:   updatePengurus.Divisi,
-		Name:     updatePengurus.Name,
-		Position: updatePengurus.Position,
-		Period:   updatePengurus.Period,
+		ID:               updatePengurus.ID,
+		PhotoURL:         updatePengurus.PhotoURL,
+		Email:            updatePengurus.Email,
+		Divisi:           updatePengurus.Divisi,
+		Name:             updatePengurus.Name,
+		Position:         updatePengurus.Position,
+		StartPeriodeYear: updatePengurus.StartPeriodeYear,
+		EndPeriodeYear:   updatePengurus.EndPeriodeYear,
 	}, nil
 }
 
@@ -239,7 +263,7 @@ func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string
 
 	if err := m.DB.WithContext(ctx).
 		Model(&Pengurus{}).
-		Select("id, photo_url, email, divisi, name, position,  period").
+		Select("id, photo_url, email, divisi, name, position,  start_periode_year, end_periode_year").
 		Where("divisi = ?", division).
 		Order("name ASC").
 		Scan(&dataPengurus).
