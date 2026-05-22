@@ -65,7 +65,6 @@ func (p *PengurusService) UpdatePengurusSosmed(ctx context.Context, pengurusID i
 	}
 
 	return sosmedResponse, nil
-
 }
 
 func (p *PengurusService) CreatePengurus(
@@ -101,12 +100,13 @@ func (p *PengurusService) CreatePengurus(
 
 	// filter field insert by role
 	data := dto.PengurusPayload{
-		Email:    dataPengurus.Email,
-		Divisi:   divisi,
-		Name:     dataPengurus.Name,
-		Position: validPosition,
-		Period:   dataPengurus.Period,
-		PhotoURL: dataPengurus.PhotoURL,
+		Email:            dataPengurus.Email,
+		Divisi:           divisi,
+		Name:             dataPengurus.Name,
+		Position:         validPosition,
+		StartPeriodeYear: dataPengurus.StartPeriodeYear,
+		EndPeriodeYear:   dataPengurus.EndPeriodeYear,
+		PhotoURL:         dataPengurus.PhotoURL,
 	}
 
 	fillableFields, err := authorization.FilterRoleFieldPermission(userRole, &data)
@@ -123,7 +123,7 @@ func (p *PengurusService) CreatePengurus(
 	if _, canUploadPhoto := fillableFields["photo_url"]; canUploadPhoto {
 		now := time.Now()
 		gallery := &dto.GalleryInsert{
-			IDUsers:     finalData.UserID,
+			IDUsers:     finalData.IDUser,
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
 			Description: "foto identitas diri yang mewakili pengurus doscom",
@@ -179,14 +179,15 @@ func (p *PengurusService) CreatePengurus(
 	}
 
 	return &dto.PengurusResponse{
-		ID:       finalData.ID,
-		PhotoURL: finalData.PhotoURL,
-		Email:    finalData.Email,
-		Divisi:   finalData.Divisi,
-		Name:     finalData.Name,
-		Position: finalData.Position,
-		Sosmed:   socialMediaResponse,
-		Period:   finalData.Period,
+		ID:               finalData.ID,
+		PhotoURL:         finalData.PhotoURL,
+		Email:            finalData.Email,
+		Divisi:           finalData.Divisi,
+		Name:             finalData.Name,
+		Position:         finalData.Position,
+		Sosmed:           socialMediaResponse,
+		StartPeriodeYear: finalData.StartPeriodeYear,
+		EndPeriodeYear:   finalData.EndPeriodeYear,
 	}, nil
 
 }
@@ -210,14 +211,15 @@ func (p *PengurusService) UpdateDataPengurus(
 		return nil, err
 	}
 	dataUser := entity.Pengurus{
-		ID:       userData.ID,
-		UserID:   userData.UserID,
-		PhotoURL: userData.PhotoURL,
-		Email:    userData.Email,
-		Divisi:   userData.Divisi,
-		Name:     userData.Name,
-		Position: userData.Position,
-		Period:   userData.Period,
+		ID:               userData.ID,
+		IDUser:           userData.IDUser,
+		PhotoURL:         userData.PhotoURL,
+		Email:            userData.Email,
+		Divisi:           userData.Divisi,
+		Name:             userData.Name,
+		Position:         userData.Position,
+		StartPeriodeYear: userData.StartPeriodeYear,
+		EndPeriodeYear:   userData.EndPeriodeYear,
 	}
 	// authorization check for update data
 	roleUser, err := pengurusAuthorization.RolePositionAuthorization(
@@ -232,12 +234,13 @@ func (p *PengurusService) UpdateDataPengurus(
 	}
 
 	dataPengurusPayload := dto.PengurusPayload{
-		Email:    dataPengurus.Email,
-		Divisi:   dataPengurus.Divisi,
-		Name:     dataPengurus.Name,
-		Period:   dataPengurus.Period,
-		Position: dataPengurus.Position,
-		PhotoURL: dataPengurus.PhotoURL,
+		Email:            dataPengurus.Email,
+		Divisi:           dataPengurus.Divisi,
+		Name:             dataPengurus.Name,
+		StartPeriodeYear: dataPengurus.StartPeriodeYear,
+		EndPeriodeYear:   dataPengurus.EndPeriodeYear,
+		Position:         dataPengurus.Position,
+		PhotoURL:         dataPengurus.PhotoURL,
 	}
 	// filter fileld update by role and update profile
 	editableFields, err := authorization.FilterRoleFieldPermission(userRole, &dataPengurusPayload)
@@ -257,12 +260,12 @@ func (p *PengurusService) UpdateDataPengurus(
 		}
 
 		// Pastikan juga bungkusan fileUpload menggunakan UserID asli dari tabel users (angka 2)
-		fileUpload.UserID = uint(targetPengurus.UserID)
+		fileUpload.UserID = uint(targetPengurus.IDUser)
 
 		// update file upload and gallery
 		now := time.Now()
 		gallery := &dto.GalleryInsert{
-			IDUsers:     targetPengurus.UserID, // Correctly link to the UserID, not Pengurus ID
+			IDUsers:     targetPengurus.IDUser, // Correctly link to the UserID, not Pengurus ID
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
 			Description: "foto identitas diri yang mewakili pengurus doscom",
@@ -300,13 +303,14 @@ func (p *PengurusService) UpdateDataPengurus(
 	}
 
 	return &dto.PengurusPublicResponse{
-		ID:       updatedPengurus.ID,
-		PhotoURL: updatedPengurus.PhotoURL,
-		Divisi:   updatedPengurus.Divisi,
-		Name:     updatedPengurus.Name,
-		Position: updatedPengurus.Position,
-		Sosmed:   sosmedResponse,
-		Period:   updatedPengurus.Period,
+		ID:               updatedPengurus.ID,
+		PhotoURL:         updatedPengurus.PhotoURL,
+		Divisi:           updatedPengurus.Divisi,
+		Name:             updatedPengurus.Name,
+		Position:         updatedPengurus.Position,
+		Sosmed:           sosmedResponse,
+		StartPeriodeYear: updatedPengurus.StartPeriodeYear,
+		EndPeriodeYear:   updatedPengurus.EndPeriodeYear,
 	}, nil
 }
 
@@ -363,13 +367,14 @@ func (p *PengurusService) GetAllPengurusByDivision(
 	dataPengurus := make([]dto.PengurusResponse, 0, len(pengurusResponse))
 	for _, data := range pengurusResponse {
 		dataPengurus = append(dataPengurus, dto.PengurusResponse{
-			ID:       data.ID,
-			PhotoURL: data.PhotoURL,
-			Email:    data.Email,
-			Divisi:   data.Divisi,
-			Name:     data.Name,
-			Position: data.Position,
-			Period:   data.Period,
+			ID:               data.ID,
+			PhotoURL:         data.PhotoURL,
+			Email:            data.Email,
+			Divisi:           data.Divisi,
+			Name:             data.Name,
+			Position:         data.Position,
+			StartPeriodeYear: data.StartPeriodeYear,
+			EndPeriodeYear:   data.EndPeriodeYear,
 		})
 	}
 
@@ -400,21 +405,7 @@ func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole 
 		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
 
-	pengurusDataResponse := dto.PengurusResponse{
-		ID:        pengurusResponse.ID,
-		UserID:    pengurusResponse.UserID,
-		PhotoURL:  pengurusResponse.PhotoURL,
-		Email:     pengurusResponse.Email,
-		Divisi:    pengurusResponse.Divisi,
-		Name:      pengurusResponse.Name,
-		Position:  pengurusResponse.Position,
-		Period:    pengurusResponse.Period,
-		Sosmed:    pengurusResponse.Sosmed,
-		CreatedAt: pengurusResponse.CreatedAt,
-		UpdatedAt: pengurusResponse.UpdatedAt,
-	}
-
-	return pengurusDataResponse, nil
+	return *pengurusResponse, nil
 }
 
 func (p *PengurusService) DeletePengurusById(ctx context.Context, idPengurus int, userRole string) error {
