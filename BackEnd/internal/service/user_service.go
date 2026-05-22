@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"web_doscom/internal/auth"
@@ -84,7 +85,7 @@ func (s *UserService) InsertUserWithDefaultValue(
 	}
 
 	if creatorRole.Role != constants.RoleAdmin &&
-		creatorRole.Role == constants.RoleKoordinator {
+		creatorRole.Role != constants.RoleKoordinator {
 		return fmt.Errorf("invalid role")
 	}
 
@@ -101,6 +102,7 @@ func (s *UserService) InsertUserWithDefaultValue(
 	// hash password
 	passowordHash := auth.HashPassword(defaultValue.Password)
 
+	log.Println("password", defaultValue.Password)
 	user := &entity.User{
 		Username:  defaultValue.Username,
 		Email:     userData.Email,
@@ -199,8 +201,14 @@ func (s *UserService) DeleteUserBaseOnRole(id int, userRole string) error {
 		return fmt.Errorf("you are not allowed to delete this data")
 	}
 
-	if userValidRoleGroup.Divisi != userToDeleteRoleGroup.Divisi {
-		return fmt.Errorf("you cannot delete data from another divison")
+	if userValidRoleGroup.Role == constants.RoleAdmin {
+		if err := s.UserModel.DeleteUser(id); err != nil {
+			return fmt.Errorf("terjadi kesalahan %w", err)
+		}
+	} else {
+		if userValidRoleGroup.Divisi != userToDeleteRoleGroup.Divisi {
+			return fmt.Errorf("you cannot delete data from another divison")
+		}
 	}
 
 	if err := s.UserModel.DeleteUser(id); err != nil {

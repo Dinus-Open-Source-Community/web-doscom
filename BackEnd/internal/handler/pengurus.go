@@ -144,7 +144,7 @@ func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 		return
 	}
 
-	pengurus, err := h.Service.GetPengurusByID(ctx, id, userRole, userID)
+	pengurusData, err := h.Service.GetPengurusByID(ctx, id, userRole, userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error":   err.Error(),
@@ -152,20 +152,20 @@ func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 		})
 		return
 	}
-	resp := dto.PengurusResponse{
-		ID:       pengurus.ID,
-		PhotoURL: pengurus.PhotoURL,
-		Email:    pengurus.Email,
-		Divisi:   pengurus.Divisi,
-		Name:     pengurus.Name,
-		Position: pengurus.Position,
-		Sosmed:   pengurus.Sosmed,
-		Period:   pengurus.Period,
-	}
+	// respon := dto.PengurusResponse{
+	// 	ID:       pengurus.ID,
+	// 	UserID:   pengurus.UserID,
+	// 	PhotoURL: pengurus.PhotoURL,
+	// 	Email:    pengurus.Email,
+	// 	Divisi:   pengurus.Divisi,
+	// 	Name:     pengurus.Name,
+	// 	Position: pengurus.Position,
+	// 	Period:   pengurus.Period,
+	// }
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "Successfully get data",
-		"pengurus": resp,
+		"message":       "Successfully get data",
+		"pengurus data": pengurusData,
 	})
 }
 
@@ -185,19 +185,20 @@ func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
 	pengurusDataResponse := make([]dto.PengurusPublicResponse, 0, len(pengurusList))
 	for _, p := range pengurusList {
 		pengurusDataResponse = append(pengurusDataResponse, dto.PengurusPublicResponse{
-			ID:       p.ID,
-			PhotoURL: p.PhotoURL,
-			Divisi:   p.Divisi,
-			Name:     p.Name,
-			Position: p.Position,
-			Sosmed:   p.Sosmed,
-			Period:   p.Period,
+			ID:               p.ID,
+			PhotoURL:         p.PhotoURL,
+			Divisi:           p.Divisi,
+			Name:             p.Name,
+			Position:         p.Position,
+			Sosmed:           p.Sosmed,
+			StartPeriodeYear: p.StartPeriodeYear,
+			EndPeriodeYear:   p.EndPeriodeYear,
 		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "List of pengurus",
-		"pengurus": pengurusDataResponse,
+		"message":       "List of pengurus",
+		"pengurus data": pengurusDataResponse,
 	})
 }
 
