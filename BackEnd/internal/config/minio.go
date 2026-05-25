@@ -17,6 +17,7 @@ type MinioClient struct {
 
 // InitMinioClient initializes MinIO client and creates bucket if not exists
 func InitMinioClient() (*MinioClient, error) {
+	LoadEnv()
 	endpoint := os.Getenv("MINIO_ENDPOINT")
 	accessKey := os.Getenv("MINIO_ACCESS_KEY")
 	secretKey := os.Getenv("MINIO_SECRET_KEY")

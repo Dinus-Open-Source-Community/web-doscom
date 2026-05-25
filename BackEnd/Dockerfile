@@ -23,9 +23,11 @@ RUN apk add --no-cache postgresql-client
 COPY --from=builder /app/app .
 COPY --from=builder /app/migrate .
 COPY --from=builder /app/seeder .
+COPY --from=builder /app/migrations ./migrations
 COPY docker-entrypoint.sh .
 COPY .env .
 RUN chmod +x docker-entrypoint.sh
 
 ENV GO_ENV=development
 ENV PORT=8080
+ENTRYPOINT ["./docker-entrypoint.sh"]
