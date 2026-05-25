@@ -9,6 +9,8 @@ RUN go mod download
 COPY . .
 
 RUN CGO_ENABLED=0 go build -o app ./cmd/api/main.go
+RUN CGO_ENABLED=0 go build -o migrate ./cmd/migrate/main.go
+RUN CGO_ENABLED=0 go build -o seeder ./cmd/seeder/main.go
 
 # stage 2: run
 FROM alpine:3.20.0
@@ -19,7 +21,8 @@ WORKDIR /app
 RUN apk add --no-cache postgresql-client
 
 COPY --from=builder /app/app .
-COPY migrations ./migrations
+COPY --from=builder /app/migrate .
+COPY --from=builder /app/seeder .
 COPY docker-entrypoint.sh .
 COPY .env .
 RUN chmod +x docker-entrypoint.sh

@@ -39,6 +39,15 @@ type DefaultValue struct {
 	Role     string `json:"role"`
 }
 
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}
+
+type AdminChangePasswordRequest struct {
+	NewPassword string `json:"new_password" binding:"required"`
+}
+
 func (u *UserPatch) ToMap() map[string]any {
 	result := make(map[string]any)
 
