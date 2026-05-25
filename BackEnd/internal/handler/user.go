@@ -8,7 +8,6 @@ import (
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model/dto"
 
-	// "web_doscom/internal/database/model"
 	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -66,19 +65,8 @@ func (m *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// userData, password, err := m.Service.InsertUserWithDefaultValue(&input, creatorRole)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{
-	// 		"error":   err.Error(),
-	// 		"message": "failed while create user",
-	// 	})
-	// 	return
-	// }
-
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"message": "User created successfully",
-		// "data":     response,
-		// "password": password,
 	})
 
 }
@@ -149,8 +137,9 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 }
 
 func (m *UserHandler) GetUser(c *gin.Context) {
-	userRole := c.MustGet("role").(string)
-	validRole, err := authorization.GetRoleInfo(userRole)
+	CurrentUserRole := c.MustGet("role").(string)
+	CurrentUserID := c.MustGet("user_id").(int)
+	validRole, err := authorization.GetRoleInfo(CurrentUserRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
@@ -165,9 +154,7 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	idParams := c.Param("id")
-
-	id, err := strconv.Atoi(idParams)
+	targetUserID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid user id",
@@ -175,25 +162,26 @@ func (m *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := m.Service.GetUserById(id)
+	userData, err := m.Service.GetUserById(CurrentUserRole, targetUserID, CurrentUserID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error":   "User Not Found",
-			"message": "ihh cari siapa sii, kok id ngga ada di cari cari uhmmmm",
+			"error":   "User Not Found, err: " + err.Error(),
+			"message": "ihh cari siapa sii, kok id ngga ada di cari cari uhmmmm ;)",
 		})
+		return
 	}
 
-	userData := dto.UserResponse{
-		Id:        int(user.ID),
-		Username:  user.Username,
-		Email:     user.Email,
-		Role:      user.Role,
-		Full_name: user.Full_name,
+	TargetUserData := dto.UserResponse{
+		Id:        userData.ID,
+		Username:  userData.Username,
+		Email:     userData.Email,
+		Role:      userData.Role,
+		Full_name: userData.Full_name,
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Get user",
-		"userData": userData,
+		"userData": TargetUserData,
 	})
 }
 
@@ -311,5 +299,89 @@ func (m *UserHandler) DeleteUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "user deleted info kopi dan gorengan bolo",
+	})
+}
+
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	currentUserID := c.MustGet("user_id").(int)
+	userRole := c.MustGet("role").(string)
+	_, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	var changePasswordRequest dto.ChangePasswordRequest
+	if err := c.ShouldBind(&changePasswordRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read req body",
+		})
+		return
+	}
+
+	if err := h.Service.ChangePassword(
+		currentUserID,
+		changePasswordRequest,
+		userRole,
+	); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "failed to change password",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "password changed successfully, anjayy aku tau pw mu :)",
+	})
+}
+
+func (h *UserHandler) ChangePasswordAdmin(c *gin.Context) {
+	currentUserRole := c.MustGet("role").(string)
+	targetUserID, err := strconv.Atoi(c.Param("id"))
+	if err != nil || targetUserID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid user id",
+		})
+	}
+
+	validRole, err := authorization.GetRoleInfo(currentUserRole)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "role not valid",
+		})
+		return
+	}
+
+	if validRole.Role != constants.RoleAdmin {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "you are not allowed to access this route,, hayo ngapain masuk sini",
+		})
+		return
+	}
+
+	var changePasswordRequest dto.AdminChangePasswordRequest
+	if err := c.ShouldBind(&changePasswordRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read req body",
+		})
+		return
+	}
+
+	passwordUpdated, err := h.Service.ChangePasswordAdmin(targetUserID, currentUserRole, changePasswordRequest)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "failed to change password, nakal ganti pw wong liyo, mentang mentang superadmin",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "password changed successfully",
+		"passwordUpdated": passwordUpdated,
 	})
 }

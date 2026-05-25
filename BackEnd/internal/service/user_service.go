@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"web_doscom/internal/auth"
 	"web_doscom/internal/authorization"
@@ -32,10 +33,10 @@ func (s *UserService) SetDefaultValue(email, fullname, creatorRole, reqRole stri
 	}
 
 	var assignedRole string
-	switch {
-	case validRoleCreator.Role == constants.RoleKoordinator:
+	switch validRoleCreator.Role {
+	case constants.RoleKoordinator:
 		assignedRole = constants.AutoAsignRole[creatorRole]
-	case validRoleCreator.Role == constants.RoleAdmin:
+	case constants.RoleAdmin:
 		if reqRole == "" {
 			return nil, fmt.Errorf("role is required for admin")
 		}
@@ -91,12 +92,12 @@ func (s *UserService) InsertUserWithDefaultValue(
 
 	defaultValue, err := s.SetDefaultValue(
 		userData.Email,
-		userData.Username,
+		userData.Fullname,
 		userRole,
 		userData.Role,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to set defaultValue to new user")
+		return fmt.Errorf("failed to set defaultValue to new user: %w", err)
 	}
 
 	// hash password
@@ -123,8 +124,36 @@ func (s *UserService) FindByEmail(email string) (*entity.User, error) {
 	return s.UserModel.FindByEmail(email)
 }
 
-func (s *UserService) GetUserById(id int) (*entity.User, error) {
-	return s.UserModel.GetUserById(id)
+func (s *UserService) GetUserById(userRole string, targetUserID, currentUserID int) (*entity.User, error) {
+	validCurrentUser, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return nil, err
+	}
+
+	dataUserTarget, err := s.UserModel.GetUserById(targetUserID)
+	if err != nil {
+		return nil, fmt.Errorf("terjadi kesalahan ketika ambil data %w", err)
+	}
+	validTargetUser, err := authorization.GetRoleInfo(dataUserTarget.Role)
+	if err != nil {
+		return nil, fmt.Errorf("something wongg wakk")
+	}
+
+	switch validCurrentUser.Role {
+	case constants.RoleAdmin:
+	case constants.RoleKoordinator:
+		if validTargetUser.Divisi != validCurrentUser.Divisi {
+			return nil, fmt.Errorf("you can not see other division data bro")
+		}
+	case constants.RolePengurus:
+		if currentUserID != dataUserTarget.ID {
+			return nil, fmt.Errorf("you can't see other user data bro, i wait you...")
+		}
+	default:
+		return nil, fmt.Errorf("role not valid")
+	}
+
+	return dataUserTarget, nil
 }
 
 func (s *UserService) GetAllUserBaseOnRole(
@@ -197,7 +226,7 @@ func (s *UserService) DeleteUserBaseOnRole(id int, userRole string) error {
 	userRoleLevel := constants.RoleLevel[userValidRoleGroup.Role]
 	userToDeleteRoleLevel := constants.RoleLevel[userToDeleteRoleGroup.Role]
 
-	if userRoleLevel <= userToDeleteRoleLevel && id != userWantToDeleteData.ID {
+	if userRoleLevel >= userToDeleteRoleLevel {
 		return fmt.Errorf("you are not allowed to delete this data")
 	}
 
@@ -216,4 +245,100 @@ func (s *UserService) DeleteUserBaseOnRole(id int, userRole string) error {
 	}
 
 	return nil
+}
+
+func checkPassword(password string) (bool, string) {
+	score := 0
+
+	check := []*regexp.Regexp{
+		constants.AtLeastOneLowercase,
+		constants.AtLeastOneUppercase,
+		constants.AtLeastOneNumeric,
+		constants.AtLeastOneSpecialChar,
+		constants.EightCharsOrMore,
+	}
+
+	for _, regex := range check {
+		if regex.MatchString(password) {
+			score++
+		}
+	}
+
+	switch {
+	case score <= 2:
+		return false, fmt.Sprintf("password too weak, like you weak: %d", score)
+	case score <= 4:
+		return true, fmt.Sprintf("password now little strong, make it stronger: %d", score)
+	default:
+		return true, "damnn your passord is strong like develeoper"
+	}
+}
+
+func (s *UserService) ChangePassword(currentUserID int, passwordRequest dto.ChangePasswordRequest, userRole string) error {
+	_, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return fmt.Errorf("role not valid")
+	}
+
+	currentUserData, err := s.UserModel.GetUserById(currentUserID)
+	if err != nil {
+		return fmt.Errorf("terjadi kesalahan ketika ambil data %w", err)
+	}
+
+	// check password old
+	if !auth.VerifyPassword(passwordRequest.OldPassword, currentUserData.Password) {
+		return fmt.Errorf("old password is not correct, hayoo kok lupa pw nya")
+	}
+
+	// check new password strength
+	valid, message := checkPassword(passwordRequest.NewPassword)
+	if !valid {
+		return fmt.Errorf("%s", message)
+	}
+
+	// update password
+	passwordUpdated := make(map[string]any)
+	passwordUpdated["password"] = auth.HashPassword(passwordRequest.NewPassword)
+
+	_, err = s.UserModel.UpdateUser(currentUserID, passwordUpdated)
+	if err != nil {
+		return fmt.Errorf("terjadi kesalahan ketika update password %w", err)
+	}
+	return nil
+}
+
+func (s *UserService) ChangePasswordAdmin(targetUserID int, userRole string, passwordRequest dto.AdminChangePasswordRequest) (string, error) {
+	validRole, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return "", fmt.Errorf("role not valid")
+	}
+
+	if validRole.Role != constants.RoleAdmin {
+		return "", fmt.Errorf("you are not allowed to access this route, sopo kwe ganti pw wong liyo")
+	}
+
+	userData, err := s.UserModel.GetUserById(targetUserID)
+	if err != nil {
+		return "", fmt.Errorf("terjadi kesalahan ketika ambil data %w", err)
+	}
+	validTargetUser, err := authorization.GetRoleInfo(userData.Role)
+	if err != nil {
+		return "", fmt.Errorf("something wongg wakk role not valid")
+	}
+
+	roleLevelCurrentUser := constants.RoleLevel[validRole.Role]
+	roleLevelTargetUser := constants.RoleLevel[validTargetUser.Role]
+
+	if roleLevelCurrentUser >= roleLevelTargetUser {
+		return "", fmt.Errorf("You cannot change the password for a role that is the same as your own")
+	}
+
+	passwordUpdated := make(map[string]any)
+	passwordUpdated["password"] = auth.HashPassword(passwordRequest.NewPassword)
+	_, err = s.UserModel.UpdateUser(targetUserID, passwordUpdated)
+	if err != nil {
+		return "", fmt.Errorf("terjadi kesalahan ketika update password %w", err)
+	}
+
+	return passwordRequest.NewPassword, nil
 }

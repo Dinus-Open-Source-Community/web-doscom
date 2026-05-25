@@ -1,5 +1,7 @@
 package constants
 
+import "regexp"
+
 // ================= ROLE =================
 const (
 	RoleAdmin       = "admin"
@@ -100,4 +102,13 @@ const (
 	StatusUnpublish = "unpublished"
 	StatusRejected  = "rejected"
 	StatusPending   = "pending_review"
+)
+
+// regex password
+var (
+	AtLeastOneUppercase   = regexp.MustCompile(`[A-Z]`)
+	AtLeastOneLowercase   = regexp.MustCompile(`[a-z]`)
+	AtLeastOneNumeric     = regexp.MustCompile(`[0-9]`)
+	AtLeastOneSpecialChar = regexp.MustCompile(`[^A-Za-z0-9]`)
+	EightCharsOrMore      = regexp.MustCompile(`.{8,}`)
 )
