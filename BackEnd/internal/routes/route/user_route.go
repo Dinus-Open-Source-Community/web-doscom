@@ -7,25 +7,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UserControllerRoute(r *gin.RouterGroup, UserHandler *handler.UserHandler) {
+func UserControllerRoute(r *gin.RouterGroup, userHandler *handler.UserHandler) {
 	user := r.Group("/user")
 
 	// shared endpoint dengan role-based
+	lowerShared := user.Group("")
+	lowerShared.Use(auth.AuthMiddleware("ADMIN", "KOOR", "BPH", "PENGURUS"))
+	{
+		lowerShared.GET("/:id", userHandler.GetUser)
+		lowerShared.PUT("/change-password", userHandler.ChangePassword)
+	}
 	shared := user.Group("")
 	shared.Use(auth.AuthMiddleware("ADMIN", "KOOR", "BPH"))
 	{
-		shared.POST("", UserHandler.CreateUser)
-		shared.GET("/:id", UserHandler.GetUser)
-		shared.GET("", UserHandler.GetAllUserBasedOnRole)
-		shared.PUT("/:id", UserHandler.UpdateUser)
-		shared.DELETE("/:id", UserHandler.DeleteUser)
+		shared.POST("", userHandler.CreateUser)
+		shared.GET("", userHandler.GetAllUserBasedOnRole)
+		shared.PUT("/:id", userHandler.UpdateUser)
+		shared.DELETE("/:id", userHandler.DeleteUser)
 	}
 
 	// admin-exclusive endpoint
-	admin := user.Group("/admin")
+	admin := r.Group("/admin/user")
 	admin.Use(auth.AuthMiddleware("ADMIN"))
 	{
-		admin.POST("", UserHandler.CreateSuperAdmin)
+		admin.POST("/super-admin", userHandler.CreateSuperAdmin)
+		admin.PUT("/:id/change-password", userHandler.ChangePasswordAdmin)
 	}
 
 }

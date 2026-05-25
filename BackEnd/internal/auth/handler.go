@@ -53,7 +53,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// veerify the password
-	if !verifyPassword(input.Password, userData.Password) {
+	if !VerifyPassword(input.Password, userData.Password) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "Invalid email or password",
 		})
@@ -93,7 +93,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	}
 
 	// Hapus token lama dulu agar tidak duplicate key error
-	// h.Auth.RefreshToken.DeleteRefreshTokenByUserId(userData.ID)
+	h.Auth.RefreshToken.DeleteRefreshTokenByUserId(userData.ID)
 
 	// insert to database
 	if err := h.Auth.CreateRefreshToken(refreshToken); err != nil {

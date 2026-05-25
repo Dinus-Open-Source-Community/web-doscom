@@ -13,8 +13,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func Routes(app *config.Application) http.Handler {
-	g := gin.Default()
+func Routes(g *gin.Engine, app *config.Application) http.Handler {
 
 	v1 := g.Group("api/v1")
 	{
