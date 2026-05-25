@@ -24,6 +24,7 @@ fi
 # Run migrations
 echo "Running database migrations..."
 cd /app
+./migrate down
 ./migrate up
 
 echo "Running Seeder..."
