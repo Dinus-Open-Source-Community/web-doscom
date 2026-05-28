@@ -31,6 +31,7 @@ func UserControllerRoute(r *gin.RouterGroup, userHandler *handler.UserHandler) {
 	admin.Use(auth.AuthMiddleware("ADMIN"))
 	{
 		admin.POST("/super-admin", userHandler.CreateSuperAdmin)
+		admin.GET("", userHandler.GetSuperAdmin)
 		admin.PUT("/:id/change-password", userHandler.ChangePasswordAdmin)
 	}
 

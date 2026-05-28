@@ -14,21 +14,28 @@ echo "Database server is ready!"
 
 # Check if target database exists, create if not
 echo "Checking target database: $DB_DATABASE..."
+
 DB_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "postgres" -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_DATABASE'")
+
+echo "DB_EXISTS=[$DB_EXISTS]"
+DB_CREATED=false
 if [ "$DB_EXISTS" != "1" ]; then
     echo "Creating database $DB_DATABASE..."
     PGPASSWORD=$DB_PASSWORD psql -h "db" -U "$DB_USER" -d "postgres" -c "CREATE DATABASE $DB_DATABASE"
+    DB_CREATED=true
+else
+  echo "Database $DB_DATABASE already exists. Skipping migrations and seeder."
 fi
 
-
 # Run migrations
-echo "Running database migrations..."
 cd /app
-./migrate down
-./migrate up
+if [ "$DB_CREATED" = true ]; then
+  echo "Running database migrations..."
+  go run ./cmd/migrate/main.go up
 
-echo "Running Seeder..."
-./seeder
+  echo "Running Seeder..."
+  go run ./cmd/seeder/main.go
+fi
 # Check if migrate binary exists, if not skip migration
 # if command -v migrate >/dev/null 2>&1; then
 #     migrate -path migrations -database "$DBURL" up || echo "⚠️  Migration failed or already applied"

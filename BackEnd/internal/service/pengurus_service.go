@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 	"web_doscom/internal/authorization"
 	pengurusAuthorization "web_doscom/internal/authorization/pengurus"
@@ -29,6 +30,7 @@ func NewPengurusService(m *entity.PengurusModel, p *entity.PengurusSosmedModel, 
 }
 
 func (p *PengurusService) UpdatePengurusSosmed(ctx context.Context, pengurusID int, sosmedUrl []string) ([]dto.PengurusSosmedResponse, error) {
+
 	if len(sosmedUrl) == 0 {
 		// delete all sosmed
 		if err := p.PengurusSosmedModel.DeleteByPengurusID(ctx, pengurusID); err != nil {
@@ -75,6 +77,7 @@ func (p *PengurusService) CreatePengurus(
 	fileUpload *dto.UploadFileRequest,
 ) (*dto.PengurusResponse, error) {
 
+	log.Printf("[service] userID: %d", dataPengurus.UserID)
 	// auto assign position and divisi
 	divisi, validPosition, err := authorization.SetDivitionAndPositionByRole(dataPengurus.Position, dataPengurus.Divisi, userRole)
 	if err != nil {
@@ -113,14 +116,23 @@ func (p *PengurusService) CreatePengurus(
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("[service] daftar field: %v", fillableFields)
 
-	var finalData *entity.Pengurus
-	if err := mapstructure.Decode(fillableFields, &finalData); err != nil {
-		return nil, fmt.Errorf("failed to decode data")
+	finalData := &entity.Pengurus{}
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName: "json",
+		Result:  finalData,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := decoder.Decode(fillableFields); err != nil {
+		return nil, fmt.Errorf("failed to decode data %w", err)
 	}
 
 	// upload photo
 	if _, canUploadPhoto := fillableFields["photo_url"]; canUploadPhoto {
+		log.Printf("[service] insert gambar called")
 		now := time.Now()
 		gallery := &dto.GalleryInsert{
 			IDUsers:     finalData.IDUser,
@@ -145,9 +157,12 @@ func (p *PengurusService) CreatePengurus(
 		}
 
 		finalData.PhotoURL = fileURL
+		log.Printf("[service] fileURL: %s", fileURL)
 	}
 
 	// insert data pengurus
+	finalData.IDUser = dataPengurus.UserID
+	log.Printf("[service] userID: %v", finalData)
 	if err := p.PengurusModel.InsertPengurus(finalData); err != nil {
 		return nil, err
 	}
@@ -180,6 +195,7 @@ func (p *PengurusService) CreatePengurus(
 
 	return &dto.PengurusResponse{
 		ID:               finalData.ID,
+		IDUser:           finalData.IDUser,
 		PhotoURL:         finalData.PhotoURL,
 		Email:            finalData.Email,
 		Divisi:           finalData.Divisi,
@@ -206,7 +222,7 @@ func (p *PengurusService) UpdateDataPengurus(
 		error           error
 	)
 
-	userData, err := p.PengurusModel.GetPengurusById(ctx, idParams)
+	userData, err := p.PengurusModel.GetPengurusByUserID(ctx, idParams)
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +270,7 @@ func (p *PengurusService) UpdateDataPengurus(
 			return nil, fmt.Errorf("koordinator tidak dapat memperbarui foto pengurus")
 		}
 		// Pastikan kita ambil data pengurus dulu untuk tahu UserID-nya yang asli
-		targetPengurus, err := p.PengurusModel.GetPengurusById(ctx, idParams)
+		targetPengurus, err := p.PengurusModel.GetPengurusByUserID(ctx, idParams)
 		if err != nil {
 			return nil, err
 		}
@@ -381,15 +397,15 @@ func (p *PengurusService) GetAllPengurusByDivision(
 	return dataPengurus, nil
 }
 
-func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole string, userID int) (dto.PengurusResponse, error) {
+func (p *PengurusService) GetPengurusByUserID(ctx context.Context, userRole string, userID int) (dto.PengurusResponse, error) {
 	validRole, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
 		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
 
-	pengurusResponse, err := p.PengurusModel.GetPengurusById(ctx, id)
+	pengurusResponse, err := p.PengurusModel.GetPengurusByUserID(ctx, userID)
 	if err != nil {
-		return dto.PengurusResponse{}, fmt.Errorf("error while getting the data %w", err)
+		return dto.PengurusResponse{}, fmt.Errorf("error while getting the data: %w", err)
 	}
 
 	switch validRole.Role {
@@ -414,7 +430,7 @@ func (p *PengurusService) DeletePengurusById(ctx context.Context, idPengurus int
 		return fmt.Errorf("role not valid")
 	}
 
-	targetPengurus, err := p.PengurusModel.GetPengurusById(ctx, idPengurus)
+	targetPengurus, err := p.PengurusModel.GetPengurusByUserID(ctx, idPengurus)
 	if err != nil {
 		return err
 	}

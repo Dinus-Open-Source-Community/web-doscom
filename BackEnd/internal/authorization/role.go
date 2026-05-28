@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"fmt"
+	"log"
 	"slices"
 	"strings"
 
@@ -76,11 +77,14 @@ func FilterRoleFieldPermission(userRole string, data *dto.PengurusPayload) (map[
 	if !exists {
 		return nil, fmt.Errorf("no permissions defined for this role")
 	}
+	log.Printf("allowed fields: %#v", allowedFields)
 
 	editableFields := make(map[string]any)
 	for _, field := range allowedFields {
 		if val, ok := allFields[field]; ok {
 			editableFields[field] = val
+		} else {
+			editableFields[field] = ""
 		}
 	}
 
