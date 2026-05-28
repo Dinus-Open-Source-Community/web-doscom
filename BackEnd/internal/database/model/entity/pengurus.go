@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"web_doscom/internal/database/model/dto"
@@ -95,6 +96,7 @@ type UserGet struct {
 func (m *PengurusModel) InsertPengurus(pengurus *Pengurus) error {
 	// Validasi user_id ke tabel users (pseudo, harus ada model User)
 	var user User
+	log.Printf("user id %d", pengurus.IDUser)
 	if err := m.DB.First(&user, pengurus.IDUser).Error; err != nil {
 		return fmt.Errorf("user_id tidak ditemukan")
 	}
@@ -127,8 +129,8 @@ func (m *PengurusModel) FindByEmail(email string) (*Pengurus, error) {
 	return &pengurus, nil
 }
 
-// Get pengurus by id
-func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.PengurusResponse, error) {
+// Get pengurus by user id
+func (m *PengurusModel) GetPengurusByUserID(ctx context.Context, id int) (*dto.PengurusResponse, error) {
 	var pengurusRow dto.PengurusRow
 
 	query := `
@@ -155,7 +157,7 @@ func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.Pengu
 					'is_primary', ps.is_primary
 				)
 			) AS urls FROM pengurus_sosmed ps WHERE ps.pengurus_id = p.id
-		)sosmed ON true WHERE p.id = $1
+		)sosmed ON true WHERE p.id_user = $1
 	`
 
 	if err := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurusRow).Error; err != nil {

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -81,6 +82,7 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	}
 
 	// insert data
+	log.Printf("[InsertPengurus] terpanggil, user_id=%d", input.UserID)
 	pengurusDataResponse, err := h.Service.CreatePengurus(
 		ctx,
 		user_ID,
@@ -89,22 +91,22 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 		uploadFile,
 	)
 	if err != nil {
-		// Handle specific conflict error
-		if err.Error() == "email sudah terdaftar di pengurus" {
-			c.JSON(http.StatusConflict, gin.H{
-				"error":   err.Error(),
-				"message": "Gagal mendaftarkan pengurus: email sudah digunakan",
-			})
-			return
-		}
-		// Handle user not found or validation errors
-		if err.Error() == "user_id tidak ditemukan" || err.Error() == "role not valid" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   err.Error(),
-				"message": "Gagal mendaftarkan pengurus: input tidak valid",
-			})
-			return
-		}
+		// // Handle specific conflict error
+		// if err.Error() == "email sudah terdaftar di pengurus" {
+		// 	c.JSON(http.StatusConflict, gin.H{
+		// 		"error":   err.Error(),
+		// 		"message": "Gagal mendaftarkan pengurus: email sudah digunakan",
+		// 	})
+		// 	return
+		// }
+		// // Handle user not found or validation errors
+		// if err.Error() == "user_id tidak ditemukan" || err.Error() == "role not valid" {
+		// 	c.JSON(http.StatusBadRequest, gin.H{
+		// 		"error":   err.Error(),
+		// 		"message": "Gagal mendaftarkan pengurus: input tidak valid",
+		// 	})
+		// 	return
+		// }
 
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
@@ -134,7 +136,7 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 // @Router /api/v1/pengurus/{id} [get]
 func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	userID := c.MustGet("user_id").(int)
+	// userID := c.MustGet("user_id").(int)
 	userRole := c.MustGet("role").(string)
 
 	idParams := c.Param("id")
@@ -143,8 +145,9 @@ func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pengurus id"})
 		return
 	}
+	log.Printf("[handler] id=%d", id)
 
-	pengurusData, err := h.Service.GetPengurusByID(ctx, id, userRole, userID)
+	pengurusData, err := h.Service.GetPengurusByUserID(ctx, userRole, id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error":   err.Error(),

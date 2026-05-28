@@ -385,3 +385,37 @@ func (h *UserHandler) ChangePasswordAdmin(c *gin.Context) {
 		"passwordUpdated": passwordUpdated,
 	})
 }
+
+func (m *UserHandler) GetSuperAdmin(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
+	validRole, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "role not valid",
+		})
+		return
+	}
+
+	if validRole.Role != constants.RoleAdmin {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "you are not allowed to access this route, nakal yaa!!",
+		})
+		return
+	}
+	superAdminData, err := m.Service.GetSuperAdmin(ctx, userRole, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "terjadi kesalahan ketika ambil data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "Get super admin data",
+		"superAdmin Data": superAdminData,
+	})
+}

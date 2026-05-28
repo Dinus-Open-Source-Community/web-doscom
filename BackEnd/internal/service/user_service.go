@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -341,4 +342,21 @@ func (s *UserService) ChangePasswordAdmin(targetUserID int, userRole string, pas
 	}
 
 	return passwordRequest.NewPassword, nil
+}
+
+func (s *UserService) GetSuperAdmin(ctx context.Context, userRole string, userID int) ([]dto.UserResponse, error) {
+	validRole, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return nil, err
+	}
+	if validRole.Role != constants.RoleAdmin {
+		return nil, fmt.Errorf("you are not allowed to access this route, nakal yaa!!")
+	}
+
+	superAdminData, err := s.UserModel.GetSuperAdmin(ctx, userRole, userID)
+	if err != nil {
+		return nil, fmt.Errorf("terjadi kesalahan ketika ambil data %w", err)
+	}
+
+	return superAdminData, nil
 }
