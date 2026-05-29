@@ -123,7 +123,8 @@ func (m *UserModel) DeleteUser(id int) error {
 		return fmt.Errorf("failed to delete data %w", result.Error)
 	}
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("user not found %w", gorm.ErrRecordNotFound)
+		// log.Printf("[entity] error nya disini")
+		return fmt.Errorf("user nya ngga ada wlee :|>  %w", gorm.ErrRecordNotFound)
 	}
 
 	return nil

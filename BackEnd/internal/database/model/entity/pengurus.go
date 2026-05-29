@@ -160,8 +160,12 @@ func (m *PengurusModel) GetPengurusByUserID(ctx context.Context, id int) (*dto.P
 		)sosmed ON true WHERE p.id_user = $1
 	`
 
-	if err := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurusRow).Error; err != nil {
-		return nil, fmt.Errorf("error while getting the data: %w", err)
+	result := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurusRow)
+	if result.Error != nil {
+		return nil, fmt.Errorf("error while getting the data: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("record not found, hayoo id nya ngga ada xixixixi :Þ")
 	}
 
 	var sosmed []dto.PengurusSosmedResponse
@@ -185,18 +189,80 @@ func (m *PengurusModel) GetPengurusByUserID(ctx context.Context, id int) (*dto.P
 	}, nil
 }
 
-// Get all pengurus data
-func (m *PengurusModel) GetAllPengurusByDivisi(ctx context.Context, divisi string) ([]Pengurus, error) {
-	pengurus := []Pengurus{}
-	db := m.DB.WithContext(ctx)
-	if divisi != "" {
-		db = db.Where("divisi = ?", divisi)
+// get pengurus by id
+func (m *PengurusModel) GetPengurusByID(ctx context.Context, id int) (*dto.PengurusResponse, error) {
+	var pengurusRow dto.PengurusRow
+
+	query := `
+		SELECT
+			p.id,
+			p.id_user,
+			p.photo_url,
+			p.name,
+			p.email,
+			p.divisi,
+			p.position,
+			p.start_periode_year,
+			p.end_periode_year,
+			p.created_at,
+			p.updated_at,
+			COALESCE(sosmed.urls, '[]'::json) AS sosmed
+		FROM pengurus p
+		LEFT JOIN LATERAL (
+			SELECT json_agg(
+				json_build_object(
+					'platform', ps.platform,
+					'username', ps.username,
+					'url', ps.url,
+					'is_primary', ps.is_primary
+				)
+			) AS urls FROM pengurus_sosmed ps WHERE ps.pengurus_id = p.id
+		)sosmed ON true WHERE p.id = $1
+	`
+
+	result := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurusRow)
+	if result.Error != nil {
+		return nil, fmt.Errorf("error while getting the data: %w", result.Error)
 	}
-	if err := db.Find(&pengurus).Error; err != nil {
-		return nil, err
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("record not found, hayoo id nya ngga ada xixixixi :Þ")
 	}
-	return pengurus, nil
+
+	var sosmed []dto.PengurusSosmedResponse
+	if err := json.Unmarshal(pengurusRow.Sosmed, &sosmed); err != nil {
+		log.Printf("[model] error nya disini")
+		return nil, fmt.Errorf("error while unmarshalling sosmed: %w", err)
+	}
+
+	return &dto.PengurusResponse{
+		ID:               pengurusRow.ID,
+		IDUser:           pengurusRow.IDUser,
+		PhotoURL:         pengurusRow.PhotoURL,
+		Email:            pengurusRow.Email,
+		Divisi:           pengurusRow.Divisi,
+		Name:             pengurusRow.Name,
+		Position:         pengurusRow.Position,
+		Sosmed:           sosmed,
+		StartPeriodeYear: pengurusRow.StartPeriodeYear,
+		EndPeriodeYear:   pengurusRow.EndPeriodeYear,
+		CreatedAt:        pengurusRow.CreatedAt,
+		UpdatedAt:        pengurusRow.UpdatedAt,
+	}, nil
 }
+
+// DELETE THIS FUNCTION NOT USED
+// Get all pengurus data
+// func (m *PengurusModel) GetAllPengurusByDivisi(ctx context.Context, divisi string) ([]Pengurus, error) {
+// 	pengurus := []Pengurus{}
+// 	db := m.DB.WithContext(ctx)
+// 	if divisi != "" {
+// 		db = db.Where("divisi = ?", divisi)
+// 	}
+// 	if err := db.Find(&pengurus).Error; err != nil {
+// 		return nil, err
+// 	}
+// 	return pengurus, nil
+// }
 
 // Update pengurus
 func (m *PengurusModel) UpdatePengurus(Id int, patch dto.PengurusPatch) (*Pengurus, error) {
@@ -263,14 +329,18 @@ func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string
 		return nil, fmt.Errorf("division required")
 	}
 
-	if err := m.DB.WithContext(ctx).
+	result := m.DB.WithContext(ctx).
 		Model(&Pengurus{}).
 		Select("id, photo_url, email, divisi, name, position,  start_periode_year, end_periode_year").
 		Where("divisi = ?", division).
 		Order("name ASC").
-		Scan(&dataPengurus).
-		Error; err != nil {
-		return nil, fmt.Errorf("terjadi error ketika ambil data wlee %w", err)
+		Scan(&dataPengurus)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("terjadi error ketika ambil data >ᴗ< %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("ngga ada datanya >ᴗ<, divisi nya belum ada wak, hayaa")
 	}
 
 	return dataPengurus, nil

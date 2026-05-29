@@ -134,13 +134,11 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Tags Pengurus
 // @Router /api/v1/pengurus/{id} [get]
-func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
+func (h *PengurusHandler) GetPengurusByUserID(c *gin.Context) {
 	ctx := c.Request.Context()
-	// userID := c.MustGet("user_id").(int)
 	userRole := c.MustGet("role").(string)
 
-	idParams := c.Param("id")
-	id, err := strconv.Atoi(idParams)
+	id, err := strconv.Atoi(c.Param("user_id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pengurus id"})
 		return
@@ -155,16 +153,33 @@ func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 		})
 		return
 	}
-	// respon := dto.PengurusResponse{
-	// 	ID:       pengurus.ID,
-	// 	UserID:   pengurus.UserID,
-	// 	PhotoURL: pengurus.PhotoURL,
-	// 	Email:    pengurus.Email,
-	// 	Divisi:   pengurus.Divisi,
-	// 	Name:     pengurus.Name,
-	// 	Position: pengurus.Position,
-	// 	Period:   pengurus.Period,
-	// }
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":       "Successfully get data",
+		"pengurus data": pengurusData,
+	})
+}
+
+func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid pengurus id",
+		})
+		return
+	}
+
+	pengurusData, err := h.Service.GetPengurusByID(ctx, userRole, id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   err.Error(),
+			"message": "error while getting the data or data not found",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":       "Successfully get data",
