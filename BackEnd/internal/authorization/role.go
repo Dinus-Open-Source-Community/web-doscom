@@ -83,8 +83,6 @@ func FilterRoleFieldPermission(userRole string, data *dto.PengurusPayload) (map[
 	for _, field := range allowedFields {
 		if val, ok := allFields[field]; ok {
 			editableFields[field] = val
-		} else {
-			editableFields[field] = ""
 		}
 	}
 

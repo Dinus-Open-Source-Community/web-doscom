@@ -101,6 +101,8 @@ func (s *UserService) InsertUserWithDefaultValue(
 		return fmt.Errorf("failed to set defaultValue to new user: %w", err)
 	}
 
+	// check email
+
 	// hash password
 	passowordHash := auth.HashPassword(defaultValue.Password)
 
@@ -220,7 +222,8 @@ func (s *UserService) DeleteUserBaseOnRole(id int, userRole string) error {
 
 	userWantToDeleteData, err := s.UserModel.GetUserById(id)
 	if err != nil {
-		return fmt.Errorf("user tidak di temukan %w", err)
+		log.Printf("[service] ini di execute wak")
+		return fmt.Errorf("user nya ngga ada wlee :|>%w", err)
 	}
 	userToDeleteRoleGroup := constants.RoleGroup[userWantToDeleteData.Role]
 
@@ -232,17 +235,19 @@ func (s *UserService) DeleteUserBaseOnRole(id int, userRole string) error {
 	}
 
 	if userValidRoleGroup.Role == constants.RoleAdmin {
+		log.Printf("[service] user id: %d", id)
 		if err := s.UserModel.DeleteUser(id); err != nil {
+			log.Printf("[service] ini di execute")
 			return fmt.Errorf("terjadi kesalahan %w", err)
 		}
 	} else {
 		if userValidRoleGroup.Divisi != userToDeleteRoleGroup.Divisi {
 			return fmt.Errorf("you cannot delete data from another divison")
 		}
-	}
-
-	if err := s.UserModel.DeleteUser(id); err != nil {
-		return fmt.Errorf("terjadi kesalahan %w", err)
+		if err := s.UserModel.DeleteUser(id); err != nil {
+			log.Printf("[service] ini ter execute")
+			return fmt.Errorf("terjadi kesalahan %w", err)
+		}
 	}
 
 	return nil

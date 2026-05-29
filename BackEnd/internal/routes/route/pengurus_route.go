@@ -18,13 +18,14 @@ func RegisterPengurusRoutes(rg *gin.RouterGroup, pengurusHandler *handler.Pengur
 	privateRoutes.Use(auth.AuthMiddleware("ANGGOTA", "KOOR", "BPH", "ADMIN"))
 	{
 		privateRoutes.POST("", pengurusHandler.CreatePengurus)
+		privateRoutes.GET("/by-user/:user_id", pengurusHandler.GetPengurusByUserID)
 		privateRoutes.GET("/:id", pengurusHandler.GetPengurusByID)
 		privateRoutes.PUT("/:id", pengurusHandler.UpdatePengurus)
 
 		restricted := privateRoutes.Group("")
 		restricted.Use(auth.AuthMiddleware("KOOR", "BPH", "ADMIN"))
 		{
-			restricted.GET("", pengurusHandler.GetAllPengurusByDivision)
+			// restricted.GET("/:division", pengurusHandler.GetAllPengurusByDivision)
 			restricted.DELETE("/:id", pengurusHandler.DeletePengurus)
 		}
 	}

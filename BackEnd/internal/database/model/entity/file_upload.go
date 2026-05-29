@@ -3,6 +3,7 @@ package entity
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 	"web_doscom/internal/database/model/dto"
 
@@ -28,7 +29,7 @@ type FileUploadModel struct {
 }
 
 func (FileUpload) TableName() string {
-	return "file_upload"
+	return "file_uploads"
 }
 
 func (m *FileUploadModel) WithTx(tx *gorm.DB) *FileUploadModel {
@@ -40,7 +41,8 @@ func (m *FileUploadModel) CreateMetaData(fileUpload *FileUpload) (
 	*dto.FileUploadResponse,
 	error,
 ) {
-	if err := m.DB.Create(fileUpload).Error; err != nil {
+	if err := m.DB.Model(&FileUpload{}).Create(fileUpload).Error; err != nil {
+		log.Printf("[model] error nya disini")
 		return nil, err
 	}
 	return &dto.FileUploadResponse{

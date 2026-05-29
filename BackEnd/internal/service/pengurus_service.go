@@ -101,6 +101,7 @@ func (p *PengurusService) CreatePengurus(
 		}
 	}
 
+	log.Printf("[service] userID: %d", dataPengurus.UserID)
 	// filter field insert by role
 	data := dto.PengurusPayload{
 		Email:            dataPengurus.Email,
@@ -131,11 +132,16 @@ func (p *PengurusService) CreatePengurus(
 	}
 
 	// upload photo
-	if _, canUploadPhoto := fillableFields["photo_url"]; canUploadPhoto {
+	if fileUpload != nil {
+		allow, err := pengurusAuthorization.CanEditPengurusField(userRole, "photo_url")
+		if !allow || err != nil {
+			return nil, fmt.Errorf("sorry bro an error happened: %w", err)
+		}
+
 		log.Printf("[service] insert gambar called")
 		now := time.Now()
 		gallery := &dto.GalleryInsert{
-			IDUsers:     finalData.IDUser,
+			IDUsers:     dataPengurus.UserID,
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
 			Description: "foto identitas diri yang mewakili pengurus doscom",
@@ -146,6 +152,7 @@ func (p *PengurusService) CreatePengurus(
 			),
 		}
 
+		log.Printf("[service] fileUpload: %v", fileUpload)
 		_, fileURL, err := p.GalleryService.InsertGalleryAndFileUpload(
 			ctx,
 			gallery,
@@ -170,26 +177,9 @@ func (p *PengurusService) CreatePengurus(
 	// insert data sosmed pengurus
 	var socialMediaResponse []dto.PengurusSosmedResponse
 	if len(dataPengurus.Sosmed) != 0 {
-
-		socialMediaInfo, err := utils.ExtractSocialMediaBatch(dataPengurus.Sosmed)
+		socialMediaResponse, err = p.BuildSosmedAndSave(ctx, finalData.ID, dataPengurus.Sosmed)
 		if err != nil {
-			return nil, fmt.Errorf("failed to extract social media info %w", err)
-		}
-
-		socialMediaInsert := make([]dto.CreatePengurusSosmedPayload, len(socialMediaInfo))
-		for i, info := range socialMediaInfo {
-			socialMediaInsert[i] = dto.CreatePengurusSosmedPayload{
-				PengurusID: finalData.ID,
-				Platform:   info.Platform,
-				Username:   info.Username,
-				Url:        info.URL,
-				IsPrimary:  i == 0, // true hanya untuk index 0
-			}
-		}
-
-		socialMediaResponse, err = p.PengurusSosmedModel.InsertPengurusSosmed(ctx, socialMediaInsert)
-		if err != nil {
-			return nil, fmt.Errorf("failed to insert social media data %w", err)
+			return nil, err
 		}
 	}
 
@@ -222,7 +212,7 @@ func (p *PengurusService) UpdateDataPengurus(
 		error           error
 	)
 
-	userData, err := p.PengurusModel.GetPengurusByUserID(ctx, idParams)
+	userData, err := p.PengurusModel.GetPengurusByID(ctx, idParams)
 	if err != nil {
 		return nil, err
 	}
@@ -275,13 +265,13 @@ func (p *PengurusService) UpdateDataPengurus(
 			return nil, err
 		}
 
-		// Pastikan juga bungkusan fileUpload menggunakan UserID asli dari tabel users (angka 2)
+		// Pastikan juga bungkusan fileUpload menggunakan UserID asli dari tabel users
 		fileUpload.UserID = uint(targetPengurus.IDUser)
 
 		// update file upload and gallery
 		now := time.Now()
 		gallery := &dto.GalleryInsert{
-			IDUsers:     targetPengurus.IDUser, // Correctly link to the UserID, not Pengurus ID
+			IDUsers:     targetPengurus.IDUser,
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
 			Description: "foto identitas diri yang mewakili pengurus doscom",
@@ -375,26 +365,12 @@ func (p *PengurusService) GetAllPengurusByDivision(
 		return nil, fmt.Errorf("division must be provided")
 	}
 
-	pengurusResponse, err := p.PengurusModel.GetAllPengurusByDivisi(ctx, division)
+	pengurusResponse, err := p.PengurusModel.GetPengurusByDivisi(ctx, division)
 	if err != nil {
 		return nil, fmt.Errorf("terjadi error ketika ambil data %w", err)
 	}
 
-	dataPengurus := make([]dto.PengurusResponse, 0, len(pengurusResponse))
-	for _, data := range pengurusResponse {
-		dataPengurus = append(dataPengurus, dto.PengurusResponse{
-			ID:               data.ID,
-			PhotoURL:         data.PhotoURL,
-			Email:            data.Email,
-			Divisi:           data.Divisi,
-			Name:             data.Name,
-			Position:         data.Position,
-			StartPeriodeYear: data.StartPeriodeYear,
-			EndPeriodeYear:   data.EndPeriodeYear,
-		})
-	}
-
-	return dataPengurus, nil
+	return pengurusResponse, nil
 }
 
 func (p *PengurusService) GetPengurusByUserID(ctx context.Context, userRole string, userID int) (dto.PengurusResponse, error) {
@@ -417,6 +393,34 @@ func (p *PengurusService) GetPengurusByUserID(ctx context.Context, userRole stri
 		if userID != pengurusResponse.ID {
 			return dto.PengurusResponse{}, fmt.Errorf("you can't see other data bro")
 		}
+	default:
+		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
+	}
+
+	return *pengurusResponse, nil
+}
+
+func (p *PengurusService) GetPengurusByID(ctx context.Context, userRole string, id int) (dto.PengurusResponse, error) {
+	validRole, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
+	}
+
+	pengurusResponse, err := p.PengurusModel.GetPengurusByID(ctx, id)
+	if err != nil {
+		return dto.PengurusResponse{}, fmt.Errorf("error while getting the data: %w", err)
+	}
+
+	switch validRole.Role {
+	case constants.RoleKoordinator:
+		if validRole.Divisi != pengurusResponse.Divisi {
+			return dto.PengurusResponse{}, fmt.Errorf("you can not see other division bro %w", err)
+		}
+	case constants.RolePengurus:
+		if id != pengurusResponse.ID {
+			return dto.PengurusResponse{}, fmt.Errorf("you can't see other data bro")
+		}
+	case constants.RoleAdmin:
 	default:
 		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
@@ -454,4 +458,30 @@ func (p *PengurusService) DeletePengurusById(ctx context.Context, idPengurus int
 	}
 
 	return nil
+}
+
+func (p *PengurusService) BuildSosmedAndSave(ctx context.Context, pengurusID int, sosmedURL []string) ([]dto.PengurusSosmedResponse, error) {
+	socialMediaInfo, err := utils.ExtractSocialMediaBatch(sosmedURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract social media info: %w", err)
+	}
+
+	socialMediaInsert := make([]dto.CreatePengurusSosmedPayload, len(socialMediaInfo))
+	for i, info := range socialMediaInfo {
+		socialMediaInsert[i] = dto.CreatePengurusSosmedPayload{
+			PengurusID: pengurusID,
+			Platform:   info.Platform,
+			Username:   info.Username,
+			Url:        info.URL,
+			IsPrimary:  i == 0, // true hanya untuk index 0
+		}
+	}
+
+	// insert pengurus sosmed
+	socialMediaResponse, err := p.PengurusSosmedModel.InsertPengurusSosmed(ctx, socialMediaInsert)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert social media data: %w", err)
+	}
+
+	return socialMediaResponse, nil
 }
