@@ -1,11 +1,13 @@
 package entity
 
 import (
+	"context"
 	"fmt"
-	"gorm.io/gorm"
 	"time"
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model/dto"
+
+	"gorm.io/gorm"
 )
 
 type UserModel struct {
@@ -42,11 +44,24 @@ func (m *UserModel) FindByEmail(email string) (*User, error) {
 	var user User
 	result := m.DB.First(&user, "email = ?", email)
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, fmt.Errorf("terjadi kesalahan ketika ambil data %w", result.Error)
 	}
 
+	if result.RowsAffected != 1 {
+		return nil, fmt.Errorf("email already used")
+	}
 	return &user, nil
+}
 
+func (m *UserModel) IsEmailExist(email string) (bool, error) {
+	var count int64
+
+	err := m.DB.Model(&User{}).Where("email = ?", email).Count(&count).Error
+	if err != nil {
+		return false, fmt.Errorf("terjadi kesalahan ketika ambil data %w", err)
+	}
+
+	return count > 0, nil
 }
 
 // get user by id
@@ -60,16 +75,16 @@ func (m *UserModel) GetUserById(id int) (*User, error) {
 }
 
 // get all user data
-func (m *UserModel) GetAllUserBaseOnRole(userRoleToget string) ([]dto.UserResponse, error) {
+func (m *UserModel) GetAllUserBaseOnRole(currentUserRole string) ([]dto.UserResponse, error) {
 	var usersData []dto.UserResponse
 
 	query := m.DB.Model(&User{}).Select("id, username, email, role, full_name")
 
-	switch {
-	case userRoleToget == constants.RoleKeySuperAdmin:
-		query = query.Where("role != ?", userRoleToget)
+	switch currentUserRole {
+	case constants.RoleKeySuperAdmin:
+		query = query.Where("role != ?", currentUserRole)
 	default:
-		query = query.Where("role = ?", userRoleToget)
+		query = query.Where("role = ?", currentUserRole)
 	}
 
 	if err := query.Scan(&usersData).Error; err != nil {
@@ -77,6 +92,21 @@ func (m *UserModel) GetAllUserBaseOnRole(userRoleToget string) ([]dto.UserRespon
 	}
 
 	return usersData, nil
+}
+
+func (m *UserModel) GetSuperAdmin(ctx context.Context, userRole string, userID int) ([]dto.UserResponse, error) {
+	var user []dto.UserResponse
+
+	if err := m.DB.Model(&User{}).
+		Select("id, username, email, role, full_name").
+		Where("role = ?", userRole).
+		Where("id <> ?", userID).
+		Scan(&user).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (m *UserModel) UpdateUser(Id int, dataToUpdate map[string]any) (*dto.UserResponse, error) {
@@ -106,7 +136,8 @@ func (m *UserModel) DeleteUser(id int) error {
 		return fmt.Errorf("failed to delete data %w", result.Error)
 	}
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("user not found %w", gorm.ErrRecordNotFound)
+		// log.Printf("[entity] error nya disini")
+		return fmt.Errorf("user nya ngga ada wlee :|>  %w", gorm.ErrRecordNotFound)
 	}
 
 	return nil

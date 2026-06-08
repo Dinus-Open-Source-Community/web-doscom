@@ -181,9 +181,9 @@ func (s *WorkService) CreateWork(
 
 		modelWork := s.WorkModel.WithTx(tx)
 		modelWorkGallery := s.WorkGallery.WithTx(tx)
-		var err error
+		// var err error
 
-		if _, err := s.PengurusModel.GetPengurusById(ctx, work.PengurusID); err != nil {
+		if _, err := s.PengurusModel.GetPengurusByUserID(ctx, work.PengurusID); err != nil {
 			return fmt.Errorf("pengurus tidak valid atau tidak ditemukan %w", err)
 		}
 

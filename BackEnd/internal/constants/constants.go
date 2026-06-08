@@ -80,7 +80,7 @@ var RoleLevel = map[string]int{
 
 var RoleFieldPermission = map[string][]string{
 	RoleAdmin:       {"name", "email", "divisi", "position", "start_periode_year", "end_periode_year", "photo_url"},
-	RoleKoordinator: {"name", "email", "divisi", "position", "start_periode_year", "end_periode_year"},
+	RoleKoordinator: {"name", "email", "divisi", "position", "start_periode_year", "end_periode_year", "photo_url"},
 	RolePengurus:    {"name", "email", "divisi", "start_periode_year", "end_periode_year", "photo_url"},
 }
 

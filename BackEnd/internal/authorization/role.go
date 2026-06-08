@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"fmt"
+	"log"
 	"slices"
 	"strings"
 
@@ -34,7 +35,6 @@ func SetDivitionAndPositionByRole(position, requestedDivisi, userRole string) (s
 		return requestedDivisi, position, nil
 	}
 
-	// FOR NON-ADMIN (e.g., Coordinators)
 	// Auto-assign division from actor's profile
 	divisi := strings.ToLower(strings.TrimSpace(role.Divisi))
 
@@ -76,6 +76,7 @@ func FilterRoleFieldPermission(userRole string, data *dto.PengurusPayload) (map[
 	if !exists {
 		return nil, fmt.Errorf("no permissions defined for this role")
 	}
+	log.Printf("allowed fields: %#v", allowedFields)
 
 	editableFields := make(map[string]any)
 	for _, field := range allowedFields {

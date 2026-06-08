@@ -21,11 +21,7 @@ func RegisterWorkRoutes(rg *gin.RouterGroup, workHandler *handler.WorkHandler) {
 
 	// private api
 	privateRoutes := rg.Group("/admin/works")
-	privateRoutes.Use(
-		auth.AuthMiddleware(
-			constants.RoleKeySuperAdmin,
-			constants.RoleKoordinator,
-		))
+	privateRoutes.Use(auth.AuthMiddleware(constants.RoleKeySuperAdmin, constants.RoleKoordinator))
 	{
 		privateRoutes.POST("", workHandler.CreateWork)
 		privateRoutes.GET("/:id", workHandler.GetWorkByID)
