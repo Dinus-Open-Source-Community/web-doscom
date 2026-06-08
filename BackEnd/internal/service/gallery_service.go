@@ -58,6 +58,7 @@ func (m *GalleryService) InsertGalleryAndFileUpload(
 	}
 
 	// insert gallery
+	log.Printf("[gallery service] id users: %d", gallery.IDUsers)
 	galleryUpload := &entity.Gallery{
 		IDUsers:      gallery.IDUsers,
 		FileUploadID: fileUploadID,
@@ -69,6 +70,7 @@ func (m *GalleryService) InsertGalleryAndFileUpload(
 		UpdatedAt:    time.Now(),
 	}
 
+	log.Printf("[gallery service] gallery: %d", galleryUpload.IDUsers)
 	galleryResponse, err := m.Model.InsertGallery(galleryUpload)
 	if err != nil {
 		return nil, "", err

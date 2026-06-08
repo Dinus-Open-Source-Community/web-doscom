@@ -136,20 +136,14 @@ func (m *UserHandler) CreateSuperAdmin(c *gin.Context) {
 	})
 }
 
-func (m *UserHandler) GetUser(c *gin.Context) {
+func (m *UserHandler) GetUserByID(c *gin.Context) {
 	CurrentUserRole := c.MustGet("role").(string)
 	CurrentUserID := c.MustGet("user_id").(int)
-	validRole, err := authorization.GetRoleInfo(CurrentUserRole)
+	_, err := authorization.GetRoleInfo(CurrentUserRole)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   err.Error(),
 			"message": "role not valid",
-		})
-		return
-	}
-	if validRole.Role == constants.RolePengurus {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "your role does not have access to this resource",
 		})
 		return
 	}
@@ -219,7 +213,7 @@ func (m *UserHandler) GetAllUserBasedOnRole(c *gin.Context) {
 	})
 }
 
-func (m *UserHandler) UpdateUser(c *gin.Context) {
+func (m *UserHandler) UpdateUserByID(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
 	_, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
@@ -383,5 +377,95 @@ func (h *UserHandler) ChangePasswordAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message":         "password changed successfully",
 		"passwordUpdated": passwordUpdated,
+	})
+}
+
+func (m *UserHandler) GetSuperAdmin(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
+	validRole, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   err.Error(),
+			"message": "role not valid",
+		})
+		return
+	}
+
+	if validRole.Role != constants.RoleAdmin {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "you are not allowed to access this route, nakal yaa!!",
+		})
+		return
+	}
+	superAdminData, err := m.Service.GetSuperAdmin(ctx, userRole, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "terjadi kesalahan ketika ambil data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "Get super admin data",
+		"superAdmin Data": superAdminData,
+	})
+}
+
+func (m *UserHandler) GetCurrentUser(c *gin.Context) {
+	currentUserId := c.MustGet("user_id").(int)
+	currentUserRole := c.MustGet("role").(string)
+
+	_, err := authorization.GetRoleInfo(currentUserRole)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "role not valid",
+		})
+		return
+	}
+
+	userData, err := m.Service.GetCurrentUser(currentUserId, currentUserRole)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "terjadi kesalahan ketika ambil data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":   "current user data",
+		"user data": userData,
+	})
+}
+
+func (m *UserHandler) UpdateProfileUser(c *gin.Context) {
+	userID := c.MustGet("user_id").(int)
+	userRole := c.MustGet("role").(string)
+	ctx := c.Request.Context()
+
+	var input dto.UserPatch
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read req body",
+		})
+		return
+	}
+
+	userDataToUpdate := input.ToMap()
+	updatedDataUser, err := m.Service.UpdateUserProfile(ctx, userID, userRole, userDataToUpdate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "Failed to update data user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "Successfully update user data",
+		"userUpdatedData": updatedDataUser,
 	})
 }

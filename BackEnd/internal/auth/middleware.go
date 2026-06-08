@@ -12,10 +12,10 @@ import (
 )
 
 var RoleGroups = map[string][]string{
-	"KOOR":    {"KoorPemro", "KoorJaringan", "KoorData", "KoorMedcrev", "BPH"},
-	"ADMIN":   {"SuperAdmin"},
-	"BPH":     {"BPH"},
-	"ANGGOTA": {"pemroAnggota", "jaringanAnggota", "medcrevAnggota", "dataAnggota", "BPHAnggota"},
+	"KOOR":     {"KoorPemro", "KoorJaringan", "KoorData", "KoorMedcrev", "BPH"},
+	"ADMIN":    {"SuperAdmin"},
+	"BPH":      {"BPH"},
+	"PENGURUS": {"pemroAnggota", "jaringanAnggota", "medcrevAnggota", "dataAnggota", "BPHAnggota"},
 }
 
 func ValidateAuth(tokenString string) (*Claims, error) {

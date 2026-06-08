@@ -1,0 +1,17 @@
+FROM golang:1.25-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache postgresql-client git
+
+COPY go.mod go.sum ./
+RUN go mod download
+RUN go install github.com/air-verse/air@latest
+
+COPY . .
+
+ENV GO_ENV=development
+ENV PORT=8080
+
+RUN chmod +x docker-entrypoint.sh
+ENTRYPOINT ["/bin/sh", "/app/docker-entrypoint-dev.sh"]

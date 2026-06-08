@@ -28,6 +28,10 @@ type PengurusSosmed struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 }
 
+func (m *PengurusSosmedModel) WithTx(tx *gorm.DB) *PengurusSosmedModel {
+	return &PengurusSosmedModel{DB: tx}
+}
+
 func (m *PengurusSosmedModel) InsertPengurusSosmed(
 	ctx context.Context,
 	data []dto.CreatePengurusSosmedPayload,
