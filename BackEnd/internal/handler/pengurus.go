@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	// "web_doscom/internal/database/model"
+	"web_doscom/internal/authorization"
 	"web_doscom/internal/database/model/dto"
 	"web_doscom/internal/service"
 
@@ -43,10 +43,11 @@ func NewPengurusHandler(pengurusService *service.PengurusService, storageService
 // @Failure 500 {object} map[string]string "Server error"
 // @Security BearerAuth
 // @Router /api/v1/pengurus/ [post]
-func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
+// function untuk create data pengurus lain
+func (h *PengurusHandler) CreatePengurusProfile(c *gin.Context) {
+	ctx := c.Request.Context()
 	user_role := c.MustGet("role").(string)
 	user_ID := c.MustGet("user_id").(int)
-	ctx := c.Request.Context()
 
 	var input dto.RegisterPengurusRequest
 	if err := c.ShouldBind(&input); err != nil {
@@ -58,27 +59,23 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 
 	// Get file from form
 	fileHeader, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read file",
-		})
-		return
-	}
+	uploadFileData := new(dto.UploadFileRequest)
+	if err == nil {
+		file, err := fileHeader.Open()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Failed to open file",
+			})
+			return
+		}
+		defer file.Close()
 
-	file, err := fileHeader.Open()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to open file",
-		})
-		return
-	}
-	defer file.Close()
-
-	uploadFile := &dto.UploadFileRequest{
-		FileHeader: fileHeader,
-		File:       file,
-		Folder:     "pengurus",
-		UserID:     uint(user_ID),
+		uploadFileData = &dto.UploadFileRequest{
+			FileHeader: fileHeader,
+			File:       file,
+			Folder:     "pengurus",
+			UserID:     uint(user_ID),
+		}
 	}
 
 	// insert data
@@ -88,25 +85,25 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 		user_ID,
 		user_role,
 		&input,
-		uploadFile,
+		uploadFileData,
 	)
 	if err != nil {
-		// // Handle specific conflict error
-		// if err.Error() == "email sudah terdaftar di pengurus" {
-		// 	c.JSON(http.StatusConflict, gin.H{
-		// 		"error":   err.Error(),
-		// 		"message": "Gagal mendaftarkan pengurus: email sudah digunakan",
-		// 	})
-		// 	return
-		// }
-		// // Handle user not found or validation errors
-		// if err.Error() == "user_id tidak ditemukan" || err.Error() == "role not valid" {
-		// 	c.JSON(http.StatusBadRequest, gin.H{
-		// 		"error":   err.Error(),
-		// 		"message": "Gagal mendaftarkan pengurus: input tidak valid",
-		// 	})
-		// 	return
-		// }
+		// Handle specific conflict error
+		if err.Error() == "email sudah terdaftar di pengurus" {
+			c.JSON(http.StatusConflict, gin.H{
+				"error":   err.Error(),
+				"message": "Gagal mendaftarkan pengurus: email sudah digunakan",
+			})
+			return
+		}
+		// Handle user not found or validation errors
+		if err.Error() == "user_id tidak ditemukan" || err.Error() == "role not valid" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   err.Error(),
+				"message": "Gagal mendaftarkan pengurus: input tidak valid",
+			})
+			return
+		}
 
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
@@ -116,6 +113,67 @@ func (h *PengurusHandler) CreatePengurus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
+		"message":  "Pengurus created successfully",
+		"pengurus": pengurusDataResponse,
+	})
+}
+
+// pengurus -> create pengurus profile
+func (h *PengurusHandler) CreateMyPengurusProfile(c *gin.Context) {
+
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
+
+	var input dto.RegisterPengurusRequest
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read req body",
+		})
+		return
+	}
+
+	// rewrite userID to current userID
+	input.UserID = userID
+
+	// Get file from form
+	fileHeader, err := c.FormFile("file")
+	uploadFileData := new(dto.UploadFileRequest)
+	if err == nil {
+		file, err := fileHeader.Open()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Failed to open file",
+			})
+			return
+		}
+
+		defer file.Close()
+
+		uploadFileData = &dto.UploadFileRequest{
+			FileHeader: fileHeader,
+			File:       file,
+			Folder:     "pengurus",
+			UserID:     uint(userID),
+		}
+	}
+
+	pengurusDataResponse, err := h.Service.CreatePengurus(
+		ctx,
+		userID,
+		userRole,
+		&input,
+		uploadFileData,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "Failed to create data pengurus, server error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
 		"message":  "Pengurus created successfully",
 		"pengurus": pengurusDataResponse,
 	})
@@ -185,6 +243,35 @@ func (h *PengurusHandler) GetPengurusByID(c *gin.Context) {
 		"message":       "Successfully get data",
 		"pengurus data": pengurusData,
 	})
+}
+
+func (h *PengurusHandler) GetPengurusProfile(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
+
+	_, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"error":   err.Error(),
+			"message": "failed to get data",
+		})
+		return
+	}
+	pengurusData, err := h.Service.GetPengurusByUserID(ctx, userRole, userID)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"error":   err.Error(),
+			"message": "failed to get data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "success",
+		"pengurus": pengurusData,
+	})
+
 }
 
 func (h *PengurusHandler) GetAllPengurus(c *gin.Context) {
@@ -259,7 +346,7 @@ func (h *PengurusHandler) GetAllPengurusByDivision(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Tags Pengurus
 // @Router /api/v1/pengurus/{id} [put]
-func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
+func (h *PengurusHandler) UpdatePengurusByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	idCurrentUser := c.MustGet("user_id").(int)
 	currentUserRole := c.MustGet("role").(string)
@@ -303,6 +390,7 @@ func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 		currentUserRole,
 		&patch,
 		fileUpload,
+		false,
 	)
 	if err != nil {
 		// Handle permission issues
@@ -323,6 +411,78 @@ func (h *PengurusHandler) UpdatePengurus(c *gin.Context) {
 			return
 		}
 
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   err.Error(),
+			"message": "Failed to update data pengurus, server error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "Successfully update pengurus data",
+		"pengurus": updatedPengurus,
+	})
+}
+
+func (h *PengurusHandler) UpdateMyPengurusProfile(c *gin.Context) {
+	ctx := c.Request.Context()
+	userID := c.MustGet("user_id").(int)
+	UserRole := c.MustGet("role").(string)
+
+	_, err := authorization.GetRoleInfo(UserRole)
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "role not valid",
+		})
+		return
+	}
+
+	var input dto.PengurusPatch
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to read req body",
+		})
+		return
+	}
+
+	var fileUpload *dto.UploadFileRequest
+	fileHeader, err := c.FormFile("file")
+	if err == nil {
+		file, err := fileHeader.Open()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Failed to read file",
+			})
+			return
+		}
+		defer file.Close()
+
+		fileUpload = &dto.UploadFileRequest{
+			FileHeader: fileHeader,
+			File:       file,
+			Folder:     "pengurus",
+			UserID:     uint(userID),
+		}
+	}
+
+	updatedPengurus, err := h.Service.UpdateDataPengurus(
+		ctx,
+		userID,
+		userID,
+		UserRole,
+		&input,
+		fileUpload,
+		true,
+	)
+	if err != nil {
+
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   err.Error(),
+				"message": "Pengurus data not found",
+			})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   err.Error(),
 			"message": "Failed to update data pengurus, server error",

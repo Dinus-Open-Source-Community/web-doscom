@@ -14,15 +14,18 @@ func UserControllerRoute(r *gin.RouterGroup, userHandler *handler.UserHandler) {
 	lowerShared := user.Group("")
 	lowerShared.Use(auth.AuthMiddleware("ADMIN", "KOOR", "BPH", "PENGURUS"))
 	{
-		lowerShared.GET("/:id", userHandler.GetUser)
+		lowerShared.GET("/me", userHandler.GetCurrentUser)
+		lowerShared.PUT("/profile", userHandler.UpdateProfileUser)
 		lowerShared.PUT("/change-password", userHandler.ChangePassword)
 	}
+
 	shared := user.Group("")
 	shared.Use(auth.AuthMiddleware("ADMIN", "KOOR", "BPH"))
 	{
+		shared.PUT("/:id", userHandler.UpdateUserByID)
+		shared.GET("/:id", userHandler.GetUserByID)
 		shared.POST("", userHandler.CreateUser)
 		shared.GET("", userHandler.GetAllUserBasedOnRole)
-		shared.PUT("/:id", userHandler.UpdateUser)
 		shared.DELETE("/:id", userHandler.DeleteUser)
 	}
 
