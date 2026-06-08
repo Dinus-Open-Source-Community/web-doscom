@@ -35,7 +35,6 @@ func SetDivitionAndPositionByRole(position, requestedDivisi, userRole string) (s
 		return requestedDivisi, position, nil
 	}
 
-	// FOR NON-ADMIN (e.g., Coordinators)
 	// Auto-assign division from actor's profile
 	divisi := strings.ToLower(strings.TrimSpace(role.Divisi))
 

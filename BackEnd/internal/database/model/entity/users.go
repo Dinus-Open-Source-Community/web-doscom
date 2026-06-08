@@ -47,8 +47,21 @@ func (m *UserModel) FindByEmail(email string) (*User, error) {
 		return nil, fmt.Errorf("terjadi kesalahan ketika ambil data %w", result.Error)
 	}
 
+	if result.RowsAffected != 1 {
+		return nil, fmt.Errorf("email already used")
+	}
 	return &user, nil
+}
 
+func (m *UserModel) IsEmailExist(email string) (bool, error) {
+	var count int64
+
+	err := m.DB.Model(&User{}).Where("email = ?", email).Count(&count).Error
+	if err != nil {
+		return false, fmt.Errorf("terjadi kesalahan ketika ambil data %w", err)
+	}
+
+	return count > 0, nil
 }
 
 // get user by id

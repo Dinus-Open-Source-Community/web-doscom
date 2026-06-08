@@ -101,8 +101,14 @@ func (s *UserService) InsertUserWithDefaultValue(
 		return fmt.Errorf("failed to set defaultValue to new user: %w", err)
 	}
 
-	// check email
-
+	// email check if already use
+	emailExist, err := s.UserModel.IsEmailExist(userData.Email)
+	if err != nil {
+		return fmt.Errorf("terjadi kesalahan ketika ambil data %w", err)
+	}
+	if emailExist {
+		return fmt.Errorf("email already used")
+	}
 	// hash password
 	passowordHash := auth.HashPassword(defaultValue.Password)
 
@@ -206,7 +212,7 @@ func (s *UserService) UpdateUser(Id int, userDataToUpdate map[string]any) (*dto.
 	}
 	fmt.Println("Filtered updates:", filteredUpdates)
 
-	updatedUserData, err := s.UserModel.UpdateUser(Id, userDataToUpdate)
+	updatedUserData, err := s.UserModel.UpdateUser(Id, filteredUpdates)
 	if err != nil {
 		return nil, fmt.Errorf("terjadi kesalahan ketika update %w", err)
 	}
@@ -364,4 +370,50 @@ func (s *UserService) GetSuperAdmin(ctx context.Context, userRole string, userID
 	}
 
 	return superAdminData, nil
+}
+
+func (s *UserService) GetCurrentUser(currentUserID int, currenUserRole string) (dto.UserResponse, error) {
+	_, err := authorization.GetRoleInfo(currenUserRole)
+	if err != nil {
+		return dto.UserResponse{}, fmt.Errorf("role not valid")
+	}
+
+	currentUserData, err := s.UserModel.GetUserById(currentUserID)
+	if err != nil {
+		return dto.UserResponse{}, fmt.Errorf("terjadi kesalahan ketika ambil data %w", err)
+	}
+
+	userDataResponse := dto.UserResponse{
+		Id:        currentUserData.ID,
+		Username:  currentUserData.Username,
+		Email:     currentUserData.Email,
+		Role:      currentUserData.Role,
+		Full_name: currentUserData.Full_name,
+	}
+
+	return userDataResponse, nil
+}
+
+func (s *UserService) UpdateUserProfile(ctx context.Context, userID int, userRole string, userDataToUpdate map[string]any) (*dto.UserResponse, error) {
+	allowedFieldToUpdate := map[string]bool{
+		"username":  true,
+		"email":     true,
+		"full_name": true,
+	}
+
+	filteredUpdates := make(map[string]any)
+	for field, value := range userDataToUpdate {
+		if allowedFieldToUpdate[field] && value != nil {
+			if str, ok := value.(string); !ok || str != "" {
+				filteredUpdates[field] = value
+			}
+		}
+	}
+
+	updatedUserData, err := s.UserModel.UpdateUser(userID, filteredUpdates)
+	if err != nil {
+		return nil, fmt.Errorf("terjadi kesalahan ketika update %w", err)
+	}
+	return updatedUserData, nil
+
 }

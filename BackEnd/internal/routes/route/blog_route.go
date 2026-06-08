@@ -2,6 +2,7 @@ package routes
 
 import (
 	"web_doscom/internal/auth"
+	"web_doscom/internal/constants"
 	"web_doscom/internal/handler"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ func RegisterBlogRoutes(rg *gin.RouterGroup, blogHandler *handler.BlogHandler) {
 	}
 
 	privateRoutes := rg.Group("/admin/blogs")
-	privateRoutes.Use(auth.AuthMiddleware("SuperAdmin", "KoorMedcrev"))
+	privateRoutes.Use(auth.AuthMiddleware(constants.RoleKeySuperAdmin, constants.RoleKeyKoorMedcrev))
 	{
 		privateRoutes.GET("", blogHandler.ListBlogs)
 		privateRoutes.POST("", blogHandler.CreateBlog)

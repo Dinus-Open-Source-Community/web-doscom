@@ -57,6 +57,7 @@ func Routes(g *gin.Engine, app *config.Application) http.Handler {
 			&app.Model.Pengurus,
 			&app.Model.PengurusSosmed,
 			galleryService,
+			app.DB,
 		)
 		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
 

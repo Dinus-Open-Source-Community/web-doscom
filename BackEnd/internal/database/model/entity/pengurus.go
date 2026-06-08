@@ -85,6 +85,10 @@ func (Pengurus) TableName() string {
 	return "pengurus"
 }
 
+func (m *PengurusModel) WithTx(tx *gorm.DB) *PengurusModel {
+	return &PengurusModel{DB: tx}
+}
+
 // User model stub for role validation (should be replaced with your User struct)
 type UserGet struct {
 	ID    int
@@ -281,12 +285,20 @@ func (m *PengurusModel) UpdatePengurus(Id int, patch dto.PengurusPatch) (*Pengur
 	return &pengurus, nil
 }
 
-func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*dto.PengurusResponse, error) {
+func (m *PengurusModel) UpdatePenguruspartial(id int, data map[string]any) (*dto.PengurusResponse, error) {
+	return m.UpdatePengurusPartialBy("id", id, data)
+}
+
+func (m *PengurusModel) UpdatePengurusPartialByUserID(userID int, data map[string]any) (*dto.PengurusResponse, error) {
+	return m.UpdatePengurusPartialBy("id_user", userID, data)
+}
+
+func (m *PengurusModel) UpdatePengurusPartialBy(column string, value int, data map[string]any) (*dto.PengurusResponse, error) {
 	var updatePengurus Pengurus
 
 	result := m.DB.Model(&updatePengurus).
 		Clauses(clause.Returning{}).
-		Where("id = ?", id).
+		Where(column+" = ?", value).
 		Updates(data)
 
 	if result.Error != nil {
@@ -311,8 +323,10 @@ func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*dto
 
 // Delete pengurus
 func (m *PengurusModel) DeletePengurus(ctx context.Context, id int) error {
+	log.Printf("[model] id nya disini %d", id)
 	result := m.DB.WithContext(ctx).Delete(&Pengurus{}, id)
 	if result.Error != nil {
+		log.Printf("[model] error nya disini")
 		return fmt.Errorf("failed to delete data %w", result.Error)
 	}
 
