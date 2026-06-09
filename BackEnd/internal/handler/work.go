@@ -9,6 +9,7 @@ import (
 	"web_doscom/internal/authorization"
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/response"
 
 	// "web_doscom/internal/database/model"
 	"web_doscom/internal/service"
@@ -32,28 +33,34 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 		constants.RoleKoordinator,
 		constants.RoleAdmin,
 	); err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "role is not allowed to access this resource",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"role is not allowed to access this resource",
+			err,
+		)
 		return
 	}
 
 	var work dto.CreateRequestWork
 	if err := c.ShouldBindJSON(&work); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   err.Error(),
-			"message": "Invalid request body",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"Invalid request body",
+			err,
+		)
 		return
 	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   err.Error(),
-			"message": "failed to read file",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"failed to read file",
+			err,
+		)
 		return
 	}
 
@@ -66,17 +73,21 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 		userRole,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "Failed to insert data, something went wrong",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"Failed to insert data, something went wrong",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Work created successfully",
-		"data":    workInputDataResponse,
-	})
+	response.Success(
+		c,
+		"Work created successfully",
+		http.StatusCreated,
+		workInputDataResponse,
+	)
 }
 
 func (h *WorkHandler) GetAllWorks(c *gin.Context) {
@@ -94,21 +105,28 @@ func (h *WorkHandler) GetAllWorks(c *gin.Context) {
 		filterProjectType,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "Failed to fetch data, something went wrong",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"Failed to fetch data, something went wrong",
+			err,
+		)
+		return
 	}
 
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
 	currentPage := (offset / limit) * 1
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":     "Success fetching all works",
-		"work data":   worksResponseData,
-		"totalPage":   totalPage,
-		"currentPage": currentPage,
-	})
+	response.Success(
+		c,
+		"Success fetching all works",
+		http.StatusOK,
+		gin.H{
+			"work data":   worksResponseData,
+			"totalPage":   totalPage,
+			"currentPage": currentPage,
+		},
+	)
 }
 
 func (h *WorkHandler) GetAllWorksByDivision(c *gin.Context) {
@@ -124,10 +142,12 @@ func (h *WorkHandler) GetAllWorksByDivision(c *gin.Context) {
 		constants.RoleAdmin,
 		constants.RoleKoordinator,
 	); err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "role is not allowed to access this resource",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"role is not allowed to access this resource",
+			err,
+		)
 		return
 	}
 
@@ -138,22 +158,28 @@ func (h *WorkHandler) GetAllWorksByDivision(c *gin.Context) {
 		offset,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "Failed to fetch data, something went wrong",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"Failed to fetch data, something went wrong",
+			err,
+		)
 		return
 	}
 
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
 	currentPage := (offset / limit) * 1
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":     "Success fetching all works",
-		"worksData":   worksResponseData,
-		"totalPage":   totalPage,
-		"currentPage": currentPage,
-	})
+	response.Success(
+		c,
+		"Success fetching all works",
+		http.StatusOK,
+		gin.H{
+			"worksData":   worksResponseData,
+			"totalPage":   totalPage,
+			"currentPage": currentPage,
+		},
+	)
 
 }
 
@@ -161,25 +187,32 @@ func (h *WorkHandler) GetWorkByID(c *gin.Context) {
 	ctx := c.Request.Context()
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid id format",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid id format",
+			err,
+		)
 		return
 	}
 
 	workResponseData, err := h.Service.GetWorkByID(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":   err.Error(),
-			"message": "something went wrong while fetching data",
-		})
+		response.Error(
+			c,
+			http.StatusNotFound,
+			"something went wrong while fetching data",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Success fetching work detail",
-		"data":    workResponseData,
-	})
+	response.Success(
+		c,
+		"Success fetching work detail",
+		http.StatusOK,
+		workResponseData,
+	)
 }
 
 func (h *WorkHandler) UpdateWork(c *gin.Context) {
@@ -190,27 +223,34 @@ func (h *WorkHandler) UpdateWork(c *gin.Context) {
 		constants.RoleKoordinator,
 		constants.RoleAdmin,
 	); err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "forbidden to access this resource",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"forbidden to access this resource",
+			err,
+		)
 		return
 	}
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid id format",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid request body, budy",
+			err,
+		)
 		return
 	}
 
 	var workDataToUpdate dto.WorkPatch
 	if err := c.ShouldBindJSON(&workDataToUpdate); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   err.Error(),
-			"message": "invalid request body, budy",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid request body, budy",
+			err,
+		)
 		return
 	}
 
@@ -228,17 +268,21 @@ func (h *WorkHandler) UpdateWork(c *gin.Context) {
 		userRole,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "failed to update work, something went wrong",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to update work, something went wrong",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Work updated successfully",
-		"data":    workUpdatedDataResponse,
-	})
+	response.Success(
+		c,
+		"Work updated successfully",
+		http.StatusOK,
+		workUpdatedDataResponse,
+	)
 }
 
 func (h *WorkHandler) Delete(c *gin.Context) {
@@ -248,27 +292,39 @@ func (h *WorkHandler) Delete(c *gin.Context) {
 		constants.RoleAdmin,
 		constants.RoleKoordinator,
 	); err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "forbidden to access this resource",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"forbidden to access this resource",
+			err,
+		)
 		return
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid id format",
+			err,
+		)
 		return
 	}
 
 	if err := h.Service.DeleteWork(ctx, id, userRole); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "failed to delete work, something went wrong",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to delete work, something went wrong",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusNoContent, gin.H{
-		"message": "Work deleted successfully",
-	})
+	response.Success(
+		c,
+		"Work deleted successfully",
+		http.StatusNoContent,
+		nil,
+	)
 }

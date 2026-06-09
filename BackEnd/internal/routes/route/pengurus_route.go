@@ -20,6 +20,7 @@ func RegisterPengurusRoutes(rg *gin.RouterGroup, pengurusHandler *handler.Pengur
 		privateRoutes.POST("", pengurusHandler.CreateMyPengurusProfile)
 		privateRoutes.GET("/profile", pengurusHandler.GetPengurusProfile)
 		privateRoutes.PUT("/me", pengurusHandler.UpdateMyPengurusProfile)
+		privateRoutes.DELETE("/me", pengurusHandler.DeleteMyPengurusProfile)
 	}
 
 	managedRoutes := rg.Group("/admin/pengurus")
