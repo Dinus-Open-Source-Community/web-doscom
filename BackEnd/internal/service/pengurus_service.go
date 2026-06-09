@@ -229,7 +229,7 @@ func (p *PengurusService) UpdateDataPengurus(
 	dataPengurus *dto.PengurusPatch,
 	fileUpload *dto.UploadFileRequest,
 	isSelfUpdate bool,
-) (*dto.PengurusPublicResponse, error) {
+) (*dto.PengurusResponse, error) {
 
 	var (
 		updatedPengurus *dto.PengurusResponse
@@ -347,16 +347,20 @@ func (p *PengurusService) UpdateDataPengurus(
 		}
 	}
 
-	return &dto.PengurusPublicResponse{
+	response := dto.PengurusResponse{
 		ID:               updatedPengurus.ID,
+		IDUser:           updatedPengurus.IDUser,
 		PhotoURL:         updatedPengurus.PhotoURL,
+		Email:            updatedPengurus.Email,
 		Divisi:           updatedPengurus.Divisi,
 		Name:             updatedPengurus.Name,
 		Position:         updatedPengurus.Position,
 		Sosmed:           sosmedResponse,
 		StartPeriodeYear: updatedPengurus.StartPeriodeYear,
 		EndPeriodeYear:   updatedPengurus.EndPeriodeYear,
-	}, nil
+	}
+
+	return &response, nil
 }
 
 func (p *PengurusService) GetPengurusBaseOnDivision(
