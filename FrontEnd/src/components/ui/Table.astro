@@ -18,7 +18,9 @@ interface Props {
 const { headers, data } = Astro.props
 ---
 
-<div class="w-full overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
+<div
+  class="w-full overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm"
+>
   <table class="w-full border-collapse text-left" id="data-table">
     <thead>
       <tr class="border-b border-gray-100 bg-gray-50/50">
@@ -55,7 +57,9 @@ const { headers, data } = Astro.props
                 class="row-checkbox h-4 w-4 cursor-default rounded border border-gray-300 bg-white text-gray-900 accent-gray-900 transition-all focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 focus-visible:outline-none"
               />
             </td>
-            <td class="cursor-default px-6 py-4 text-sm font-medium text-gray-900 select-none">{row.id}</td>
+            <td class="cursor-default px-6 py-4 text-sm font-medium text-gray-900 select-none">
+              {row.id}
+            </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
                 <img
@@ -64,18 +68,28 @@ const { headers, data } = Astro.props
                   class="h-10 w-10 cursor-default rounded-full border border-gray-100 object-cover select-none"
                 />
                 <div class="flex flex-col">
-                  <span class="cursor-default text-sm font-semibold text-gray-900 select-none">{row.name}</span>
-                  <span class="cursor-default text-xs font-light text-gray-400 select-none">{row.email}</span>
+                  <span class="cursor-default text-sm font-semibold text-gray-900 select-none">
+                    {row.name}
+                  </span>
+                  <span class="cursor-default text-xs font-light text-gray-400 select-none">
+                    {row.email}
+                  </span>
                 </div>
               </div>
             </td>
-            <td class="cursor-default px-6 py-4 text-sm text-gray-500 select-none">{row.date}</td>
+            <td class="cursor-default px-6 py-4 text-sm text-gray-500 select-none">
+              {row.date}
+            </td>
             <td class="px-6 py-4">
               <Badge status={row.status} />
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-1.5">
-                <button class="cursor-default rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600">
+                <button
+                  type="button"
+                  onclick={`window.openChangePasswordModal('${row.id}')`}
+                  class="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
                   <span
                     class="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
                     set:html={Edit}
@@ -97,8 +111,12 @@ const { headers, data } = Astro.props
 </div>
 
 <script>
-  const selectAll = document.getElementById('select-all-checkbox') as HTMLInputElement
-  const rowCheckboxes = document.querySelectorAll('.row-checkbox') as NodeListOf<HTMLInputElement>
+  const selectAll = document.getElementById(
+    'select-all-checkbox'
+  ) as HTMLInputElement
+  const rowCheckboxes = document.querySelectorAll(
+    '.row-checkbox'
+  ) as NodeListOf<HTMLInputElement>
 
   rowCheckboxes.forEach(checkbox => {
     checkbox.addEventListener('change', e => {
