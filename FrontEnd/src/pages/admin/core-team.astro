@@ -1,96 +1,241 @@
 ---
-import { Search } from '../../assets/icons'
-import { Plus, Download, Filter } from '../../assets/icons'
-import { ButtonAdmin, Pagination } from '../../components'
-import Table from '../../components/ui/Table.astro'
 import AdminLayout from '../../layouts/AdminLayout.astro'
+import ButtonAdmin from '../../components/ui/ButtonAdmin.astro'
+import Table from '../../components/ui/Table.astro'
+import Pagination from '../../components/ui/Pagination.astro'
 
-const headers = ['ID', 'Member', 'Join Date', 'Status', 'Actions']
+// Import Icons
+import { Download, Plus, Search, Filter, Edit, More } from '../../assets/icons'
+import {
+  AddCoreTeamModal,
+  EditCoreTeamModal,
+  DeleteCoreTeamModal,
+} from '../../components'
 
-// ini get data json
-const coreTeamData = [
+// 1. Data Dummy Core Team (Tampilkan semua data)
+const rawDummyData = [
   {
-    id: 'CT-0001',
-    name: 'Husnul Fikri Averus',
+    id: 1,
+    fullname: 'Husnul Fikri Averus',
     email: '111202412345@mhs.dinus.ac.id',
-    avatar: '/assets/photos/about-pemro-3.webp',
-    date: 'March 12, 2026',
-    status: 'Completed',
+    divisi: 'Programming',
+    role: 'Active',
+    avatar_url: '/assets/photos/default-avatar.webp',
   },
   {
-    id: 'CT-0002',
-    name: 'Thomas Aero',
+    id: 2,
+    fullname: 'Thomas Aero',
     email: 'aerthomo@gmail.com',
-    avatar: '/assets/photos/about-jaringan-3.webp',
-    date: 'March 13, 2026',
-    status: 'Completed',
+    divisi: 'Multimedia',
+    role: 'Active',
+    avatar_url: '/assets/photos/default-avatar.webp',
   },
   {
-    id: 'CT-0003',
-    name: 'David Kemp',
-    email: 'david99dav@gmail.com',
-    avatar: '/assets/photos/about-data-3.webp',
-    date: 'March 15, 2026',
-    status: 'Refunded',
+    id: 3,
+    fullname: 'Budi Santoso',
+    email: 'budi.s@gmail.com',
+    divisi: 'Networking',
+    role: 'Inactive',
+    avatar_url: '/assets/photos/default-avatar.webp',
   },
   {
-    id: 'CT-0004',
-    name: 'Mary Richards',
-    email: 'maryricha@gmail.com',
-    avatar: '/assets/photos/about-crevmed-3.webp',
-    date: 'March 18, 2026',
-    status: 'Canceled',
+    id: 4,
+    fullname: 'Siti Aminah',
+    email: 'siti.pr@doscom.id',
+    divisi: 'Public Relation',
+    role: 'Active',
+    avatar_url: '/assets/photos/default-avatar.webp',
+  },
+  {
+    id: 5,
+    fullname: 'Aris Munandar',
+    email: 'aris.m@gmail.com',
+    divisi: 'Programming',
+    role: 'Active',
+    avatar_url: '/assets/photos/default-avatar.webp',
   },
 ]
+
+// 2. Mapping data langsung ke format Table.astro (Tanpa filter SSR)
+const tableData = rawDummyData.map(user => ({
+  id: `CT-000${user.id}`,
+  name: user.fullname,
+  email: user.email,
+  date: user.divisi, // Menitipkan Divisi di kolom Date
+  status: user.role,
+  avatar: user.avatar_url,
+}))
+
+// Konfigurasi Header Tabel
+const headers = ['ID', 'Member', 'Division', 'Status', 'Actions']
 ---
 
 <AdminLayout title="Core Team Management">
   <div class="flex w-full flex-col gap-8 bg-gray-50/30 p-8">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    {/* Page Header */}
+    <div
+      class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900 select-none">Core Team</h1>
-        <p class="mt-1 text-xs text-gray-400 select-none">Last update a minutes ago</p>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 select-none">
+          Core Team
+        </h1>
+        <p class="mt-1 text-xs text-gray-400 select-none">
+          Manage community members and divisions
+        </p>
       </div>
       <div class="flex items-center gap-3">
-        <ButtonAdmin variant="admin-outline" size="small" class="font-bold select-none">
-          <span class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full" set:html={Download} />
-          Download
+        <ButtonAdmin
+          variant="admin-outline"
+          size="small"
+          class="font-bold select-none"
+        >
+          <span
+            class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+            set:html={Download}
+          />
+          Export
         </ButtonAdmin>
-
-        <ButtonAdmin variant="admin-primary" size="small" class="font-bold select-none">
-          <span class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full" set:html={Plus} />
+        <ButtonAdmin
+          id="btn-open-add-coreteam"
+          variant="admin-primary"
+          size="small"
+          class="font-bold select-none"
+        >
+          <span
+            class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+            set:html={Plus}
+          />
           Add Member
         </ButtonAdmin>
       </div>
     </div>
 
-    <div class="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    {/* Data Card Wrapper */}
+    <div
+      class="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+    >
+      {/* Toolbar: Search & Filter */}
+      <div
+        class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+      >
+        {/* Search Bar */}
         <div class="relative w-full sm:max-w-xs">
-          <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
-            <span class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full" set:html={Search} />
+          <span
+            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400"
+          >
+            <span
+              class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+              set:html={Search}
+            />
           </span>
           <input
             type="text"
+            id="search-input"
             placeholder="Search Member..."
             class="w-full cursor-default rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pr-4 pl-11 text-sm transition-all outline-none placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
           />
         </div>
 
+        {/* Filter Wrapper (Tanpa Tag Form) */}
         <div class="flex items-center gap-2 self-end sm:self-auto">
-          <ButtonAdmin
-            variant="admin-outline"
-            size="icon"
-            class="rounded-xl p-2.5 text-gray-500 hover:border-gray-300 hover:bg-gray-100/70 hover:text-gray-900"
-          >
-            <span class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full" set:html={Filter} />
-          </ButtonAdmin>
+          <div class="flex items-center gap-2">
+            <select
+              id="divisi-filter"
+              class="cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 shadow-sm transition-colors outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            >
+              <option value="all">All Divisions</option>
+              <option value="programming">Programming</option>
+              <option value="multimedia">Multimedia</option>
+              <option value="networking">Networking</option>
+              <option value="public relation">Public Relation</option>
+            </select>
+
+            <ButtonAdmin
+              variant="admin-outline"
+              size="icon"
+              class="rounded-xl p-2.5 text-gray-500 hover:border-gray-300 hover:bg-gray-100/70 hover:text-gray-900"
+            >
+              <span
+                class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+                set:html={Filter}
+              />
+            </ButtonAdmin>
+          </div>
         </div>
       </div>
 
-      <Table headers={headers} data={coreTeamData} />
+      {/* Data Table */}
+      <div id="table-container">
+        <Table
+          headers={headers}
+          data={tableData}
+          editAction="openEditCoreTeamModal"
+          moreAction="openDeleteCoreTeamModal"
+        />
+      </div>
 
-      <Pagination variant="datatable" currentPage={1} totalPages={12} startEntry={1} endEntry={4} totalEntries={24} />
+      {/* Empty State Client-Side */}
+      <div
+        id="empty-state"
+        class="hidden py-8 text-center text-sm text-gray-500"
+      >
+        No core team members found in this division.
+      </div>
+
+      {/* Pagination */}
+      <Pagination
+        variant="datatable"
+        currentPage={1}
+        totalPages={1}
+        startEntry={1}
+        endEntry={tableData.length}
+        totalEntries={tableData.length}
+      />
     </div>
   </div>
+
+  <AddCoreTeamModal />
+  <EditCoreTeamModal />
+  <DeleteCoreTeamModal />
 </AdminLayout>
+
+<script>
+  // CLIENT-SIDE FILTER LOGIC (Instan, Tanpa Reload)
+  const divisiFilter = document.getElementById(
+    'divisi-filter'
+  ) as HTMLSelectElement
+  const tableRows = document.querySelectorAll(
+    'tbody tr'
+  ) as NodeListOf<HTMLTableRowElement>
+  const emptyState = document.getElementById('empty-state')
+
+  if (divisiFilter) {
+    divisiFilter.addEventListener('change', e => {
+      const selectedValue = (e.target as HTMLSelectElement).value.toLowerCase()
+      let visibleCount = 0
+
+      tableRows.forEach(row => {
+        // Kolom indeks ke-3 (TD ke-4) adalah tempat kita menaruh data "Divisi"
+        const divisionCell = row.children[3] as HTMLElement
+
+        if (divisionCell) {
+          const divisionText =
+            divisionCell.textContent?.trim().toLowerCase() || ''
+
+          if (selectedValue === 'all' || divisionText === selectedValue) {
+            row.style.display = '' // Tampilkan baris
+            visibleCount++
+          } else {
+            row.style.display = 'none' // Sembunyikan baris
+          }
+        }
+      })
+
+      // Tampilkan "Empty State" jika tidak ada baris yang cocok
+      if (emptyState) {
+        emptyState.style.display = visibleCount === 0 ? 'block' : 'none'
+      }
+    })
+  }
+</script>

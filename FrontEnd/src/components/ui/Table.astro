@@ -13,9 +13,22 @@ interface Props {
     avatar?: string
     selected?: boolean
   }>
+  // SVG strings (pastikan dikirim dari halaman induk jika dipisah, atau biarkan di-import di sini)
+  Edit?: string
+  More?: string
+  // Nama fungsi global untuk aksi klik (opsional)
+  editAction?: string
+  moreAction?: string
 }
 
-const { headers, data } = Astro.props
+const {
+  headers,
+  data,
+  Edit: EditIcon = Edit,
+  More: MoreIcon = More,
+  editAction,
+  moreAction,
+} = Astro.props
 ---
 
 <div
@@ -85,20 +98,41 @@ const { headers, data } = Astro.props
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-1.5">
+                {/* Tombol Edit Dinamis */}
                 <button
                   type="button"
-                  onclick={`window.openChangePasswordModal('${row.id}')`}
-                  class="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                  onclick={
+                    editAction ? `window.${editAction}('${row.id}')` : undefined
+                  }
+                  class:list={[
+                    'rounded-lg p-2 transition-colors',
+                    editAction
+                      ? 'cursor-pointer text-gray-400 hover:bg-gray-100 hover:text-gray-900'
+                      : 'cursor-default text-gray-300', // State mati jika tidak ada action
+                  ]}
                 >
                   <span
                     class="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
-                    set:html={Edit}
+                    set:html={EditIcon}
                   />
                 </button>
-                <button class="cursor-default rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600">
+
+                {/* Tombol More Dinamis */}
+                <button
+                  type="button"
+                  onclick={
+                    moreAction ? `window.${moreAction}('${row.id}')` : undefined
+                  }
+                  class:list={[
+                    'rounded-lg p-2 transition-colors',
+                    moreAction
+                      ? 'cursor-pointer text-gray-400 hover:bg-gray-100 hover:text-gray-900'
+                      : 'cursor-default text-gray-300', // State mati jika tidak ada action
+                  ]}
+                >
                   <span
                     class="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-full [&>svg]:w-full"
-                    set:html={More}
+                    set:html={MoreIcon}
                   />
                 </button>
               </div>
