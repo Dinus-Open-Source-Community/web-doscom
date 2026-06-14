@@ -43,6 +43,7 @@ const menuGroups = [
     header: 'Account',
     items: [
       { name: 'Super Admin', icon: SuperAdmin, href: '#', active: false },
+      { name: 'User', icon: SuperAdmin, href: '/admin/user', active: false },
       { name: 'BPH', icon: Admin, href: '#', active: false },
       { name: 'Core Team', icon: CoreTeam, href: ROUTES.admin.coreTeam, active: false },
     ],
@@ -50,6 +51,17 @@ const menuGroups = [
   {
     header: 'Activity',
     items: [
+      {
+        name: 'Work',
+        icon: Blog,
+        href: '#',
+        active: false,
+        submenu: [
+          { name: 'Kategori', href: '/admin/work/projects', icon: Blog },
+          { name: 'Detail Work', href: '/admin/work/tasks', icon: Blog },
+          { name: 'Calendar', href: '/admin/work/calendar', icon: Blog },
+        ],
+      },
       { name: 'Blog', icon: Blog, href: '#', active: false },
       { name: 'Gallery', icon: Gallery, href: '#', active: false },
     ],

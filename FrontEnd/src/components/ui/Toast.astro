@@ -1,0 +1,50 @@
+---
+---
+<div
+  id="app-toast"
+  class="pointer-events-none fixed bottom-6 right-6 z-[100] flex translate-y-8 items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 align-middle shadow-xl opacity-0 transition-all duration-300"
+>
+  <div id="toast-icon" class="flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-white">
+    {/* Default to checkmark */}
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+  </div>
+  <p id="app-toast-msg" class="text-sm font-medium text-gray-900">Notification message</p>
+</div>
+
+<script>
+  let toastTimeout: ReturnType<typeof setTimeout>;
+
+  // Definisikan fungsi global agar bisa dipanggil dari komponen lain
+  (window as any).showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    const toast = document.getElementById('app-toast');
+    const toastMsg = document.getElementById('app-toast-msg');
+    const toastIcon = document.getElementById('toast-icon');
+
+    if (!toast || !toastMsg || !toastIcon) return;
+
+    // Set pesan
+    toastMsg.innerText = message;
+
+    // Ubah gaya berdasarkan tipe
+    if (type === 'success') {
+      toastIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      toastIcon.className = 'flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-white';
+    } else {
+      toastIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+      toastIcon.className = 'flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-white';
+    }
+
+    // Munculkan toast
+    toast.classList.remove('translate-y-8', 'opacity-0');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    // Reset timer jika dipanggil berulang cepat
+    clearTimeout(toastTimeout);
+
+    // Sembunyikan setelah 3 detik
+    toastTimeout = setTimeout(() => {
+      toast.classList.remove('translate-y-0', 'opacity-100');
+      toast.classList.add('translate-y-8', 'opacity-0');
+    }, 3000);
+  };
+</script>
