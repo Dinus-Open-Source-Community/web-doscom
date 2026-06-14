@@ -54,11 +54,11 @@ Legenda: ✅ selesai · 🟡 partial · ⬜ belum
 | ------- | ------------------------ | --------------- | ---------- |
 | USER-01 | List super admin         | ✅              | ⬜ no page |
 | USER-02 | Create super admin       | ✅              | ⬜         |
-| USER-03 | Admin change password    | ✅              | ⬜         |
+| USER-03 | Admin change password    | ✅              | ✅         |
 | USER-04 | List user                | ✅              | ✅         |
 | USER-05 | CRUD user                | ✅              | ✅         |
 | USER-06 | Search/filter/pagination | —               | ⬜         |
-| USER-07 | Form create user         | —               | ⬜         |
+| USER-07 | Form create user         | —               | ✅         |
 | PROF-01 | Tampil profil login      | ✅ `useMeQuery` | ⬜         |
 | PROF-02 | Edit profil              | ✅              | ⬜         |
 | PROF-03 | Ganti password           | ✅              | ⬜         |
@@ -70,10 +70,10 @@ Legenda: ✅ selesai · 🟡 partial · ⬜ belum
 
 | ID      | Requirement            | Service/Hook | Page          |
 | ------- | ---------------------- | ------------ | ------------- |
-| PENG-01 | List + filter divisi   | ✅           | ⬜ mock table |
-| PENG-02 | Tambah member          | ✅           | ⬜            |
-| PENG-03 | Edit pengurus          | ✅           | ⬜            |
-| PENG-04 | Hapus pengurus         | ✅           | ⬜            |
+| PENG-01 | List + filter divisi   | ✅           | ✅ mock table |
+| PENG-02 | Tambah member          | ✅           | ✅            |
+| PENG-03 | Edit pengurus          | ✅           | ✅            |
+| PENG-04 | Hapus pengurus         | ✅           | ✅            |
 | PENG-05 | Search                 | —            | ⬜ UI only    |
 | PENG-06 | Pagination             | —            | ⬜ mock       |
 | PENG-07 | Upload foto            | ✅ service   | ⬜            |
