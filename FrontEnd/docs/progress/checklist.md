@@ -55,7 +55,7 @@ Legenda: ✅ selesai · 🟡 partial · ⬜ belum
 | USER-01 | List super admin         | ✅              | ⬜ no page |
 | USER-02 | Create super admin       | ✅              | ⬜         |
 | USER-03 | Admin change password    | ✅              | ⬜         |
-| USER-04 | List user                | ✅              | ⬜         |
+| USER-04 | List user                | ✅              | ✅         |
 | USER-05 | CRUD user                | ✅              | ✅         |
 | USER-06 | Search/filter/pagination | —               | ⬜         |
 | USER-07 | Form create user         | —               | ⬜         |
