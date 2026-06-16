@@ -601,6 +601,7 @@ func (h *PengurusHandler) UpdateMyPengurusProfile(c *gin.Context) {
 // @Router /api/v1/pengurus/{id} [delete]
 func (h *PengurusHandler) DeletePengurus(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
 	ctx := c.Request.Context()
 
 	id, err := strconv.Atoi(c.Param("id"))
@@ -614,7 +615,7 @@ func (h *PengurusHandler) DeletePengurus(c *gin.Context) {
 		return
 	}
 
-	if err := h.Service.DeletePengurusById(ctx, id, userRole); err != nil {
+	if err := h.Service.DeletePengurusByID(ctx, id, userID, userRole); err != nil {
 		response.Error(
 			c,
 			http.StatusNotFound,
@@ -627,7 +628,7 @@ func (h *PengurusHandler) DeletePengurus(c *gin.Context) {
 	response.Success(
 		c,
 		"pengurus deleted",
-		http.StatusNoContent,
+		http.StatusOK,
 		nil,
 	)
 }
@@ -648,7 +649,7 @@ func (h *PengurusHandler) DeleteMyPengurusProfile(c *gin.Context) {
 		return
 	}
 
-	if err := h.Service.DeletePengurusById(ctx, userID, userRole); err != nil {
+	if err := h.Service.DeleteMyPengurus(ctx, userID, userRole); err != nil {
 		response.Error(
 			c,
 			http.StatusNotFound,
@@ -661,7 +662,7 @@ func (h *PengurusHandler) DeleteMyPengurusProfile(c *gin.Context) {
 	response.Success(
 		c,
 		"pengurus deleted",
-		http.StatusNoContent,
+		http.StatusOK,
 		nil,
 	)
 

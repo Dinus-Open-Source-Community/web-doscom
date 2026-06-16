@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"math"
 	"mime/multipart"
 	"net/http"
@@ -28,6 +29,7 @@ func NewWorkHandler(s *service.WorkService) *WorkHandler {
 func (h *WorkHandler) CreateWork(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
 
 	if err := authorization.CheckRolePermission(userRole,
 		constants.RoleKoordinator,
@@ -43,7 +45,7 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 	}
 
 	var work dto.CreateRequestWork
-	if err := c.ShouldBindJSON(&work); err != nil {
+	if err := c.ShouldBind(&work); err != nil {
 		response.Error(
 			c,
 			http.StatusBadRequest,
@@ -71,6 +73,7 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 		&work,
 		files,
 		userRole,
+		userID,
 	)
 	if err != nil {
 		response.Error(
@@ -90,15 +93,38 @@ func (h *WorkHandler) CreateWork(c *gin.Context) {
 	)
 }
 
+func (h *WorkHandler) GetWorkTypes(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	workTypes, err := h.Service.GetWorkTypes(ctx)
+	if err != nil {
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"Failed to fetch data, someting went wong",
+			err,
+		)
+	}
+
+	response.Success(
+		c,
+		"Successfully fetch work types",
+		http.StatusOK,
+		workTypes,
+	)
+
+}
+
 func (h *WorkHandler) GetAllWorks(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	filterProjectType := c.DefaultQuery("projecttype", "")
 	offset := (page - 1) * limit
 
-	worksResponseData, totalData, err := h.Service.GetAllWorksAndByTechnologi(
+	filterProjectType := c.DefaultQuery("projecttype", "")
+
+	worksResponseData, totalData, err := h.Service.GetAllWorksAndByProjectType(
 		ctx,
 		offset,
 		limit,
@@ -151,6 +177,7 @@ func (h *WorkHandler) GetAllWorksByDivision(c *gin.Context) {
 		return
 	}
 
+	log.Printf("[handler] userRole: %s", userRole)
 	worksResponseData, totalData, err := h.Service.GetWorksByDivision(
 		ctx,
 		userRole,
@@ -183,8 +210,52 @@ func (h *WorkHandler) GetAllWorksByDivision(c *gin.Context) {
 
 }
 
-func (h *WorkHandler) GetWorkByID(c *gin.Context) {
+func (h *WorkHandler) GetWorkByIDPublic(c *gin.Context) {
 	ctx := c.Request.Context()
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid id format",
+			err,
+		)
+	}
+
+	workResponseData, err := h.Service.GetWorkByID(ctx, "", id, true)
+	if err != nil {
+		response.Error(
+			c,
+			http.StatusNotFound,
+			"something went wrong while fetching data",
+			err,
+		)
+		return
+	}
+
+	responseData := &dto.WorkResponseClient{
+		ID:           workResponseData.ID,
+		Title:        workResponseData.Title,
+		Tagline:      workResponseData.Tagline,
+		Description:  workResponseData.Description,
+		Slug:         workResponseData.Slug,
+		ProjectType:  workResponseData.ProjectType,
+		Technologies: workResponseData.Technologies,
+		ProjectDate:  workResponseData.ProjectDate,
+		ImageURL:     workResponseData.ImageURL,
+		Gallery:      workResponseData.Gallery,
+	}
+	response.Success(
+		c,
+		"Success fetching work detail",
+		http.StatusOK,
+		responseData,
+	)
+}
+
+func (h *WorkHandler) GetWorkByIDAdmin(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		response.Error(
@@ -196,7 +267,7 @@ func (h *WorkHandler) GetWorkByID(c *gin.Context) {
 		return
 	}
 
-	workResponseData, err := h.Service.GetWorkByID(ctx, id)
+	workResponseData, err := h.Service.GetWorkByID(ctx, userRole, id, false)
 	if err != nil {
 		response.Error(
 			c,
@@ -215,9 +286,71 @@ func (h *WorkHandler) GetWorkByID(c *gin.Context) {
 	)
 }
 
+// update status work
+func (h *WorkHandler) UpdateStatusWork(c *gin.Context) {
+	ctx := c.Request.Context()
+	userRole := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
+
+	if err := authorization.CheckRolePermission(
+		userRole,
+		constants.RoleAdmin,
+		constants.RoleKeyBPH,
+	); err != nil {
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"forbidden to access this resource",
+			err,
+		)
+		return
+	}
+
+	idWork, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid request param, budy",
+			err,
+		)
+		return
+	}
+
+	var workStatusUpdate dto.WorkUpdateStatusRequest
+	if err := c.ShouldBindJSON(&workStatusUpdate); err != nil {
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid request body, budy",
+			err,
+		)
+		return
+	}
+
+	workUpdatedDataResponse, err := h.Service.UpdateStatusWork(ctx, idWork, userID, workStatusUpdate.Status, userRole)
+	if err != nil {
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to update work, something went wrong",
+			err,
+		)
+		return
+	}
+
+	response.Success(
+		c,
+		"Work updated successfully",
+		http.StatusOK,
+		workUpdatedDataResponse,
+	)
+}
+
 func (h *WorkHandler) UpdateWork(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
+	userID := c.MustGet("user_id").(int)
 	if err := authorization.CheckRolePermission(
 		userRole,
 		constants.RoleKoordinator,
@@ -237,14 +370,14 @@ func (h *WorkHandler) UpdateWork(c *gin.Context) {
 		response.Error(
 			c,
 			http.StatusBadRequest,
-			"invalid request body, budy",
+			"invalid request param, budy",
 			err,
 		)
 		return
 	}
 
 	var workDataToUpdate dto.WorkPatch
-	if err := c.ShouldBindJSON(&workDataToUpdate); err != nil {
+	if err := c.ShouldBind(&workDataToUpdate); err != nil {
 		response.Error(
 			c,
 			http.StatusBadRequest,
@@ -253,6 +386,7 @@ func (h *WorkHandler) UpdateWork(c *gin.Context) {
 		)
 		return
 	}
+	log.Printf("[handler] workDataToUpdate: %v", workDataToUpdate)
 
 	form, _ := c.MultipartForm()
 	var files []*multipart.FileHeader
@@ -262,7 +396,7 @@ func (h *WorkHandler) UpdateWork(c *gin.Context) {
 
 	workUpdatedDataResponse, err := h.Service.UpdateWorkByID(
 		ctx,
-		id,
+		id, userID,
 		&workDataToUpdate,
 		files,
 		userRole,
@@ -324,7 +458,7 @@ func (h *WorkHandler) Delete(c *gin.Context) {
 	response.Success(
 		c,
 		"Work deleted successfully",
-		http.StatusNoContent,
+		http.StatusOK,
 		nil,
 	)
 }

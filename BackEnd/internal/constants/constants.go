@@ -98,7 +98,6 @@ var AutoAsignRole = map[string]string{
 const (
 	StatusDraft     = "draft"
 	StatusPublished = "published"
-	StatusScheduled = "scheduled"
 	StatusUnpublish = "unpublished"
 	StatusRejected  = "rejected"
 	StatusPending   = "pending_review"

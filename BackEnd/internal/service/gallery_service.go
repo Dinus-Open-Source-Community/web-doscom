@@ -182,8 +182,23 @@ func (m *GalleryService) GetAllGalleryAndByDate(
 	return response, int64(totalPage), int64(currentPage), nil
 }
 
+func (m *GalleryService) GetGalleryByID(ctx context.Context, id int) (dto.GalleryResponse, error) {
+	galleryData, err := m.Model.GetGalleryByID(ctx, id)
+	if err != nil {
+		return dto.GalleryResponse{}, fmt.Errorf("gallery not found %w", err)
+	}
+	return dto.GalleryResponse{
+		ID:          galleryData.ID,
+		GalleryName: galleryData.GalleryName,
+		GalleryType: galleryData.GalleryType,
+		Description: galleryData.Description,
+		EventDate:   galleryData.EventDate,
+		FileURL:     galleryData.FileURL,
+	}, nil
+}
+
 func (m *GalleryService) DeleteGallery(ctx context.Context, id int) error {
-	galleryData, err := m.Model.GetGalleryByID(id)
+	galleryData, err := m.Model.GetGalleryByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("gallery not found %w", err)
 	}
@@ -237,7 +252,7 @@ func (m *GalleryService) DeleteGallery(ctx context.Context, id int) error {
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
 
 	return nil
@@ -296,7 +311,7 @@ func (m *GalleryService) DeleteGalleryMultiple(ctx context.Context, galleryIDS [
 
 	if err := tx.Commit(); err != nil {
 		log.Printf("Critical: file deleted and DB changes made but commit transaction failed for gallery ids %v: %v", galleryIDS, err)
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
 
 	return nil

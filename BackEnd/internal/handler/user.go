@@ -432,6 +432,7 @@ func (h *UserHandler) ChangePasswordAdmin(c *gin.Context) {
 			"Invalid user id",
 			err,
 		)
+		return
 	}
 
 	validRole, err := authorization.GetRoleInfo(currentUserRole)
@@ -466,7 +467,7 @@ func (h *UserHandler) ChangePasswordAdmin(c *gin.Context) {
 		return
 	}
 
-	passwordUpdated, err := h.Service.ChangePasswordAdmin(targetUserID, currentUserRole, changePasswordRequest)
+	_, err = h.Service.ChangePasswordAdmin(targetUserID, currentUserRole, changePasswordRequest)
 	if err != nil {
 		response.Error(
 			c,
@@ -481,7 +482,7 @@ func (h *UserHandler) ChangePasswordAdmin(c *gin.Context) {
 		c,
 		"password changed successfully",
 		http.StatusOK,
-		passwordUpdated,
+		nil,
 	)
 }
 
