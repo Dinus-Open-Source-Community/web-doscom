@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -410,7 +411,7 @@ func (p *PengurusService) GetAllPengurusByDivision(
 
 	pengurusResponse, err := p.PengurusModel.GetPengurusByDivisi(ctx, division)
 	if err != nil {
-		return nil, fmt.Errorf("terjadi error ketika ambil data %w", err)
+		return nil, fmt.Errorf("terjadi error ketika ambil data: %w", err)
 	}
 
 	return pengurusResponse, nil
@@ -419,7 +420,6 @@ func (p *PengurusService) GetAllPengurusByDivision(
 func (p *PengurusService) GetPengurusByUserID(ctx context.Context, userRole string, userID int) (dto.PengurusResponse, error) {
 	validRole, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
-		log.Printf("[service] error disini, userRole: %s, userDivisi: %s", validRole.Role, validRole.Divisi)
 		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
 
@@ -431,7 +431,7 @@ func (p *PengurusService) GetPengurusByUserID(ctx context.Context, userRole stri
 	switch validRole.Role {
 	case constants.RoleKoordinator:
 		if validRole.Divisi != pengurusResponse.Divisi {
-			return dto.PengurusResponse{}, fmt.Errorf("you can not see other division bro %w", err)
+			return dto.PengurusResponse{}, fmt.Errorf("you can not see other division bro: %w", err)
 		}
 	case constants.RolePengurus:
 		if userID != pengurusResponse.IDUser {
@@ -440,7 +440,6 @@ func (p *PengurusService) GetPengurusByUserID(ctx context.Context, userRole stri
 	case constants.RoleAdmin:
 		// do nothing
 	default:
-		log.Printf("[service] error disini wak")
 		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
 
@@ -475,15 +474,38 @@ func (p *PengurusService) GetPengurusByID(ctx context.Context, userRole string, 
 	return *pengurusResponse, nil
 }
 
-func (p *PengurusService) DeletePengurusById(ctx context.Context, idPengurus int, userRole string) error {
+func (p *PengurusService) DeletePengurusByID(ctx context.Context, idPengurus, currentUserID int, userRole string) error {
+	targetPengurus, err := p.PengurusModel.GetPengurusByIDWithoutSosmed(ctx, idPengurus)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("pengurus not found")
+		}
+		return err
+	}
+
+	return p.DeletePengurus(ctx, &targetPengurus, userRole)
+}
+
+func (p *PengurusService) DeleteMyPengurus(ctx context.Context, currentUserID int, userRole string) error {
+	targetPengurus, err := p.PengurusModel.GetPengurusByUserIDWithoutSosmed(ctx, currentUserID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("pengurus not found")
+		}
+		return err
+	}
+
+	return p.DeletePengurus(ctx, &targetPengurus, userRole)
+}
+
+func (p *PengurusService) DeletePengurus(
+	ctx context.Context,
+	targetPengurus *dto.PengurusResponse,
+	userRole string,
+) error {
 	validRole, ok := constants.RoleGroup[userRole]
 	if !ok {
 		return fmt.Errorf("role not valid")
-	}
-
-	targetPengurus, err := p.PengurusModel.GetPengurusByID(ctx, idPengurus)
-	if err != nil {
-		return err
 	}
 
 	switch validRole.Role {
@@ -491,27 +513,27 @@ func (p *PengurusService) DeletePengurusById(ctx context.Context, idPengurus int
 		// lakukan trancation delete pengurus and pengurus sosmed
 	case constants.RoleKoordinator:
 		if validRole.Divisi != targetPengurus.Divisi {
-			return fmt.Errorf("you can not delete data from other division, %w", err)
+			return fmt.Errorf("you can not delete data from other division")
 		}
 	case constants.RolePengurus:
-		return fmt.Errorf("you can't delete your own data %w", err)
+		return fmt.Errorf("you can't delete your own data")
 	default:
 		return fmt.Errorf("role not valid")
 	}
 
 	// begin transaction
-	err = p.DB.Transaction(func(tx *gorm.DB) error {
+	err := p.DB.Transaction(func(tx *gorm.DB) error {
 
 		modelPengurus := p.PengurusModel.WithTx(tx)
 		modelPengurusSosmed := p.PengurusSosmedModel.WithTx(tx)
 
 		// delete sosmed first
-		if err := modelPengurusSosmed.DeleteByPengurusID(ctx, idPengurus); err != nil {
+		if err := modelPengurusSosmed.DeleteByPengurusID(ctx, targetPengurus.ID); err != nil {
 			return err
 		}
 
 		// delete data pengurus
-		if err := modelPengurus.DeletePengurus(ctx, idPengurus); err != nil {
+		if err := modelPengurus.DeletePengurus(ctx, targetPengurus.ID); err != nil {
 			return err
 		}
 

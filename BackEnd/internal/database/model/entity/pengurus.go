@@ -3,6 +3,7 @@ package entity
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -193,6 +194,33 @@ func (m *PengurusModel) GetPengurusByUserID(ctx context.Context, id int) (*dto.P
 	}, nil
 }
 
+func (m *PengurusModel) GetPengurusByUserIDWithoutSosmed(
+	ctx context.Context,
+	userID int,
+) (dto.PengurusResponse, error) {
+
+	var pengurus dto.PengurusResponse
+
+	err := m.DB.WithContext(ctx).
+		Model(&Pengurus{}).
+		Where("id_user = ?", userID).
+		Take(&pengurus).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dto.PengurusResponse{}, nil
+	}
+
+	if err != nil {
+		return dto.PengurusResponse{}, fmt.Errorf(
+			"get pengurus by user id: %w",
+			err,
+		)
+	}
+
+	return pengurus, nil
+}
+
 // get pengurus by id
 func (m *PengurusModel) GetPengurusByID(ctx context.Context, id int) (*dto.PengurusResponse, error) {
 	var pengurusRow dto.PengurusRow
@@ -254,19 +282,29 @@ func (m *PengurusModel) GetPengurusByID(ctx context.Context, id int) (*dto.Pengu
 	}, nil
 }
 
-// DELETE THIS FUNCTION NOT USED
-// Get all pengurus data
-// func (m *PengurusModel) GetAllPengurusByDivisi(ctx context.Context, divisi string) ([]Pengurus, error) {
-// 	pengurus := []Pengurus{}
-// 	db := m.DB.WithContext(ctx)
-// 	if divisi != "" {
-// 		db = db.Where("divisi = ?", divisi)
-// 	}
-// 	if err := db.Find(&pengurus).Error; err != nil {
-// 		return nil, err
-// 	}
-// 	return pengurus, nil
-// }
+func (m *PengurusModel) GetPengurusByIDWithoutSosmed(
+	ctx context.Context,
+	pengurusID int,
+) (dto.PengurusResponse, error) {
+
+	var pengurus dto.PengurusResponse
+
+	err := m.DB.WithContext(ctx).
+		Model(&Pengurus{}).
+		Where("id = ?", pengurusID).
+		Take(&pengurus).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dto.PengurusResponse{}, nil
+	}
+
+	if err != nil {
+		return dto.PengurusResponse{}, fmt.Errorf("get pengurus by user id: %w", err)
+	}
+
+	return pengurus, nil
+}
 
 // Update pengurus
 func (m *PengurusModel) UpdatePengurus(Id int, patch dto.PengurusPatch) (*Pengurus, error) {
@@ -351,7 +389,7 @@ func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string
 		Scan(&dataPengurus)
 
 	if result.Error != nil {
-		return nil, fmt.Errorf("terjadi error ketika ambil data >ᴗ< %w", result.Error)
+		return nil, fmt.Errorf("terjadi error ketika ambil data >ᴗ< :%w", result.Error)
 	}
 	if result.RowsAffected == 0 {
 		return nil, fmt.Errorf("ngga ada datanya >ᴗ<, divisi nya belum ada wak, hayaa")

@@ -7,6 +7,7 @@ import (
 	"web_doscom/internal/authorization"
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/response"
 	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -48,9 +49,12 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 
 	var input dto.CreateGallery
 	if err := c.ShouldBind(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Validation failed: " + err.Error(),
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"Validation failed",
+			err,
+		)
 		return
 	}
 
@@ -60,31 +64,43 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 	}
 
 	if !allowedRole[userRole] {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error": "You're not allowed broo",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"You're not allowed broo",
+			nil,
+		)
 		return
 	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read file",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"Failed to read file",
+			err,
+		)
 		return
 	}
 
 	files := form.File["files"]
 	if len(files) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "No files uploaded",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"No files uploaded",
+			nil,
+		)
 		return
 	}
 	if len(files) > 5 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Max upload 5 file",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"Max upload 5 file",
+			nil,
+		)
 		return
 	}
 
@@ -99,10 +115,12 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 	for i, fileHeader := range files {
 		fileContent, err := fileHeader.Open()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   err.Error(),
-				"message": "failed while opening file upload",
-			})
+			response.Error(
+				c,
+				http.StatusInternalServerError,
+				"failed while opening file upload",
+				err,
+			)
 			return
 		}
 		defer fileContent.Close()
@@ -121,17 +139,21 @@ func (m *GalleryHandler) InsertGallery(c *gin.Context) {
 		fileUploadData,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "failed to insert and upload gallery",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to insert and upload gallery",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully insert data",
-		"data":    galleryResponse,
-	})
+	response.Success(
+		c,
+		"Successfully insert data",
+		http.StatusOK,
+		galleryResponse,
+	)
 }
 
 func (m *GalleryHandler) GetAllGalleryAndByYear(c *gin.Context) {
@@ -162,19 +184,25 @@ func (m *GalleryHandler) GetAllGalleryAndByYear(c *gin.Context) {
 		limit, offset,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "failed to get data gallery, some issue at backend :))",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to get data gallery, some issue at backend :))",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":     "Successfully get data",
-		"totalPages":  totalPages,
-		"currentPage": currentPage,
-		"gallery":     galleryList,
-	})
+	response.Success(
+		c,
+		"Successfully get data",
+		http.StatusOK,
+		gin.H{
+			"totalPages":  totalPages,
+			"currentPage": currentPage,
+			"gallery":     galleryList,
+		},
+	)
 }
 
 // delete gallery by id
@@ -195,10 +223,12 @@ func (m *GalleryHandler) DeleteGallery(c *gin.Context) {
 	userRole := c.MustGet("role").(string)
 	_, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "you cannot access this resource",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"you cannot access this resource",
+			err,
+		)
 		return
 	}
 
@@ -208,31 +238,42 @@ func (m *GalleryHandler) DeleteGallery(c *gin.Context) {
 	}
 
 	if !allowedRole[userRole] {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   "request cannot be processed",
-			"message": "role not valid or have no permission",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"request cannot be processed",
+			nil,
+		)
 		return
 	}
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid id",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid id",
+			err,
+		)
 		return
 	}
 
 	if err := m.GalleryService.DeleteGallery(ctx, id); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Gallery not found",
-		})
+		response.Error(
+			c,
+			http.StatusNotFound,
+			"Gallery not found",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Successfully delete Gallery, bang nasi padang satu bungkus bang",
-	})
+	response.Success(
+		c,
+		"Successfully delete Gallery, bang nasi padang satu bungkus bang",
+		http.StatusOK,
+		nil,
+	)
 }
 
 // insert photo profile

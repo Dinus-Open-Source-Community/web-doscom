@@ -73,9 +73,9 @@ func (g *GalleryModel) InsertGalleryMultiple(gallery []*Gallery) ([]*dto.Gallery
 	return response, nil
 }
 
-func (g *GalleryModel) GetGalleryByID(id int) (*dto.GalleryResponse, error) {
+func (g *GalleryModel) GetGalleryByID(ctx context.Context, id int) (*dto.GalleryResponse, error) {
 	var gallery Gallery
-	if err := g.DB.First(&gallery, id).Error; err != nil {
+	if err := g.DB.WithContext(ctx).First(&gallery, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -192,7 +192,6 @@ func (g *GalleryModel) GetAllGalleryAndByYear(
 	limit, offset int,
 ) ([]dto.GalleryResponse, int64, error) {
 
-	galleryResponse := []dto.GalleryResponse{}
 	var total int64
 
 	query := g.DB.WithContext(ctx).Model(&Gallery{})
@@ -204,6 +203,7 @@ func (g *GalleryModel) GetAllGalleryAndByYear(
 		return nil, 0, err
 	}
 
+	galleryResponse := []dto.GalleryResponse{}
 	if err := query.Model(&Gallery{}).
 		Select("id, id_users, file_upload_id, description, file_url, event_date").
 		Limit(limit).

@@ -29,9 +29,36 @@ var workStatusToGroup = map[string]workStatusGroup{
 	constants.StatusDraft:     statusEditable,
 	constants.StatusPending:   statusEditable,
 	constants.StatusPublished: statusModerated,
-	constants.StatusScheduled: statusModerated,
 	constants.StatusUnpublish: statusModerated,
 	constants.StatusRejected:  statusModerated,
+}
+var workModeratedTransition = map[string]map[string]struct{}{
+	constants.StatusPending: {
+		constants.StatusRejected:  {},
+		constants.StatusPublished: {},
+	},
+	constants.StatusPublished: {
+		constants.StatusUnpublish: {},
+	},
+	constants.StatusUnpublish: {
+		constants.StatusPublished: {},
+	},
+}
+
+var deletableWorkStatusByGroup = map[workStatusGroup]map[string]struct{}{
+	statusEditable: {
+		constants.StatusDraft:    {},
+		constants.StatusRejected: {},
+	},
+	statusModerated: {
+		constants.StatusPublished: {},
+		constants.StatusUnpublish: {},
+	},
+	statusAll: {
+		constants.StatusPublished: {},
+		constants.StatusUnpublish: {},
+		constants.StatusRejected:  {},
+	},
 }
 
 var workGroupAllowedStatus = map[workStatusGroup]map[string]struct{}{}
@@ -60,11 +87,14 @@ func init() {
 	}
 
 	workGroupViewStatus = map[workStatusGroup]map[string]struct{}{
-		statusEditable:  workGroupAllowedStatus[statusEditable],
-		statusModerated: copyMap(workGroupAllowedStatus[statusModerated]),
-		statusAll:       workGroupAllowedStatus[statusAll],
+		statusEditable: copyMap(workGroupAllowedStatus[statusAll]),
+		statusModerated: {
+			constants.StatusPending:   {},
+			constants.StatusPublished: {},
+			constants.StatusUnpublish: {},
+		},
+		statusAll: copyMap(workGroupAllowedStatus[statusAll]),
 	}
-	delete(workGroupViewStatus[statusModerated], constants.StatusDraft)
 
 }
 
@@ -130,22 +160,20 @@ func CanDeleteWork(userRole, status string) (bool, error) {
 		return false, fmt.Errorf("permissions denied for this role %s", userRole)
 	}
 
-	statusGroup, ok := workStatusToGroup[status]
-	if !ok {
+	status = strings.ToLower(strings.TrimSpace(status))
+	if _, validGlobal := workGroupAllowedStatus[statusAll][status]; !validGlobal {
 		return false, fmt.Errorf("status not valid")
 	}
 
-	// aturan delete work
-	// bisa hapus work jika role group nya itu >= status yang mau di hapus
-	// contoh
-	// 	koordinator (0) -> hapus work status draft (0) -> (0) >= (0) -> true
-	// 	koordinator (0) -> hapus work status published (1) -> (0) >= (1) -> false
-	// 	bph (1) -> hapus work status publishe (1)	 -> (1) >= (1) -> true
-	// 	super admin (2) -> hapus work status apapun -> (2) >= (*) -> true
-	if roleStatusGroup >= statusGroup {
-		return true, nil
+	allowedDelete, ok := deletableWorkStatusByGroup[roleStatusGroup]
+	if !ok {
+		return false, fmt.Errorf("delete rule not found for role %s", userRole)
 	}
-	return false, fmt.Errorf("denied: role %s cannot delete work with status %s", userRole, status)
+	if _, allowed := allowedDelete[status]; !allowed {
+		return false, fmt.Errorf("role %s cannot delete work with status %s", userRole, status)
+	}
+
+	return true, nil
 }
 
 func GetViewableStatus(userRole string) ([]string, error) {
@@ -170,4 +198,45 @@ func GetViewableStatus(userRole string) ([]string, error) {
 	}
 
 	return resultStatus, nil
+}
+
+func CanModerateWork(userRole, currentStatus, targetStatus string) error {
+	_, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return fmt.Errorf("invalid userRole")
+	}
+
+	roleStatusGroup, ok := workRoleStatusGroup[userRole]
+	if !ok {
+		return fmt.Errorf("permissions denied for this role %s", userRole)
+	}
+
+	currentStatus = strings.ToLower(strings.TrimSpace(currentStatus))
+	targetStatus = strings.ToLower(strings.TrimSpace(targetStatus))
+
+	if _, validGlobal := workGroupAllowedStatus[statusAll][currentStatus]; !validGlobal {
+		return fmt.Errorf("current status not valid")
+	}
+	if _, validGlobal := workGroupAllowedStatus[statusAll][targetStatus]; !validGlobal {
+		return fmt.Errorf("target status not valid")
+	}
+
+	targetStatusGroup, ok := workStatusToGroup[targetStatus]
+	if !ok {
+		return fmt.Errorf("target status group not found/valid")
+	}
+
+	if roleStatusGroup < targetStatusGroup {
+		return fmt.Errorf("status not allowed for this role %s", userRole)
+	}
+
+	// check if transition allowed or not
+	allowedTargets, ok := workModeratedTransition[currentStatus]
+	if !ok {
+		return fmt.Errorf("status %s cannot be moderated/transition", currentStatus)
+	}
+	if _, allowed := allowedTargets[targetStatus]; !allowed {
+		return fmt.Errorf("cannot change status from %s to %s", currentStatus, targetStatus)
+	}
+	return nil
 }

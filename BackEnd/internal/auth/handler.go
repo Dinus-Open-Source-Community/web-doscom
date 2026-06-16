@@ -7,6 +7,7 @@ import (
 	"web_doscom/internal/authorization"
 	"web_doscom/internal/database/model/dto"
 	"web_doscom/internal/database/model/entity"
+	"web_doscom/internal/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,37 +37,47 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	// get the email and password from the req body
 	var input dto.LoginRequest
 	if c.Bind(&input) != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read req body",
-		})
-
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"Failed to read req body",
+			nil,
+		)
 		return
 	}
 
 	// look at the requested user
 	userData, err := h.Auth.FindByEmail(input.Email)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid email or password ",
-		})
+		response.Error(
+			c,
+			http.StatusUnauthorized,
+			"Invalid email or password",
+			nil,
+		)
 		return
 	}
 
 	// veerify the password
 	if !VerifyPassword(input.Password, userData.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid email or password",
-		})
+		response.Error(
+			c,
+			http.StatusUnauthorized,
+			"Invalid email or password",
+			nil,
+		)
 		return
 	}
 
 	// check the role
-
 	_, err = authorization.GetRoleInfo(userData.Role)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "acces denied",
-		})
+		response.Error(
+			c,
+			http.StatusUnauthorized,
+			"acces denied",
+			nil,
+		)
 		return
 	}
 	// generate token jwt
@@ -77,18 +88,23 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		userData.Role,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error: ": "Failed to create token",
-		})
-
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"Failed to create token",
+			nil,
+		)
 		return
 	}
 
 	refreshToken, plainToken, err := generateRefreshToken(userData.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error: ": "Failed to create refresh token",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"Failed to create refresh token",
+			nil,
+		)
 		return
 	}
 
@@ -97,38 +113,43 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 
 	// insert to database
 	if err := h.Auth.CreateRefreshToken(refreshToken); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error: ": "Failed to insert refresh token",
-		})
-
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"Failed to insert refresh token",
+			nil,
+		)
 		return
 	}
 
-	// set cookie
+	// set refresh token cookie
 	SetCustomCookie(c, Cookies{
 		Name:     "RefreshToken",
 		Value:    plainToken,
 		Path:     "/api/v1/auth",
-		Expires:  time.Now().Add(5 * 24 * time.Hour),
+		Expires:  time.Now().Add(2 * time.Hour),
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	// production response
-	// send back
-	c.JSON(http.StatusOK, gin.H{
-		"message:":    "login success bolo, nasi padang satu bungkus",
-		"acces_token": accesToken,
+	// set access token cookie
+	SetCustomCookie(c, Cookies{
+		Name:     "AccessToken",
+		Value:    accesToken,
+		Path:     "/",
+		Expires:  time.Now().Add(15 * time.Minute),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	})
+	response.Success(
+		c,
+		"login success bolo, nasi padang satu bungkus",
+		http.StatusOK,
+		nil,
+	)
 
-	// development response
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"message":       "Login success, nasi padangnya sebungkus bolo",
-	// 	"user_id":       userData.ID,
-	// 	"token":         accesToken,
-	// 	"refresh_token": plainToken,
-	// })
 }
 
 func (h *AuthHandler) RegisterUser(c *gin.Context) {
@@ -136,17 +157,32 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 	// get the request body
 	var input dto.RegisterRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body or missing fields"})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"Invalid request body or missing fields",
+			nil,
+		)
 		return
 	}
 
 	if input.Username == "" || input.Email == "" || input.Password == "" || input.Role == "" || input.Fullname == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields (username, email, password, role, fullname) are required"})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"Invalid request body or missing fields",
+			nil,
+		)
 		return
 	}
 
 	if len(input.Password) < 8 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 8 characters"})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"Password must be at least 8 characters",
+			nil,
+		)
 		return
 	}
 
@@ -167,10 +203,21 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to register user",
 		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to register user",
+			nil,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "user created successfully"})
+	response.Success(
+		c,
+		"user created successfully",
+		http.StatusOK,
+		nil,
+	)
 
 }
 
@@ -190,17 +237,21 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	// delete refresh token from database
 	refreshToken, err := c.Cookie("RefreshToken")
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error":   err.Error(),
-			"message": "Cookie not found, what are you doing here????",
-		})
+		response.Error(
+			c,
+			http.StatusUnauthorized,
+			"Cookie not found, what are you doing here????",
+			nil,
+		)
 		return
 	}
 	if err := h.Auth.DeleteRefreshToken(refreshToken); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "there was an error deleting the refresh token",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"there was an error deleting the refresh token",
+			nil,
+		)
 		return
 	}
 	// delete Cookie
@@ -213,10 +264,21 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Logout Success, nasi padang satu bungkus",
+	SetCustomCookie(c, Cookies{
+		Name:     "AccessToken",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-time.Minute),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	})
+	response.Success(
+		c,
+		"Logout Success, nasi padang satu bungkus",
+		http.StatusOK,
+		nil,
+	)
 }
 
 // RefreshToken godoc
@@ -231,10 +293,12 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	refreshCookie, err := c.Cookie("RefreshToken")
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error":   err.Error(),
-			"message": "Refresh token not found, what are you doing heree????",
-		})
+		response.Error(
+			c,
+			http.StatusUnauthorized,
+			"Refresh token not found, what are you doing heree????",
+			nil,
+		)
 		return
 	}
 
@@ -255,13 +319,29 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 			"error":   err.Error(),
 			"message": "refresh token invalid or expired",
 		})
-
+		response.Error(
+			c,
+			http.StatusUnauthorized,
+			"refresh token invalid or expired",
+			nil,
+		)
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":      "refresh token success",
-		"access_token": newAccessToken,
+	// set new cookie access token
+	SetCustomCookie(c, Cookies{
+		Name:     "AccessToken",
+		Value:    newAccessToken,
+		Path:     "/",
+		Expires:  time.Now().Add(15 * time.Minute),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	})
+	response.Success(
+		c,
+		"refresh token success",
+		http.StatusOK,
+		nil,
+	)
 
 }

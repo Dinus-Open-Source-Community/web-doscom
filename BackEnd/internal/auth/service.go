@@ -196,7 +196,6 @@ func (h *AuthService) validateRefreshToken(tokenString string) (string, error) {
 	// take refresh token from database
 	refreshToken, err := h.RefreshToken.GetRefreshToken(tokenHash)
 	if err != nil {
-		log.Println("errornya disini")
 		return "", err
 	}
 
