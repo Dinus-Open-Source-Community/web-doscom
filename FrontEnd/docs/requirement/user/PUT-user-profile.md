@@ -2,34 +2,33 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Update profil user yang sedang login (partial update).
 
 ## Authentication
 
-Bearer — ADMIN, KOOR, BPH, PENGURUS
+Bearer atau cookie — middleware `ADMIN`, `KOOR`, `BPH`, `PENGURUS`
 
 ## Headers
 
 | Header | Nilai |
 | --- | --- |
 | Content-Type | `application/json` |
-| Authorization | `Bearer {access_token}` |
 
 ## Request Body
 
 | Field | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| username | string | False | Username baru |
-| email | string | False | Email baru |
-| fullname | string | False | Nama lengkap |
+| username | string | False | Username |
+| email | string | False | Email |
+| fullname | string | False | Nama lengkap (map ke `full_name` di DB) |
 
 **Contoh:**
 
 ```json
 {
-  "username": "newname",
-  "email": "new@mhs.dinus.ac.id",
-  "fullname": "Nama Baru"
+  "username": "john_doe",
+  "email": "john@doscom.id",
+  "fullname": "John Doe"
 }
 ```
 
@@ -45,16 +44,26 @@ Format envelope `{ success, message, data, error }`.
   "message": "Successfully update user data",
   "data": {
     "id": 1,
-    "username": "newname",
-    "email": "new@mhs.dinus.ac.id",
+    "username": "john_doe",
+    "email": "john@doscom.id",
     "role": "KoorPemro",
-    "full_name": "Nama Baru"
-  }
+    "full_name": "John Doe"
+  },
+  "error": null
 }
 ```
+
+## Response Error
+
+**400** — body invalid.
+
+## Catatan
+
+- Field request `fullname` → disimpan sebagai `full_name` di response.
+- Hanya field non-kosong yang di-update (`UserPatch.ToMap()`).
 
 ## Frontend
 
 - Service: `userService.updateProfile`
 - Hook: `useUpdateProfileMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.user.profile`

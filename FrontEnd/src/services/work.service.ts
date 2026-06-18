@@ -1,4 +1,3 @@
-import { api } from "../lib/axios";
 import { API_PATH } from "../lib/api-path";
 import {
   deleteEnvelope,
@@ -10,8 +9,10 @@ import { buildWorkFormData } from "../lib/func/work";
 import type {
   PaginationQuery,
   WorkInternal,
+  WorkListData,
   WorkListResponse,
   WorkPublic,
+  WorkUpdateStatusPayload,
 } from "../lib/types";
 
 export interface PublicWorkQuery extends PaginationQuery {
@@ -35,31 +36,30 @@ export interface CreateWorkPayload {
 export interface UpdateWorkPayload extends Partial<CreateWorkPayload> {}
 
 export const workService = {
-  listByProjectType(
-    projectType: string,
-    params?: PaginationQuery,
-  ): Promise<WorkListResponse> {
-    return api
-      .get<WorkListResponse>(API_PATH.works.byProjectType(projectType), {
-        params,
-      })
-      .then((response) => response.data);
+  list(params?: PublicWorkQuery): Promise<WorkListResponse> {
+    return getEnvelopeData<WorkListData>(API_PATH.works.list, { params });
+  },
+
+  getById(id: number | string): Promise<WorkPublic> {
+    return getEnvelopeData<WorkPublic>(API_PATH.works.detail(id));
+  },
+
+  getTypes(): Promise<string[]> {
+    return getEnvelopeData<string[]>(API_PATH.works.types);
   },
 
   admin: {
     list(params?: PaginationQuery): Promise<WorkListResponse> {
-      return api
-        .get<WorkListResponse>(API_PATH.admin.works.list, { params })
-        .then((response) => response.data);
+      return getEnvelopeData<WorkListData>(API_PATH.admin.works.list, { params });
     },
 
     getById(id: number | string): Promise<WorkInternal> {
       return getEnvelopeData<WorkInternal>(API_PATH.admin.works.detail(id));
     },
 
-    create(payload: CreateWorkPayload, files?: File[]): Promise<WorkPublic> {
+    create(payload: CreateWorkPayload, files?: File[]): Promise<WorkInternal> {
       const formData = buildWorkFormData(payload, files);
-      return postEnvelopeData<WorkPublic>(API_PATH.admin.works.list, formData);
+      return postEnvelopeData<WorkInternal>(API_PATH.admin.works.list, formData);
     },
 
     update(
@@ -71,6 +71,16 @@ export const workService = {
       return putEnvelopeData<WorkInternal>(
         API_PATH.admin.works.detail(id),
         formData,
+      );
+    },
+
+    updateStatus(
+      id: number | string,
+      payload: WorkUpdateStatusPayload,
+    ): Promise<WorkInternal> {
+      return putEnvelopeData<WorkInternal, WorkUpdateStatusPayload>(
+        API_PATH.admin.works.status(id),
+        payload,
       );
     },
 

@@ -153,7 +153,7 @@ export function useCreateSuperAdminMutation(
 
 export function useAdminChangePasswordMutation(
   options?: UseMutationOptions<
-    User,
+    null,
     Error,
     { id: number | string; payload: AdminChangePasswordPayload }
   >,
@@ -164,7 +164,7 @@ export function useAdminChangePasswordMutation(
     mutationFn: ({ id, payload }) =>
       userService.admin.changePassword(id, payload),
     onSuccess: (data, variables, ...rest) => {
-      queryClient.setQueryData(userKeys.detail(variables.id), data);
+      queryClient.invalidateQueries({ queryKey: userKeys.detail(variables.id) });
       options?.onSuccess?.(data, variables, ...rest);
     },
     ...options,

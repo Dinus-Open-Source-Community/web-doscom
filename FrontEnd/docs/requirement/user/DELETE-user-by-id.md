@@ -2,17 +2,19 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Hapus user by ID (scoped by role caller).
 
 ## Authentication
 
-Bearer — ADMIN, KOOR, BPH
+Bearer atau cookie — middleware `ADMIN`, `KOOR`, `BPH`
+
+Role `PENGURUS` ditolak (**403**).
 
 ## Path Parameters
 
 | Param | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| id | integer | True | User ID |
+| id | number | True | User ID |
 
 ## Response Success
 
@@ -24,12 +26,19 @@ Format envelope `{ success, message, data, error }`.
 {
   "success": true,
   "message": "user deleted info kopi dan gorengan bolo",
-  "data": null
+  "data": null,
+  "error": null
 }
 ```
+
+## Response Error
+
+**400** — ID invalid.
+
+**403** — role tidak diizinkan.
 
 ## Frontend
 
 - Service: `userService.remove`
 - Hook: `useDeleteUserMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.user.detail(id)`

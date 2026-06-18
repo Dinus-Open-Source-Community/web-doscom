@@ -2,53 +2,74 @@
 
 Modul admin: halaman `/admin/core-team` — manajemen anggota core team DOSCOM.
 
-**Hak akses:** `KOOR`, `BPH`, `ADMIN`
+**Hak akses:** middleware `KOOR`, `BPH`, `ADMIN`
+
+| Group | Role JWT |
+| --- | --- |
+| ADMIN | `SuperAdmin` |
+| KOOR | `KoorPemro`, `KoorJaringan`, `KoorData`, `KoorMedcrev`, `BPH` |
+| BPH | `BPH` |
 
 ## Functional Requirements
 
 | ID | Requirement |
 | --- | --- |
-| PENG-01 | List pengurus dengan filter divisi |
-| PENG-02 | Tambah member (create pengurus + link user) |
-| PENG-03 | Edit data pengurus (nama, posisi, periode, sosmed, foto) |
-| PENG-04 | Hapus pengurus |
-| PENG-05 | Search by nama/email |
-| PENG-06 | Pagination datatable |
-| PENG-07 | Upload foto profil (single file) |
-| PENG-08 | Koordinator hanya kelola divisi sendiri (backend enforce) |
+| PENG-01 | Tambah member (create pengurus + link user) |
+| PENG-02 | Edit data pengurus (nama, posisi, periode, sosmed, foto) |
+| PENG-03 | Hapus pengurus |
+| PENG-04 | Lookup pengurus by user ID |
+| PENG-05 | Koordinator hanya kelola divisi sendiri (backend enforce) |
+| PENG-06 | Upload foto profil (single file `file`) |
 
 ## UI Requirements (Core Team Page)
 
 | UI Column | API Field |
 | --- | --- |
-| ID | `CT-{id}` atau `pengurus.id` |
+| ID | `pengurus.id` |
 | Member (nama + avatar) | `name`, `photo_url` |
 | Email | `email` |
-| Join Date | `created_at` (format display) |
-| Status | TBD — backend belum punya field status |
+| Periode | `start_periode_year` – `end_periode_year` |
+| Posisi | `position` |
 | Actions | Edit, Delete |
-
-Fitur tombol: **Add Member** (modal create), **Download** (export CSV, frontend only), **Search**, **Filter divisi**.
 
 ## Divisi & Posisi Valid
 
-Divisi: `pemro`, `jaringan`, `data`, `medcrev`, `bph`
+Divisi: `bph`, `pemro`, `jaringan`, `medcrev`, `data`
 
-Posisi contoh: `KoorPemro`, `PemroAng`, `ketum`, `KoorJaringan`, dll. (lihat `BackEnd/internal/constants/constants.go`).
+Posisi: key camelCase dari `constants.ValidPosition` — contoh `ketuaUmum`, `koordinatorPemrograman`, `pemrogramanAnggota`, dll.
 
-## Endpoints
+Periode: `start_periode_year`, `end_periode_year` (integer tahun).
+
+## Backend Gap — List Endpoint
+
+Handler `GetAllPengurusByDivision` **ada** di backend, tetapi route `GET /admin/pengurus` **belum terdaftar** di `pengurus_route.go`.
+
+| Status | Detail |
+| --- | --- |
+| Handler | `PengurusHandler.GetAllPengurusByDivision` |
+| Query param | `divisi` (opsional) |
+| Route | **Tidak ada** — perlu ditambahkan tim backend |
+
+Frontend `pengurusService.admin.list` dan `useAdminPengurusListQuery` sudah disiapkan, tetapi **akan gagal** sampai route diregister. Untuk dashboard stat Core Team, gunakan workaround client-side (agregasi dari divisi public) atau tunggu fix backend.
+
+## Endpoints Tersedia
 
 | Method | Path | Dokumen |
 | --- | --- | --- |
-| GET | `/api/v1/admin/pengurus` | [GET-admin-pengurus-list.md](./GET-admin-pengurus-list.md) |
 | POST | `/api/v1/admin/pengurus` | [POST-admin-pengurus-create.md](./POST-admin-pengurus-create.md) |
 | GET | `/api/v1/admin/pengurus/{id}` | [GET-admin-pengurus-by-id.md](./GET-admin-pengurus-by-id.md) |
 | GET | `/api/v1/admin/pengurus/by-user/{user_id}` | [GET-admin-pengurus-by-user.md](./GET-admin-pengurus-by-user.md) |
 | PUT | `/api/v1/admin/pengurus/{id}` | [PUT-admin-pengurus-by-id.md](./PUT-admin-pengurus-by-id.md) |
 | DELETE | `/api/v1/admin/pengurus/delete/{id}` | [DELETE-admin-pengurus-by-id.md](./DELETE-admin-pengurus-by-id.md) |
 
+## Endpoint Belum Tersedia (BE Gap)
+
+| Method | Path | Dokumen |
+| --- | --- | --- |
+| GET | `/api/v1/admin/pengurus` | [GET-admin-pengurus-list.md](./GET-admin-pengurus-list.md) — **route not registered** |
+
 ## Types & Hooks
 
 - Types: `lib/types/pengurus.ts`
-- Hooks: `hooks/pengurus.ts` — `useAdminPengurusListQuery`, `useCreateAdminPengurusMutation`, dll.
+- Hooks: `hooks/pengurus.ts` — `useAdminPengurusQuery`, `useCreateAdminPengurusMutation`, dll.
 - Service: `pengurusService.admin.*`

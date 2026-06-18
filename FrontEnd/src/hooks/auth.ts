@@ -5,16 +5,14 @@ import {
 } from "@tanstack/react-query";
 import { authService } from "../services/auth.service";
 import type {
+  AuthResponse,
   LoginPayload,
-  LoginResponse,
-  MessageResponse,
-  RefreshTokenResponse,
   RegisterPayload,
 } from "../lib/types";
 import { userKeys } from "./keys";
 
 export function useLoginMutation(
-  options?: UseMutationOptions<LoginResponse, Error, LoginPayload>,
+  options?: UseMutationOptions<AuthResponse, Error, LoginPayload>,
 ) {
   const queryClient = useQueryClient();
 
@@ -29,7 +27,7 @@ export function useLoginMutation(
 }
 
 export function useRegisterMutation(
-  options?: UseMutationOptions<MessageResponse, Error, RegisterPayload>,
+  options?: UseMutationOptions<AuthResponse, Error, RegisterPayload>,
 ) {
   return useMutation({
     mutationFn: (payload: RegisterPayload) => authService.register(payload),
@@ -38,7 +36,7 @@ export function useRegisterMutation(
 }
 
 export function useRefreshMutation(
-  options?: UseMutationOptions<RefreshTokenResponse, Error, void>,
+  options?: UseMutationOptions<AuthResponse, Error, void>,
 ) {
   return useMutation({
     mutationFn: () => authService.refresh(),
@@ -47,7 +45,7 @@ export function useRefreshMutation(
 }
 
 export function useLogoutMutation(
-  options?: UseMutationOptions<MessageResponse, Error, void>,
+  options?: UseMutationOptions<AuthResponse, Error, void>,
 ) {
   const queryClient = useQueryClient();
 

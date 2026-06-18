@@ -1,17 +1,12 @@
-# GET `/api/v1/admin/works`
+# GET `/api/v1/works`
 
 ## Ringkasan
 
-List works untuk admin panel dengan pagination. Koordinator hanya melihat works divisi sendiri (filter di service backend).
+List works public dengan pagination dan filter opsional by project type.
 
 ## Authentication
 
-Bearer atau cookie — middleware `ADMIN`, `KOOR`
-
-| Group | Role JWT |
-| --- | --- |
-| ADMIN | `SuperAdmin` |
-| KOOR | `KoorPemro`, `KoorJaringan`, `KoorData`, `KoorMedcrev`, `BPH` |
+Public
 
 ## Query Parameters
 
@@ -19,6 +14,7 @@ Bearer atau cookie — middleware `ADMIN`, `KOOR`
 | --- | --- | --- | --- |
 | page | number | False | Default `1` |
 | limit | number | False | Default `10` |
+| projecttype | string | False | Filter tipe proyek, contoh: `web` |
 
 ## Response Success
 
@@ -31,16 +27,14 @@ Format envelope `{ success, message, data, error }`.
   "success": true,
   "message": "Success fetching all works",
   "data": {
-    "worksData": [
+    "work data": [
       {
         "id": 1,
-        "pengurus_id": 2,
         "title": "Website DOSCOM",
         "tagline": "Official website",
         "description": "...",
         "slug": "website-doscom",
         "project_type": "web",
-        "status": "published",
         "technologies": ["Astro", "Go"],
         "project_date": "2025-01-15T00:00:00Z",
         "image_url": "https://...",
@@ -54,18 +48,14 @@ Format envelope `{ success, message, data, error }`.
 }
 ```
 
-## Response Error
-
-**403** — role tidak diizinkan.
-
 ## Catatan
 
-- Field key `"worksData"` (camelCase) berbeda dari public list (`"work data"`).
+- Field key `"work data"` (dengan spasi) sesuai response backend.
 - `currentPage` di BE dihitung `(offset/limit)*1` — page 1 bisa bernilai `0`.
-- SuperAdmin melihat semua divisi; koordinator terfilter otomatis by role JWT.
+- Hanya works dengan status published yang ditampilkan (filter di service).
 
 ## Frontend
 
-- Service: `workService.admin.list`
-- Hook: `useAdminWorksQuery`
-- API path: `API_PATH.admin.works.list`
+- Service: `workService.list`
+- Hook: `useWorksQuery` (ganti `useWorksByProjectTypeQuery` — deprecated)
+- API path: `API_PATH.works.list`

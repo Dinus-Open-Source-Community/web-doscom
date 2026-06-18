@@ -2,7 +2,7 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Login admin panel. Token disimpan di HttpOnly cookie, bukan response body.
 
 ## Authentication
 
@@ -34,34 +34,56 @@ Public
 
 **Status:** `200`
 
+Format envelope. **Tidak ada token di body** — token di-set via cookie.
+
 ```json
 {
-  "acces_token": "eyJhbGciOiJIUzI1NiIs...",
-  "message:": "login success bolo, nasi padang satu bungkus"
+  "success": true,
+  "message": "login success bolo, nasi padang satu bungkus",
+  "data": null,
+  "error": null
 }
 ```
 
+**Cookies yang di-set:**
+
+| Cookie | Path | Durasi | Keterangan |
+| --- | --- | --- | --- |
+| `AccessToken` | `/` | ~15 menit | JWT access token (HttpOnly) |
+| `RefreshToken` | `/api/v1/auth` | ~2 jam | Refresh token (HttpOnly) |
+
 ## Response Error
 
-**401**
+**401** — envelope:
 
 ```json
-{"error": "Invalid email or password"}
+{
+  "success": false,
+  "message": "Invalid email or password",
+  "data": null,
+  "error": null
+}
 ```
 
-**401**
+**401** — role tidak valid:
 
 ```json
-{"error": "acces denied"}
+{
+  "success": false,
+  "message": "acces denied",
+  "data": null,
+  "error": null
+}
 ```
 
 ## Catatan
 
-- Field token backend: `acces_token` (typo, bukan `access_token`).
-- Set cookie HttpOnly `RefreshToken`, path `/api/v1/auth`, max-age 5 hari.
+- Butuh `withCredentials: true` di axios agar cookie tersimpan.
+- Backend juga menerima `Authorization: Bearer` sebagai fallback (opsional).
+- Role user harus terdaftar di `authorization.GetRoleInfo`.
 
 ## Frontend
 
 - Service: `authService.login`
 - Hook: `useLoginMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.auth.login`

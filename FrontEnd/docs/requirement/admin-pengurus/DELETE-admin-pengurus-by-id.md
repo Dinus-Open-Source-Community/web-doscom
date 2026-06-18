@@ -2,17 +2,17 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Hapus pengurus by ID. Path menggunakan prefix `/delete/` (bukan REST standar).
 
 ## Authentication
 
-Bearer — KOOR, BPH, ADMIN
+Bearer atau cookie — middleware `KOOR`, `BPH`, `ADMIN`
 
 ## Path Parameters
 
 | Param | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| id | integer | True |  |
+| id | number | True | Pengurus ID |
 
 ## Response Success
 
@@ -24,12 +24,22 @@ Format envelope `{ success, message, data, error }`.
 {
   "success": true,
   "message": "pengurus deleted",
-  "data": null
+  "data": null,
+  "error": null
 }
 ```
+
+## Response Error
+
+**404** — pengurus tidak ditemukan.
+
+## Catatan
+
+- Path delete: `/admin/pengurus/delete/{id}` (bukan `DELETE /admin/pengurus/{id}`).
+- Koordinator hanya bisa hapus pengurus divisi sendiri.
 
 ## Frontend
 
 - Service: `pengurusService.admin.remove`
 - Hook: `useDeleteAdminPengurusMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.admin.pengurus.delete(id)`

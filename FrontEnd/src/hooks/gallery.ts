@@ -29,7 +29,7 @@ export function useGalleryQuery(
 
 export function useCreateGalleryMutation(
   options?: UseMutationOptions<
-    { message: string; data: GalleryItem[] },
+    GalleryItem[],
     Error,
     { payload: CreateGalleryPayload; files: File[] }
   >,
@@ -48,7 +48,7 @@ export function useCreateGalleryMutation(
 }
 
 export function useDeleteGalleryMutation(
-  options?: UseMutationOptions<{ message: string }, Error, number | string>,
+  options?: UseMutationOptions<null, Error, number | string>,
 ) {
   const queryClient = useQueryClient();
 

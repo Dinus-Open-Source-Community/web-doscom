@@ -2,36 +2,37 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Hapus file dari MinIO storage by nama file.
 
 ## Authentication
 
-Bearer — semua user login
+Bearer atau cookie — semua user login
 
 ## Headers
 
 | Header | Nilai |
 | --- | --- |
 | Content-Type | `application/json` |
-| Authorization | `Bearer {access_token}` |
 
 ## Request Body
 
 | Field | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| file_name | string | True | Nama file di MinIO |
+| file_name | string | True | Nama/path file di MinIO |
 
 **Contoh:**
 
 ```json
 {
-  "file_name": "photo-1.webp"
+  "file_name": "gallery/2024/image-abc123.jpg"
 }
 ```
 
 ## Response Success
 
 **Status:** `200`
+
+Format **flat**:
 
 ```json
 {
@@ -40,12 +41,19 @@ Bearer — semua user login
 }
 ```
 
+## Response Error
+
+**400** — body invalid.
+
+**500** — gagal hapus di MinIO.
+
 ## Catatan
 
-- `POST /upload/image` belum aktif (commented di backend).
+- Kirim body via axios `{ data: payload }` (DELETE with body).
+- Hati-hati: file yang masih direferensi gallery/blog/work bisa menyebabkan broken link.
 
 ## Frontend
 
 - Service: `uploadService.deleteFile`
 - Hook: `useDeleteUploadFileMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.upload.file`

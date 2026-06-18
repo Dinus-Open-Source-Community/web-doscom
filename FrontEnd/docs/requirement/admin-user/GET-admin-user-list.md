@@ -2,17 +2,17 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+List akun super admin (hanya user dengan role `SuperAdmin`).
 
 ## Authentication
 
-Bearer — SuperAdmin (ADMIN group)
+Bearer atau cookie — middleware `ADMIN` (`SuperAdmin` only)
 
 ## Response Success
 
 **Status:** `200`
 
-Format envelope `{ success, message, data, error }`.
+Format envelope `{ success, message, data, error }`. `data` adalah array user.
 
 ```json
 {
@@ -26,12 +26,22 @@ Format envelope `{ success, message, data, error }`.
       "role": "SuperAdmin",
       "full_name": "Super Admin"
     }
-  ]
+  ],
+  "error": null
 }
 ```
+
+## Response Error
+
+**403** — bukan SuperAdmin.
+
+## Catatan
+
+- Tidak ada pagination — array langsung di `data`.
+- Service exclude caller sendiri dari list (logic di `GetSuperAdmin` service).
 
 ## Frontend
 
 - Service: `userService.admin.listSuperAdmin`
 - Hook: `useSuperAdminsQuery`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.admin.user.list`

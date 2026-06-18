@@ -32,6 +32,7 @@ export const API_PATH = {
     works: {
       list: "/admin/works",
       detail: (id: number | string) => `/admin/works/${id}`,
+      status: (id: number | string) => `/admin/works/${id}/status`,
     },
     pengurus: {
       list: "/admin/pengurus",
@@ -52,7 +53,8 @@ export const API_PATH = {
 
   works: {
     list: "/works",
-    byProjectType: (projectType: string) => `/works/${projectType}`,
+    detail: (id: number | string) => `/works/${id}`,
+    types: "/works/types",
   },
 
   pengurus: {

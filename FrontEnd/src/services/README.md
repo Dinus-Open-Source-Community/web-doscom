@@ -75,14 +75,14 @@ import { userService } from "../services/user.service";
 
 ## auth.service.ts
 
-Autentikasi JWT. Endpoint auth **tidak** memakai envelope `{ success, message, data }` — respons langsung JSON.
+Autentikasi JWT. Endpoint auth memakai **envelope** `{ success, message, data }`. Token disimpan di **HttpOnly cookie** (`AccessToken`, `RefreshToken`), bukan response body.
 
 | Method | HTTP | Keterangan |
 |--------|------|------------|
-| `login(payload)` | POST `/auth/login` | Login, simpan access token ke localStorage |
+| `login(payload)` | POST `/auth/login` | Login; cookie session di-set otomatis (`withCredentials`) |
 | `register(payload)` | POST `/auth/register` | Registrasi user baru |
-| `refresh()` | POST `/auth/refresh` | Perbarui access token (butuh cookie refresh) |
-| `logout()` | POST `/auth/logout` | Logout & hapus access token |
+| `refresh()` | POST `/auth/refresh` | Perbarui sesi via cookie `RefreshToken` |
+| `logout()` | POST `/auth/logout` | Logout & clear cookie (+ legacy localStorage) |
 
 ---
 
@@ -95,14 +95,14 @@ Manajemen user & profil (envelope API).
 | `getMe()` | Data user yang sedang login |
 | `updateProfile(payload)` | Update profil sendiri |
 | `changePassword(payload)` | Ganti password sendiri |
-| `list(params?)` | Daftar user (pagination) |
+| `list(params?)` | Daftar user (tanpa pagination di backend) |
 | `getById(id)` | Detail user by ID |
 | `create(payload)` | Buat user |
 | `update(id, payload)` | Update user |
 | `remove(id)` | Hapus user |
 | `admin.listSuperAdmin()` | Daftar super admin |
 | `admin.createSuperAdmin(payload)` | Buat super admin |
-| `admin.changePassword(id, payload)` | Ganti password user (admin) |
+| `admin.changePassword(id, payload)` | Ganti password user (admin); `data: null` |
 
 ---
 
@@ -127,33 +127,36 @@ Blog artikel — public read, admin CRUD dengan multipart/form-data untuk gambar
 
 ## gallery.service.ts
 
-Galeri foto kegiatan.
+Galeri foto kegiatan (envelope API).
 
 **Query type:** `GalleryQuery`  
 **Payload type:** `CreateGalleryPayload`
 
 | Method | Keterangan |
 |--------|------------|
-| `list(params?)` | List galeri (filter tahun optional) |
-| `admin.create(payload, files)` | Upload galeri (max 5 file) |
+| `list(params?)` | List galeri — unwrap envelope `data.gallery` |
+| `admin.create(payload, files)` | Upload galeri (max 5 file); returns `GalleryItem[]` |
 | `admin.remove(id)` | Hapus galeri |
 
 ---
 
 ## work.service.ts
 
-Proyek/portfolio works.
+Proyek/portfolio works (envelope API).
 
-**Query type:** `PublicWorkQuery`  
-**Payload types:** `CreateWorkPayload`, `UpdateWorkPayload`
+**Query type:** `PublicWorkQuery` (`projecttype` filter via query)  
+**Payload types:** `CreateWorkPayload`, `UpdateWorkPayload`, `WorkUpdateStatusPayload`
 
 | Method | Keterangan |
 |--------|------------|
-| `listByProjectType(projectType, params?)` | List works by tipe proyek |
-| `admin.list(params?)` | List semua works (admin) |
-| `admin.getById(id)` | Detail work |
+| `list(params?)` | List works public (filter `projecttype` opsional) |
+| `getById(id)` | Detail work public |
+| `getTypes()` | Daftar tipe proyek |
+| `admin.list(params?)` | List works per divisi (admin) |
+| `admin.getById(id)` | Detail work internal |
 | `admin.create(payload, files?)` | Buat work + gambar |
 | `admin.update(id, payload, files?)` | Update work |
+| `admin.updateStatus(id, payload)` | Moderasi status (BPH/SuperAdmin) |
 | `admin.remove(id)` | Hapus work |
 
 ---
@@ -171,7 +174,7 @@ Data pengurus/divisi.
 | `createProfile(payload, file?)` | Buat profil pengurus |
 | `updateMe(payload, file?)` | Update profil sendiri |
 | `deleteMe()` | Hapus profil sendiri |
-| `admin.list(divisi?)` | List pengurus (admin) |
+| `admin.list(divisi?)` | List pengurus (admin) — **BE gap: route belum terdaftar** |
 | `admin.getById(id)` | Detail pengurus |
 | `admin.getByUserId(userId)` | Pengurus by user ID |
 | `admin.create(payload, file?)` | Buat pengurus |
