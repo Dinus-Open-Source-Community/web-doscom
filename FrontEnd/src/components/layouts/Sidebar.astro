@@ -37,7 +37,14 @@ const menuGroups = [
 
   {
     header: 'Main',
-    items: [{ name: 'Dashboard', icon: Grid, href: ROUTES.admin.dashboard, active: true }],
+    items: [
+      {
+        name: 'Dashboard',
+        icon: Grid,
+        href: ROUTES.admin.dashboard,
+        active: true,
+      },
+    ],
   },
   {
     header: 'Account',
@@ -45,7 +52,12 @@ const menuGroups = [
       { name: 'Super Admin', icon: SuperAdmin, href: '#', active: false },
       { name: 'User', icon: SuperAdmin, href: '/admin/user', active: false },
       { name: 'BPH', icon: Admin, href: '#', active: false },
-      { name: 'Core Team', icon: CoreTeam, href: ROUTES.admin.coreTeam, active: false },
+      {
+        name: 'Core Team',
+        icon: CoreTeam,
+        href: ROUTES.admin.coreTeam,
+        active: false,
+      },
     ],
   },
   {
@@ -83,16 +95,30 @@ const bottomItems = [
   class="group relative z-50 flex h-screen w-64 flex-col overflow-visible border-r border-gray-200 bg-white transition-[width] duration-300 ease-in-out"
   data-collapsed="false"
 >
-  <div class="flex h-20 shrink-0 items-center justify-between border-b border-gray-100 px-6">
+  <div
+    class="flex h-20 shrink-0 items-center justify-between border-b border-gray-100 px-6"
+  >
     <div class="brand-wrapper flex items-center overflow-hidden">
       <div class="flex h-10 w-10 shrink-0 items-center justify-center">
-        <img src="/assets/image/admin/template.png" alt="profile" class="h-full w-full rounded-lg object-cover" />
+        <img
+          src="/assets/image/admin/template.png"
+          alt="profile"
+          class="h-full w-full rounded-lg object-cover"
+        />
       </div>
 
       <div class="sidebar-text flex min-w-0 flex-col justify-center">
-        <span class="truncate text-sm font-bold text-gray-800" title="Husnul Fikri Averus"> Husnul Fikri Averus </span>
+        <span
+          class="truncate text-sm font-bold text-gray-800"
+          title="Husnul Fikri Averus"
+        >
+          Husnul Fikri Averus
+        </span>
 
-        <span class="truncate text-xs text-gray-400" title="111202412345@mhs.dinus.ac.id">
+        <span
+          class="truncate text-xs text-gray-400"
+          title="111202412345@mhs.dinus.ac.id"
+        >
           111202412345@mhs.dinus.ac.id
         </span>
       </div>
@@ -103,15 +129,17 @@ const bottomItems = [
       class="shrink-0 rounded-md p-1 text-gray-500 transition-colors hover:text-gray-700 focus:outline-none"
     >
       <span id="icon-collapse">
-        <span set:html={Collapse} class="[&>svg]:h-[20px] [&>svg]:w-[22px]" />
+        <span set:html={Collapse} class="[&>svg]:h-5 [&>svg]:w-5.5" />
       </span>
-      <span id="icon-expand" class="hidden"><span set:html={Expand} class="[&>svg]:h-[20px] [&>svg]:w-[22px]" /></span>
+      <span id="icon-expand" class="hidden"
+        ><span set:html={Expand} class="[&>svg]:h-5 [&>svg]:w-5.5" /></span
+      >
     </button>
   </div>
 
   <div class="relative w-full flex-1">
     <div
-      class="no-scrollbar pointer-events-none absolute top-0 -right-[250px] bottom-0 left-0 overflow-x-hidden overflow-y-auto pr-[250px]"
+      class="no-scrollbar pointer-events-none absolute top-0 -right-62.5 bottom-0 left-0 overflow-x-hidden overflow-y-auto pr-62.5"
     >
       <div class="pointer-events-auto min-h-full w-full space-y-6 px-4 py-4">
         {
