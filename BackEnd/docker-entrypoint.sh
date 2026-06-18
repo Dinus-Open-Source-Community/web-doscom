@@ -66,5 +66,5 @@ echo "Initialization complete!"
 echo "Starting backend server..."
 
 # Start the application
-# exec ./app
-exec air -c .air.toml
+exec ./app
+# exec air -c .air.toml
