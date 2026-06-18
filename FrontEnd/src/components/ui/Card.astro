@@ -1,8 +1,9 @@
 ---
 import Button from './Button.astro';
 import arrowIcon from '../../assets/icon-arrow.svg?raw';
+import { ROUTES } from '../../lib/routes';
 
-interface Card {
+interface Props {
 	variant:
 		| 'programs'
 		| 'core-team'
@@ -12,8 +13,13 @@ interface Card {
 		| 'projects'
 		| 'blogs'
 		| 'division';
-	category: string[] | string;
+	image?: string;
+	title?: string;
+	desc?: string;
+	titleButton?: string;
+	category?: string[] | string;
 	tags?: string[];
+	index?: number;
 	slug?: string;
 }
 
@@ -27,7 +33,9 @@ const {
 	tags = [],
 	index = 0,
 	slug = '',
-} = Astro.props;
+}: Props = Astro.props;
+
+const categories = Array.isArray(category) ? category : category ? [category] : [];
 ---
 
 {
@@ -118,9 +126,9 @@ const {
 					{desc}
 				</p>
 
-				{category.length > 0 && (
+				{categories.length > 0 && (
 					<div class="flex gap-2">
-						{category.map((cat: string) => (
+						{categories.map((cat) => (
 							<div class="w-fit rounded-full bg-(--color-primary) px-5 py-2.5 text-sm font-medium tracking-tight text-white sm:text-base">
 								<span>{cat}</span>
 							</div>
@@ -176,7 +184,7 @@ const {
 					size="default"
 					class="font-poppins text-sm font-medium text-white shadow-md shadow-white/50 transition hover:shadow-none lg:text-xl"
 				>
-					<a href={`/division/${slug}`}>Read More</a>
+					<a href={ROUTES.division.detail(slug)}>Read More</a>
 				</Button>
 			</div>
 		</div>

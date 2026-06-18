@@ -24,11 +24,11 @@ fi
 # Run migrations
 echo "Running database migrations..."
 cd /app
-./migrate down
-./migrate up
+go run ./cmd/migrate/main.go down
+go run ./cmd/migrate/main.go up
 
 echo "Running Seeder..."
-./seeder
+go run ./cmd/seeder/main.go
 # Check if migrate binary exists, if not skip migration
 # if command -v migrate >/dev/null 2>&1; then
 #     migrate -path migrations -database "$DBURL" up || echo "⚠️  Migration failed or already applied"
@@ -66,5 +66,9 @@ echo "Initialization complete!"
 echo "Starting backend server..."
 
 # Start the application
+<<<<<<< HEAD
 exec ./app
 # exec air -c .air.toml
+=======
+exec air -c .air.toml
+>>>>>>> origin/frontend-v2

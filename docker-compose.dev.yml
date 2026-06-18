@@ -51,6 +51,8 @@ services:
     working_dir: /app
     env_file:
       - ./BackEnd/.env
+    environment:
+      DBURL: postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?sslmode=${DB_SSLMODE}
     ports:
       - "3000:3000"
     depends_on:

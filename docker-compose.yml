@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # PostgreSQL Database
   db:
@@ -36,7 +34,7 @@ services:
       - doscom-network
     command: server /data --console-address ":9001"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -45,12 +43,14 @@ services:
   backend:
     build:
       context: ./BackEnd
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: doscom-backend
     restart: unless-stopped
     working_dir: /app
     env_file:
       - ./BackEnd/.env
+    environment:
+      DBURL: postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?sslmode=${DB_SSLMODE}
     ports:
       - "3000:3000"
     depends_on:
@@ -60,7 +60,7 @@ services:
       - ./BackEnd/storage/uploads/foto:/app/storage/uploads/foto:ro
     networks:
       - doscom-network
-    entrypoint: [ "/bin/sh", "/app/docker-entrypoint.sh" ]
+    entrypoint: ["/bin/sh", "/app/docker-entrypoint.sh"]
 
   # Frontend (Vite/Next/React)
   frontend:
@@ -88,7 +88,7 @@ services:
     container_name: doscom-adminer
     restart: unless-stopped
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       - db
     networks:
