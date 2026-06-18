@@ -1,0 +1,323 @@
+---
+import { Modal } from '../../../components'
+import ButtonAdmin from '../../ui/ButtonAdmin.astro'
+import { ChevronDown } from '../../../assets/icons'
+
+interface Props {
+  mode: 'add' | 'edit'
+}
+
+const { mode } = Astro.props
+
+// Definisikan teks dinamis berdasarkan mode
+const isAdd = mode === 'add'
+const modalId = isAdd ? 'add-coreteam-modal' : 'edit-coreteam-modal'
+const formId = isAdd ? 'form-add-coreteam' : 'form-edit-coreteam'
+const title = isAdd ? 'Add Core Team' : 'Edit Core Team Member'
+const desc = isAdd
+  ? 'Add a new administrator to the division'
+  : 'Update administrator details and division'
+const btnText = isAdd ? 'Save Member' : 'Save Changes'
+---
+
+<Modal id={modalId} title={title} description={desc} size="lg">
+  <form
+    id={formId}
+    data-mode={mode}
+    class="coreteam-form flex flex-col gap-6"
+    enctype="multipart/form-data"
+  >
+    {
+      /* Hidden input untuk menyimpan ID (berguna untuk Edit atau User Existing saat Add) */
+    }
+    <input type="hidden" name="target_id" class="target-id-input" />
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Name Input */}
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700"
+          >Full Name {isAdd && <span class="text-rose-500">*</span>}</label
+        >
+        <input
+          type="text"
+          name="name"
+          required={isAdd}
+          placeholder="e.g., Husnul Fikri Averus"
+          class="form-name w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+        />
+      </div>
+
+      {/* Email Input */}
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700">Email Address</label>
+        <input
+          type="email"
+          name="email"
+          placeholder={isAdd
+            ? 'Leave blank if user exists'
+            : 'e.g., user@doscom.id'}
+          class="form-email w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+        />
+      </div>
+
+      {/* Divisi Input */}
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700"
+          >Division {isAdd && <span class="text-rose-500">*</span>}</label
+        >
+        <div class="relative w-full">
+          <select
+            name="divisi"
+            required={isAdd}
+            class="form-divisi w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pr-10 pl-4 text-sm text-gray-900 transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          >
+            <option value="" disabled selected
+              >{isAdd ? 'Select Division' : 'Leave unchanged'}</option
+            >
+            <option value="Programming">Programming</option>
+            <option value="Multimedia">Multimedia</option>
+            <option value="Networking">Networking</option>
+            <option value="Public Relation">Public Relation</option>
+          </select>
+          <span
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500"
+          >
+            <span
+              class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+              set:html={ChevronDown}
+            />
+          </span>
+        </div>
+      </div>
+
+      {/* Position Input */}
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700"
+          >Position {isAdd && <span class="text-rose-500">*</span>}</label
+        >
+        <input
+          type="text"
+          name="position"
+          required={isAdd}
+          placeholder="e.g., Coordinator"
+          class="form-position w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+        />
+      </div>
+
+      {/* Periode Input */}
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700"
+          >Active Period {isAdd && <span class="text-rose-500">*</span>}</label
+        >
+        <div class="flex items-center gap-2">
+          <input
+            type="number"
+            name="start_periode_year"
+            placeholder="Start"
+            required={isAdd}
+            value={isAdd ? '2026' : undefined}
+            min="2010"
+            class="form-start-periode w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          />
+          <span class="text-gray-400">-</span>
+          <input
+            type="number"
+            name="end_periode_year"
+            placeholder="End"
+            required={isAdd}
+            value={isAdd ? '2027' : undefined}
+            min="2010"
+            class="form-end-periode w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          />
+        </div>
+      </div>
+
+      {/* Social Media Input */}
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700"
+          >Social Media Links</label
+        >
+        <input
+          type="text"
+          class="form-sosmed w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          placeholder="e.g., ig.com/a, x.com/b"
+        />
+        <p class="text-[10px] text-gray-400">
+          {
+            isAdd
+              ? 'Optional. Comma separated.'
+              : 'Leave blank to keep current links.'
+          }
+        </p>
+      </div>
+    </div>
+
+    {/* File / Avatar Upload */}
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700"
+        >{isAdd ? 'Profile Photo' : 'Update Profile Photo'}</label
+      >
+      <input
+        type="file"
+        name="file"
+        accept="image/png, image/jpeg, image/webp"
+        class="form-file w-full cursor-pointer rounded-xl border border-dashed border-gray-300 bg-gray-50/30 px-4 py-2.5 text-sm text-gray-500 transition-all file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-gray-900 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white hover:border-gray-400 focus:outline-none"
+      />
+    </div>
+
+    <div
+      class="mt-2 flex w-full items-center justify-end gap-3 border-t border-gray-100 pt-6"
+    >
+      <ButtonAdmin
+        type="button"
+        variant="admin-outline"
+        onclick={`window.closeModal('${modalId}')`}
+        class="w-full sm:w-auto"
+      >
+        Cancel
+      </ButtonAdmin>
+      <ButtonAdmin
+        type="submit"
+        variant="admin-primary"
+        class="w-full sm:w-auto"
+      >
+        {btnText}
+      </ButtonAdmin>
+    </div>
+  </form>
+</Modal>
+
+<script>
+  // Gunakan IIFE (Immediately Invoked Function Expression) atau listener DOMContentLoaded
+  // untuk mencegah konflik variabel jika komponen di-render > 1 kali.
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- FUNGSI GLOBAL PEMBUKA MODAL ---
+    // Gunakan window agar bisa dipanggil dari atribut onclick di manapun
+    if (typeof (window as any).openAddCoreTeamModal === 'undefined') {
+      ;(window as any).openAddCoreTeamModal = (userId?: string) => {
+        const addForm = document.getElementById('form-add-coreteam')
+        if (addForm && userId) {
+          const idInput = addForm.querySelector(
+            '.target-id-input'
+          ) as HTMLInputElement
+          if (idInput) idInput.value = userId
+        }
+        ;(window as any).openModal('add-coreteam-modal')
+      }
+    }
+
+    if (typeof (window as any).openEditCoreTeamModal === 'undefined') {
+      ;(window as any).openEditCoreTeamModal = async (userId: string) => {
+        if (!userId) return
+        const editForm = document.getElementById('form-edit-coreteam')
+
+        if (editForm) {
+          const idInput = editForm.querySelector(
+            '.target-id-input'
+          ) as HTMLInputElement
+          if (idInput) idInput.value = userId
+        }
+        ;(window as any).openModal('edit-coreteam-modal')
+      }
+    }
+
+    // --- LOGIKA SUBMIT GABUNGAN ---
+    const forms = document.querySelectorAll(
+      '.coreteam-form'
+    ) as NodeListOf<HTMLFormElement>
+
+    forms.forEach(form => {
+      // Pastikan kita tidak menempelkan listener berulang kali
+      if (form.dataset.listenerAttached === 'true') return
+      form.dataset.listenerAttached = 'true'
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault()
+
+        const submitBtn = form.querySelector(
+          'button[type="submit"]'
+        ) as HTMLButtonElement
+        const originalText = submitBtn.innerText
+        submitBtn.innerText = 'Saving...'
+        submitBtn.disabled = true
+
+        const mode = form.getAttribute('data-mode')
+        const isAdd = mode === 'add'
+
+        try {
+          const formData = new FormData(form)
+          const targetId = (
+            form.querySelector('.target-id-input') as HTMLInputElement
+          ).value
+
+          if (!isAdd) {
+            for (const [key, value] of Array.from(formData.entries())) {
+              if (value === '' || (value instanceof File && value.size === 0)) {
+                formData.delete(key)
+              }
+            }
+            formData.append('_method', 'PUT')
+          }
+
+          if (isAdd && !targetId) {
+            formData.delete('target_id')
+          } else if (isAdd && targetId) {
+            formData.set('id_user', targetId)
+            formData.delete('target_id')
+          }
+
+          const sosmedRaw = (
+            form.querySelector('.form-sosmed') as HTMLInputElement
+          ).value
+          if (sosmedRaw) {
+            sosmedRaw
+              .split(',')
+              .map(s => s.trim())
+              .filter(s => s !== '')
+              .forEach(item => {
+                formData.append('sosmed[]', item)
+              })
+          }
+
+          const endpoint = isAdd
+            ? 'https://api.doscom.id/v1/core-team'
+            : `https://api.doscom.id/v1/core-team/${targetId}`
+          const fetchMethod = 'POST'
+
+          const response = await fetch(endpoint, {
+            method: fetchMethod,
+            body: formData,
+          })
+
+          const result = await response.json()
+
+          if (
+            (response.status === 201 || response.status === 200) &&
+            result.success
+          ) {
+            const modalId = isAdd ? 'add-coreteam-modal' : 'edit-coreteam-modal'
+            ;(window as any).closeModal(modalId)
+            ;(window as any).showToast(
+              `Core Team ${isAdd ? 'added' : 'updated'} successfully!`,
+              'success'
+            )
+          } else {
+            ;(window as any).showToast(
+              result.message || 'Failed to process request',
+              'error'
+            )
+          }
+        } catch (error) {
+          console.error('Network Error:', error)
+          ;(window as any).showToast(
+            'Network error, please try again.',
+            'error'
+          )
+        } finally {
+          submitBtn.innerText = originalText
+          submitBtn.disabled = false
+        }
+      })
+    })
+  })
+</script>
