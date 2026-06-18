@@ -1,0 +1,66 @@
+---
+import PublicLayout from '@layouts/PublicLayout.astro'
+import ProjectHero from '@components/pages/works/detail/ProjectHero.astro'
+import ProjectOverview from '@components/pages/works/detail/ProjectOverview.astro'
+import ProjectGallery from '@components/pages/works/detail/ProjectGallery.astro'
+import RelatedWorks from '@components/pages/works/detail/RelatedWorks.astro'
+
+export async function getStaticPaths() {
+  const mockDivisions = [
+    {
+      slug: 'bph',
+      name: 'Division Badan Pengurus Harian',
+      description: 'Manajemen organisasi dan koordinasi antar divisi.',
+    },
+    {
+      slug: 'pm',
+      name: 'Division Projek Manager',
+      description: 'Sistem manajemen proyek dan koordinasi tim.',
+    },
+    {
+      slug: 'pemro',
+      name: 'Division Pemrograman',
+      description: 'Pengembangan perangkat lunak dan pemrograman.',
+    },
+    {
+      slug: 'jaringan',
+      name: 'Division Jaringan',
+      description: 'Manajemen jaringan dan infrastruktur komputer.',
+    },
+    {
+      slug: 'data',
+      name: 'Division Data',
+      description: 'Pengumpulan, pengolahan, dan analisis data.',
+    },
+    {
+      slug: 'crevmed',
+      name: 'Division Creative Media',
+      description:
+        'tim yang bertanggung jawab untuk menghasilkan konten-konten kreatif dan menarik secara visual maupun audio untuk berbagai platform, seperti media sosial, website, dan media lainnya.',
+    },
+  ]
+
+  return mockDivisions.map(div => ({
+    params: { slug: div.slug },
+    props: { divisionData: div },
+  }))
+}
+---
+
+<PublicLayout title="Web Doscom - Works Detail">
+  {
+    /* Container utama untuk membatasi lebar konten (max-w-7xl) agar rapi di tengah */
+  }
+  <main
+    class="mx-auto flex max-w-7xl flex-col gap-16 px-4 py-12 sm:px-6 lg:gap-24 lg:px-8 lg:py-20"
+  >
+    <div class="flex flex-col gap-12 lg:gap-16">
+      <ProjectHero />
+      <ProjectOverview />
+    </div>
+    <ProjectGallery />
+  </main>
+
+  {/* Related Works berada di luar max-w-7xl karena dia full-width biru */}
+  <RelatedWorks />
+</PublicLayout>
