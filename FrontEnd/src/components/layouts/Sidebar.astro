@@ -1,5 +1,6 @@
 ---
 import SidebarItem from './SidebarItem.astro'
+import { ROUTES } from '../../lib/routes'
 import {
   Grid,
   SuperAdmin,
@@ -36,19 +37,31 @@ const menuGroups = [
 
   {
     header: 'Main',
-    items: [{ name: 'Dashboard', icon: Grid, href: '/admin', active: true }],
+    items: [{ name: 'Dashboard', icon: Grid, href: ROUTES.admin.dashboard, active: true }],
   },
   {
     header: 'Account',
     items: [
       { name: 'Super Admin', icon: SuperAdmin, href: '#', active: false },
+      { name: 'User', icon: SuperAdmin, href: '/admin/user', active: false },
       { name: 'BPH', icon: Admin, href: '#', active: false },
-      { name: 'Core Team', icon: CoreTeam, href: '/admin/core-team', active: false },
+      { name: 'Core Team', icon: CoreTeam, href: ROUTES.admin.coreTeam, active: false },
     ],
   },
   {
     header: 'Activity',
     items: [
+      {
+        name: 'Work',
+        icon: Blog,
+        href: '#',
+        active: false,
+        submenu: [
+          { name: 'Kategori', href: '/admin/work/projects', icon: Blog },
+          { name: 'Detail Work', href: '/admin/work/tasks', icon: Blog },
+          { name: 'Calendar', href: '/admin/work/calendar', icon: Blog },
+        ],
+      },
       { name: 'Blog', icon: Blog, href: '#', active: false },
       { name: 'Gallery', icon: Gallery, href: '#', active: false },
     ],
@@ -60,8 +73,8 @@ const menuGroups = [
 ]
 
 const bottomItems = [
-  { name: 'Help', icon: Help, href: '/admin/help' },
-  { name: 'Log out', icon: Logout, href: '/logout' },
+  { name: 'Help', icon: Help, href: '#' },
+  { name: 'Log out', icon: Logout, href: ROUTES.admin.login },
 ]
 ---
 

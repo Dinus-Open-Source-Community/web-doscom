@@ -1,14 +1,15 @@
 ---
 import { Join } from '../../assets/icons'
 import Logo from '../../assets/logo-doscom.svg?raw'
+import { ROUTES } from '../../lib/routes'
 
 const navItems = [
-  { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
-  { name: 'Division', href: '/division' },
-  { name: 'Works', href: '/works' },
-  { name: 'Blog', href: '/blog' },
-  { name: 'Contact', href: '/contact' },
+  { name: 'Home', href: ROUTES.home },
+  { name: 'About', href: ROUTES.about },
+  { name: 'Division', href: ROUTES.division.list },
+  { name: 'Works', href: ROUTES.works },
+  { name: 'Blog', href: ROUTES.blog },
+  { name: 'Contact', href: ROUTES.contact },
 ]
 
 const currentPath = Astro.url.pathname
@@ -19,7 +20,7 @@ const currentPath = Astro.url.pathname
   class="font-jakarta fixed top-0 left-0 z-[60] w-full -translate-y-full transform bg-white/90 px-6 py-4 text-black shadow-lg backdrop-blur-md transition-all duration-500 ease-out md:px-10"
 >
   <div class="mx-auto flex max-w-[1500px] items-center justify-between">
-    <a href="/" class="w-32 text-[#0A84DC] md:w-36 [&>svg]:h-full [&>svg]:w-full" set:html={Logo} />
+    <a href={ROUTES.home} class="w-32 text-[#0A84DC] md:w-36 [&>svg]:h-full [&>svg]:w-full" set:html={Logo} />
 
     <ul class="hidden gap-8 text-base font-normal tracking-wider lg:flex">
       {

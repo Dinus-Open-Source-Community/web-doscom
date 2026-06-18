@@ -21,6 +21,7 @@ WORKDIR /app
 RUN apk add --no-cache postgresql-client
 
 COPY --from=builder /app/app .
+# COPY --from=builder /app/storage/uploads/foto ./storage/uploads/foto
 COPY --from=builder /app/migrate .
 COPY --from=builder /app/seeder .
 COPY --from=builder /app/migrations ./migrations

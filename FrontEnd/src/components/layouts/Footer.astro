@@ -1,5 +1,15 @@
 ---
 import Logo from '../../assets/logo-doscom.svg?raw'
+import { ROUTES } from '../../lib/routes'
+
+const footerLinks = [
+  { name: 'Home', href: ROUTES.home },
+  { name: 'About', href: ROUTES.about },
+  { name: 'Division', href: ROUTES.division.list },
+  { name: 'Works', href: ROUTES.works },
+  { name: 'Blog', href: ROUTES.blog },
+  { name: 'Contact', href: ROUTES.contact },
+]
 ---
 
 <footer
@@ -31,54 +41,18 @@ import Logo from '../../assets/logo-doscom.svg?raw'
       <div class="space-y-3 text-right md:space-y-4 md:text-left">
         <h3 class="mb-3 text-xl font-semibold md:mb-4 md:text-2xl">Links</h3>
         <ul class="space-y-2 text-base leading-tight font-normal text-black md:text-lg lg:text-xl">
-          <li>
-            <a
-              href="#"
-              class="relative transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-blue-600 after:transition-transform after:duration-300 hover:text-blue-600 hover:after:scale-x-100"
-            >
-              Home
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              class="relative transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-blue-600 after:transition-transform after:duration-300 hover:text-blue-600 hover:after:scale-x-100"
-            >
-              About
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              class="relative transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-blue-600 after:transition-transform after:duration-300 hover:text-blue-600 hover:after:scale-x-100"
-            >
-              Division
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              class="relative transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-blue-600 after:transition-transform after:duration-300 hover:text-blue-600 hover:after:scale-x-100"
-            >
-              Works
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              class="relative transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-blue-600 after:transition-transform after:duration-300 hover:text-blue-600 hover:after:scale-x-100"
-            >
-              Blog
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              class="relative transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-blue-600 after:transition-transform after:duration-300 hover:text-blue-600 hover:after:scale-x-100"
-            >
-              Contact
-            </a>
-          </li>
+          {
+            footerLinks.map(link => (
+              <li>
+                <a
+                  href={link.href}
+                  class="relative transition after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-blue-600 after:transition-transform after:duration-300 hover:text-blue-600 hover:after:scale-x-100"
+                >
+                  {link.name}
+                </a>
+              </li>
+            ))
+          }
         </ul>
       </div>
 
