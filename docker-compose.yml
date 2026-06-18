@@ -56,8 +56,8 @@ services:
     depends_on:
       - db
       - minio
-    # volumes:
-    #   - ./BackEnd:/app
+    volumes:
+      - ./BackEnd/storage/uploads/foto:/app/storage/uploads/foto:ro
     networks:
       - doscom-network
     entrypoint: [ "/bin/sh", "/app/docker-entrypoint.sh" ]
