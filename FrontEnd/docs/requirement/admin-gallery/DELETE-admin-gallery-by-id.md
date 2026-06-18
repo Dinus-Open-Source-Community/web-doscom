@@ -2,30 +2,41 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Hapus item gallery beserta file MinIO-nya.
 
 ## Authentication
 
-Bearer — SuperAdmin, KoorMedcrev
+Bearer atau cookie — middleware `SuperAdmin`, `KoorMedcrev`
 
 ## Path Parameters
 
 | Param | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| id | integer | True |  |
+| id | number | True | Gallery ID |
 
 ## Response Success
 
 **Status:** `200`
 
+Format envelope `{ success, message, data, error }`.
+
 ```json
 {
-  "message": "Successfully delete Gallery, bang nasi padang satu bungkus bang"
+  "success": true,
+  "message": "Successfully delete Gallery, bang nasi padang satu bungkus bang",
+  "data": null,
+  "error": null
 }
 ```
+
+## Response Error
+
+**403** — role tidak diizinkan.
+
+**404** — gallery tidak ditemukan.
 
 ## Frontend
 
 - Service: `galleryService.admin.remove`
 - Hook: `useDeleteGalleryMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.admin.gallery.detail(id)`

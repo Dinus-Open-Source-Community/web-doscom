@@ -1,23 +1,14 @@
 # Gallery (Public)
 
-Modul public: list galeri foto kegiatan.
-
-**Hak akses:** Public (tanpa autentikasi)
-
-Endpoint admin ada di [admin-gallery/](../admin-gallery/README.md).
+Modul: galeri foto/video publik website DOSCOM.
 
 ## Functional Requirements
 
 | ID | Requirement |
 | --- | --- |
-| GAL-01 | List galeri dengan filter tahun |
-
-## UI Requirements
-
-| Elemen | Requirement |
-| --- | --- |
-| Filter tahun | Dropdown/range → query `start_year`, `end_year` |
-| Grid/List | Thumbnail + metadata |
+| GAL-01 | List gallery dengan pagination |
+| GAL-02 | Filter by tahun (`start_year`, `end_year`) |
+| GAL-03 | Tampilkan metadata: nama, tipe, deskripsi, tanggal event |
 
 ## Endpoints
 
@@ -25,8 +16,10 @@ Endpoint admin ada di [admin-gallery/](../admin-gallery/README.md).
 | --- | --- | --- |
 | GET | `/api/v1/gallery` | [GET-gallery-list.md](./GET-gallery-list.md) |
 
+Admin create/delete: lihat [admin-gallery/](../admin-gallery/README.md).
+
 ## Types & Hooks
 
 - Types: `lib/types/gallery.ts`
-- Hooks: `hooks/gallery.ts` — `useGalleryQuery`
-- Service: `galleryService`
+- Service: `galleryService.list`
+- Hook: `useGalleryQuery`

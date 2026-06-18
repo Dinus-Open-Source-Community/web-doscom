@@ -2,11 +2,11 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Hapus profil pengurus user yang sedang login.
 
 ## Authentication
 
-Bearer — PENGURUS, KOOR, BPH, ADMIN
+Bearer atau cookie — middleware `PENGURUS`, `KOOR`, `BPH`, `ADMIN`
 
 ## Response Success
 
@@ -18,12 +18,17 @@ Format envelope `{ success, message, data, error }`.
 {
   "success": true,
   "message": "pengurus deleted",
-  "data": null
+  "data": null,
+  "error": null
 }
 ```
+
+## Response Error
+
+**404** — profil tidak ditemukan.
 
 ## Frontend
 
 - Service: `pengurusService.deleteMe`
 - Hook: `useDeletePengurusMeMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.pengurus.me`

@@ -2,35 +2,33 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Buat akun super admin baru.
 
 ## Authentication
 
-Bearer — SuperAdmin
+Bearer atau cookie — middleware `ADMIN` (`SuperAdmin` only)
 
 ## Headers
 
 | Header | Nilai |
 | --- | --- |
 | Content-Type | `application/json` |
-| Authorization | `Bearer {access_token}` |
 
 ## Request Body
 
 | Field | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| email | string | True |  |
-| password | string | True |  |
-| fullname | string | True |  |
-| username | string | False |  |
+| email | string | True | Email unik |
+| fullname | string | True | Nama lengkap |
+| password | string | True | Password (min 8, aturan kompleksitas) |
 
 **Contoh:**
 
 ```json
 {
-  "email": "super@doscom.id",
-  "password": "securePass123",
-  "fullname": "Super Admin Baru"
+  "email": "newadmin@doscom.id",
+  "fullname": "New Super Admin",
+  "password": "SecurePass123!"
 }
 ```
 
@@ -44,12 +42,21 @@ Format envelope `{ success, message, data, error }`.
 {
   "success": true,
   "message": "Superadmin created successfully",
-  "data": null
+  "data": null,
+  "error": null
 }
 ```
+
+## Response Error
+
+**403** — bukan SuperAdmin.
+
+**409** — email sudah terdaftar.
+
+**400** — field wajib kosong.
 
 ## Frontend
 
 - Service: `userService.admin.createSuperAdmin`
 - Hook: `useCreateSuperAdminMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.admin.user.superAdmin`

@@ -2,7 +2,7 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+List pengurus publik per divisi (untuk halaman Core Team website).
 
 ## Authentication
 
@@ -12,13 +12,13 @@ Public
 
 | Param | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| division | string | True | pemro|jaringan|data|medcrev|bph |
+| division | string | True | Divisi: `bph`, `pemro`, `jaringan`, `medcrev`, `data` |
 
 ## Response Success
 
 **Status:** `200`
 
-Format envelope `{ success, message, data, error }`.
+Format envelope `{ success, message, data, error }`. `data` adalah array.
 
 ```json
 {
@@ -27,20 +27,33 @@ Format envelope `{ success, message, data, error }`.
   "data": [
     {
       "id": 1,
-      "name": "Member",
-      "position": "PemroAng",
       "photo_url": "https://...",
       "divisi": "pemro",
-      "sosmed": [],
-      "start_periode_year": 2025,
-      "end_periode_year": 2026
+      "name": "John Doe",
+      "position": "koordinatorPemrograman",
+      "sosmed": [
+        {
+          "platform": "instagram",
+          "username": "@johndoe",
+          "url": "https://instagram.com/johndoe",
+          "is_primary": true
+        }
+      ],
+      "start_periode_year": 2024,
+      "end_periode_year": 2025
     }
-  ]
+  ],
+  "error": null
 }
 ```
+
+## Catatan
+
+- Response public tidak expose `email`, `id_user`.
+- Field periode: `start_periode_year`, `end_periode_year` (int).
 
 ## Frontend
 
 - Service: `pengurusService.listByDivision`
 - Hook: `usePengurusByDivisionQuery`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.pengurus.byDivision(division)`

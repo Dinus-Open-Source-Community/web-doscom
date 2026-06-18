@@ -2,7 +2,7 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Detail blog by ID (public view).
 
 ## Authentication
 
@@ -12,11 +12,13 @@ Public
 
 | Param | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| id | integer | True | Blog ID |
+| id | number | True | Blog ID |
 
 ## Response Success
 
 **Status:** `200`
+
+Format **flat** (tanpa envelope):
 
 ```json
 {
@@ -24,20 +26,35 @@ Public
   "blog": {
     "id": 1,
     "author_id": 2,
-    "title": "Judul",
-    "slug": "judul",
-    "content": "<p>...</p>",
-    "kategori": [
-      "tech"
-    ],
+    "title": "Judul Artikel",
+    "slug": "judul-artikel",
+    "content": "<p>Konten HTML...</p>",
+    "kategori": ["tech", "doscom"],
     "thumbnail_url": "https://...",
-    "blog_image": []
+    "published_at": "2025-01-15T00:00:00Z",
+    "blog_image": [
+      {
+        "id": 10,
+        "file_url": "https://..."
+      }
+    ]
   }
 }
 ```
 
+## Response Error
+
+**400** — ID invalid.
+
+**404** — blog tidak ditemukan.
+
+## Catatan
+
+- Frontend helper `unwrapBlogDetail()` menormalisasi key `blog` vs root object.
+- Endpoint yang sama dipakai admin detail (`blogService.admin.getById` delegasi ke public).
+
 ## Frontend
 
 - Service: `blogService.getById`
-- Hook: `useBlogQuery`
-- API path: `API_PATH` di `lib/api-path.ts`
+- Hook: `useBlogQuery`, `useAdminBlogQuery`
+- API path: `API_PATH.blogs.detail(id)`

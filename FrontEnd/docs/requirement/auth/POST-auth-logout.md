@@ -2,11 +2,11 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Logout user dan hapus refresh token dari database serta cookie.
 
 ## Authentication
 
-Cookie RefreshToken
+Cookie `RefreshToken`
 
 ## Response Success
 
@@ -14,12 +14,35 @@ Cookie RefreshToken
 
 ```json
 {
-  "message": "Logout Success, nasi padang satu bungkus"
+  "success": true,
+  "message": "Logout Success, nasi padang satu bungkus",
+  "data": null,
+  "error": null
 }
 ```
+
+Kedua cookie (`AccessToken`, `RefreshToken`) di-clear.
+
+## Response Error
+
+**401** — cookie tidak ditemukan:
+
+```json
+{
+  "success": false,
+  "message": "Cookie not found, what are you doing here????",
+  "data": null,
+  "error": null
+}
+```
+
+## Catatan
+
+- Butuh `withCredentials: true`.
+- Frontend memanggil `clearAccessToken()` untuk legacy localStorage (opsional).
 
 ## Frontend
 
 - Service: `authService.logout`
 - Hook: `useLogoutMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.auth.logout`

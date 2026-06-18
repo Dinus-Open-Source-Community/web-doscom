@@ -1,6 +1,6 @@
 # Admin — Gallery Management
 
-Modul admin: sidebar **Gallery** — upload & kelola foto kegiatan.
+Modul admin: upload dan hapus item gallery.
 
 **Hak akses:** `SuperAdmin`, `KoorMedcrev`
 
@@ -8,18 +8,9 @@ Modul admin: sidebar **Gallery** — upload & kelola foto kegiatan.
 
 | ID | Requirement |
 | --- | --- |
-| GAL-02 | Upload batch foto kegiatan (max 5 file) |
-| GAL-03 | Hapus item galeri |
-| GAL-04 | Form metadata: nama, tipe, deskripsi, tanggal event |
-| GAL-05 | Preview grid gambar |
-
-## UI Requirements
-
-| Elemen | Requirement |
-| --- | --- |
-| Upload zone | Drag & drop multi file, max 5 |
-| Grid/List | Thumbnail + metadata |
-| Delete | Konfirmasi modal (`UI_MESSAGES.common.confirmDelete`) |
+| GAL-ADM-01 | Upload multiple file (max 5) sekaligus |
+| GAL-ADM-02 | Set metadata: nama, tipe, deskripsi, tanggal event |
+| GAL-ADM-03 | Hapus gallery by ID |
 
 ## Endpoints
 
@@ -31,5 +22,5 @@ Modul admin: sidebar **Gallery** — upload & kelola foto kegiatan.
 ## Types & Hooks
 
 - Types: `lib/types/gallery.ts`
-- Hooks: `hooks/gallery.ts` — `useCreateGalleryMutation`, `useDeleteGalleryMutation`
 - Service: `galleryService.admin.*`
+- Hooks: `useCreateGalleryMutation`, `useDeleteGalleryMutation`

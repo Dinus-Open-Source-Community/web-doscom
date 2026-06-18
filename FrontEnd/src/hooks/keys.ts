@@ -42,12 +42,15 @@ export const galleryKeys = {
 
 export const workKeys = {
   all: ["works"] as const,
-  byProjectType: (projectType: string, params?: PaginationQuery) =>
-    [...workKeys.all, "project-type", projectType, params] as const,
+  lists: () => [...workKeys.all, "list"] as const,
+  list: (params?: PublicWorkQuery) => [...workKeys.lists(), params] as const,
+  details: () => [...workKeys.all, "detail"] as const,
+  detail: (id: number | string) => [...workKeys.details(), id] as const,
+  types: () => [...workKeys.all, "types"] as const,
   admin: {
     all: ["works", "admin"] as const,
     lists: () => ["works", "admin", "list"] as const,
-    list: (params?: PublicWorkQuery) =>
+    list: (params?: PaginationQuery) =>
       ["works", "admin", "list", params] as const,
     detail: (id: number | string) =>
       ["works", "admin", "detail", id] as const,

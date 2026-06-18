@@ -20,16 +20,18 @@ Stat cards static di `pages/admin/index.astro` (Core Team: 61, Project: 21, Arti
 
 ## API — Belum Ada Endpoint Agregat
 
+Backend belum menyediakan `GET /admin/dashboard/stats`. Gunakan agregasi client-side (fase 1).
+
 ### Opsi A — Agregasi client-side (fase 1)
 
-| Stat | Endpoint | Hook |
-| --- | --- | --- |
-| Core Team | `GET /admin/pengurus?divisi=` | `useAdminPengurusListQuery` |
-| Project | `GET /admin/works?page=1&limit=1` | `useAdminWorksQuery` |
-| Article | `GET /admin/blogs?page=1&limit=1` | `useAdminBlogsQuery` |
-| Images | `GET /gallery?page=1&limit=1` | `useGalleryQuery` |
+| Stat | Endpoint | Hook | Catatan |
+| --- | --- | --- | --- |
+| Core Team | `GET /admin/pengurus?divisi=` | `useAdminPengurusListQuery` | **Blocked** — route belum terdaftar di backend |
+| Project | `GET /admin/works?page=1&limit=1` | `useAdminWorksQuery` | Ambil `totalPage` dari meta |
+| Article | `GET /admin/blogs?page=1&limit=1` | `useAdminBlogsQuery` | Ambil `totalPage` dari meta |
+| Images | `GET /gallery?page=1&limit=1` | `useGalleryQuery` | Ambil `totalPages` dari envelope `data` |
 
-Hitung total dari pagination meta atau `data.length`.
+**Workaround Core Team count:** agregasi `GET /pengurus/division/{division}` untuk setiap divisi (`bph`, `pemro`, `jaringan`, `medcrev`, `data`) dan jumlahkan `data.length`. Data public tidak expose email, cukup untuk count.
 
 ### Opsi B — Endpoint dedicated (fase 2, backend)
 
@@ -37,7 +39,7 @@ Hitung total dari pagination meta atau `data.length`.
 GET /admin/dashboard/stats
 ```
 
-Response contoh:
+Response contoh (envelope):
 
 ```json
 {
@@ -48,21 +50,24 @@ Response contoh:
     "project_count": 21,
     "article_count": 56,
     "image_count": 238
-  }
+  },
+  "error": null
 }
 ```
+
+## Backend Gap — Admin Pengurus List
+
+`GET /admin/pengurus` **tidak terdaftar** di router meski handler sudah ada. Dashboard stat Core Team tidak bisa rely on `useAdminPengurusListQuery` sampai backend fix. Lihat [admin-pengurus/GET-admin-pengurus-list.md](./admin-pengurus/GET-admin-pengurus-list.md).
 
 ## Implementasi Frontend
 
 - Buat komponen React `AdminDashboard.tsx` dengan `withQueryProvider`
 - Gunakan multiple `useQuery` paralel (TanStack handle otomatis)
-- Search trigger (`SearchModal`) — requirement terpisah (global search TBD)
+- Handle partial failure per stat card (satu API gagal tidak block yang lain)
 
 ## Endpoint Pendukung
 
-Lihat dokumentasi per endpoint:
-
-- [admin-pengurus/GET-admin-pengurus-list.md](./admin-pengurus/GET-admin-pengurus-list.md)
 - [admin-works/GET-admin-works-list.md](./admin-works/GET-admin-works-list.md)
 - [admin-blog/GET-admin-blogs-list.md](./admin-blog/GET-admin-blogs-list.md)
 - [gallery/GET-gallery-list.md](./gallery/GET-gallery-list.md)
+- [pengurus/GET-pengurus-by-division.md](./pengurus/GET-pengurus-by-division.md) (workaround Core Team)

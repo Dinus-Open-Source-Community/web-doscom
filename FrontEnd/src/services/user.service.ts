@@ -65,8 +65,8 @@ export const userService = {
     changePassword(
       id: number | string,
       payload: AdminChangePasswordPayload,
-    ): Promise<User> {
-      return putEnvelopeData<User, AdminChangePasswordPayload>(
+    ): Promise<null> {
+      return putEnvelopeData<null, AdminChangePasswordPayload>(
         API_PATH.admin.user.changePassword(id),
         payload,
       );

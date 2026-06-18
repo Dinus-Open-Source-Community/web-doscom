@@ -14,11 +14,17 @@ export interface WorkPublic {
 }
 
 export interface WorkInternal extends WorkPublic {
+  pengurus_id?: number;
   status: string;
 }
 
-export interface WorkListResponse extends PaginatedMeta {
-  message?: string;
+export interface WorkListData extends PaginatedMeta {
   "work data"?: WorkPublic[];
   worksData?: WorkInternal[];
+}
+
+export type WorkListResponse = WorkListData & { message?: string };
+
+export interface WorkUpdateStatusPayload {
+  status: string;
 }
