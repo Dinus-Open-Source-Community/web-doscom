@@ -1,0 +1,319 @@
+---
+import ButtonAdmin from '../ButtonAdmin.astro'
+import { Close, ChevronDown } from '../../../assets/icons'
+---
+
+<dialog
+  id="edit-coreteam-modal"
+  class="m-auto w-full max-w-2xl rounded-2xl border border-gray-100 bg-white p-6 shadow-xl transition-all backdrop:bg-gray-900/50 open:flex open:flex-col open:gap-6"
+>
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-bold text-gray-900">Edit Core Team Member</h2>
+      <p class="mt-1 text-xs text-gray-400">
+        Update administrator details and division
+      </p>
+    </div>
+    <button
+      type="button"
+      id="btn-close-edit-coreteam-modal"
+      class="self-start rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+    >
+      <span
+        class="flex h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+        set:html={Close}
+      />
+    </button>
+  </div>
+
+  <form
+    id="form-edit-coreteam"
+    class="flex flex-col gap-6"
+    enctype="multipart/form-data"
+  >
+    {/* Hidden Input untuk menampung ID target yang akan diedit */}
+    <input type="hidden" name="edit_target_id" id="edit_target_id" />
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Name Input */}
+      <div class="flex flex-col gap-1.5">
+        <label for="edit_name" class="text-sm font-medium text-gray-700">
+          Full Name
+        </label>
+        <input
+          type="text"
+          name="name"
+          id="edit_name"
+          placeholder="e.g., Husnul Fikri Averus"
+          class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+        />
+      </div>
+
+      {/* Email Input */}
+      <div class="flex flex-col gap-1.5">
+        <label for="edit_email" class="text-sm font-medium text-gray-700">
+          Email Address
+        </label>
+        <input
+          type="email"
+          name="email"
+          id="edit_email"
+          placeholder="e.g., user@doscom.id"
+          class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+        />
+      </div>
+
+      {/* Divisi Input (Sudah pakai styling panah yang diperbaiki) */}
+      <div class="flex flex-col gap-1.5">
+        <label for="edit_divisi" class="text-sm font-medium text-gray-700">
+          Division
+        </label>
+        <div class="relative w-full">
+          <select
+            name="divisi"
+            id="edit_divisi"
+            class="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pr-10 pl-4 text-sm text-gray-900 transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          >
+            <option value="" disabled selected>Leave unchanged</option>
+            <option value="Programming">Programming</option>
+            <option value="Multimedia">Multimedia</option>
+            <option value="Networking">Networking</option>
+            <option value="Public Relation">Public Relation</option>
+          </select>
+          <span
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500"
+          >
+            <span
+              class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+              set:html={ChevronDown}
+            />
+          </span>
+        </div>
+      </div>
+
+      {/* Position Input */}
+      <div class="flex flex-col gap-1.5">
+        <label for="edit_position" class="text-sm font-medium text-gray-700">
+          Position
+        </label>
+        <input
+          type="text"
+          name="position"
+          id="edit_position"
+          placeholder="e.g., Coordinator"
+          class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+        />
+      </div>
+
+      {/* Periode Input (Start & End) */}
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-medium text-gray-700"> Active Period </label>
+        <div class="flex items-center gap-2">
+          <input
+            type="number"
+            name="start_periode_year"
+            id="edit_start_periode"
+            placeholder="Start"
+            min="2010"
+            class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          />
+          <span class="text-gray-400">-</span>
+          <input
+            type="number"
+            name="end_periode_year"
+            id="edit_end_periode"
+            placeholder="End"
+            min="2010"
+            class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          />
+        </div>
+      </div>
+
+      {/* Social Media Input */}
+      <div class="flex flex-col gap-1.5">
+        <label
+          for="edit_sosmed_input"
+          class="text-sm font-medium text-gray-700"
+        >
+          Social Media Links
+        </label>
+        <input
+          type="text"
+          id="edit_sosmed_input"
+          placeholder="Separate with commas (e.g., ig.com/a, x.com/b)"
+          class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+        />
+        <p class="text-[10px] text-gray-400">
+          Leave blank to keep current links.
+        </p>
+      </div>
+    </div>
+
+    {/* File / Avatar Upload */}
+    <div class="flex flex-col gap-1.5">
+      <label for="edit_file" class="text-sm font-medium text-gray-700">
+        Update Profile Photo
+      </label>
+      <input
+        type="file"
+        name="file"
+        id="edit_file"
+        accept="image/png, image/jpeg, image/webp"
+        class="w-full cursor-pointer rounded-xl border border-dashed border-gray-300 bg-gray-50/30 px-4 py-2.5 text-sm text-gray-500 transition-all file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-gray-900 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white hover:border-gray-400 focus:outline-none"
+      />
+    </div>
+
+    <div
+      class="mt-2 flex w-full items-center justify-end gap-3 border-t border-gray-100 pt-6"
+    >
+      <ButtonAdmin
+        type="button"
+        variant="admin-outline"
+        id="btn-cancel-edit-coreteam-modal"
+        class="w-full sm:w-auto"
+      >
+        Cancel
+      </ButtonAdmin>
+      <ButtonAdmin
+        type="submit"
+        variant="admin-primary"
+        class="w-full sm:w-auto"
+      >
+        Save Changes
+      </ButtonAdmin>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const editModal = document.getElementById(
+    'edit-coreteam-modal'
+  ) as HTMLDialogElement
+  const btnCloseEdit = document.getElementById('btn-close-edit-coreteam-modal')
+  const btnCancelEdit = document.getElementById(
+    'btn-cancel-edit-coreteam-modal'
+  )
+  const editForm = document.getElementById(
+    'form-edit-coreteam'
+  ) as HTMLFormElement
+  const editTargetIdInput = document.getElementById(
+    'edit_target_id'
+  ) as HTMLInputElement
+
+  // Fungsi Global untuk membuka Modal Edit
+  ;(window as any).openEditCoreTeamModal = async (userId: string) => {
+    if (!userId) return
+
+    // 1. Simpan ID ke hidden input
+    editTargetIdInput.value = userId
+
+    // [OPSIONAL] 2. Ambil data current user dari API untuk pre-fill form
+    // try {
+    //   const res = await fetch(`https://api.doscom.id/v1/core-team/${userId}`);
+    //   const data = await res.json();
+    //   (document.getElementById('edit_name') as HTMLInputElement).value = data.name || '';
+    //   ... dan seterusnya
+    // } catch (e) {}
+
+    // 3. Tampilkan modal
+    editModal?.showModal()
+  }
+
+  const closeEditModal = () => {
+    editModal?.close()
+    editForm?.reset()
+    editTargetIdInput.value = ''
+  }
+
+  if (btnCloseEdit) btnCloseEdit.addEventListener('click', closeEditModal)
+  if (btnCancelEdit) btnCancelEdit.addEventListener('click', closeEditModal)
+
+  // Klik di luar modal untuk menutup
+  editModal?.addEventListener('click', e => {
+    const rect = editModal.getBoundingClientRect()
+    if (
+      e.clientX < rect.left ||
+      e.clientX > rect.right ||
+      e.clientY < rect.top ||
+      e.clientY > rect.bottom
+    ) {
+      closeEditModal()
+    }
+  })
+
+  // Handle Submit Form (PUT)
+  if (editForm) {
+    editForm.addEventListener('submit', async e => {
+      e.preventDefault()
+
+      const submitBtn = editForm.querySelector(
+        'button[type="submit"]'
+      ) as HTMLButtonElement
+      const originalText = submitBtn.innerText
+      submitBtn.innerText = 'Saving...'
+      submitBtn.disabled = true
+
+      const targetId = editTargetIdInput.value
+
+      try {
+        const formData = new FormData(editForm)
+
+        // Hapus input kosong agar tidak menimpa data yang sudah ada di backend dengan string kosong
+        for (const [key, value] of Array.from(formData.entries())) {
+          if (value === '' || (value instanceof File && value.size === 0)) {
+            formData.delete(key)
+          }
+        }
+
+        // Parsing manual input string sosmed (koma)
+        const sosmedRaw = (
+          document.getElementById('edit_sosmed_input') as HTMLInputElement
+        ).value
+        if (sosmedRaw) {
+          const sosmedArray = sosmedRaw
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s !== '')
+          sosmedArray.forEach(item => {
+            formData.append('sosmed[]', item)
+          })
+        }
+
+        // Trik khusus untuk framework backend yang gagal membaca multipart/form-data jika dikirim via PUT murni
+        // Kita paksa method POST di sisi client, tapi kita kasih tau backend bahwa ini sebenarnya PUT
+        formData.append('_method', 'PUT')
+
+        const response = await fetch(
+          `https://api.doscom.id/v1/core-team/${targetId}`,
+          {
+            // Tetap gunakan POST di fetch, backend akan membacanya sebagai PUT berkat _method
+            method: 'POST',
+            body: formData,
+          }
+        )
+
+        const result = await response.json()
+
+        if (response.status === 200 && result.success) {
+          closeEditModal()
+          ;(window as any).showToast(
+            'Pengurus data updated successfully!',
+            'success'
+          )
+          // setTimeout(() => window.location.reload(), 1000); // Reload halaman untuk melihat perubahan
+        } else {
+          ;(window as any).showToast(
+            result.message || 'Failed to update data',
+            'error'
+          )
+        }
+      } catch (error) {
+        console.error('Network Error:', error)
+        ;(window as any).showToast('Network error, please try again.', 'error')
+      } finally {
+        submitBtn.innerText = originalText
+        submitBtn.disabled = false
+      }
+    })
+  }
+</script>

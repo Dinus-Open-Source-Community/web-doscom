@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS pengurus (
   email VARCHAR(100) UNIQUE NOT NULL,
   divisi VARCHAR(50) CHECK (divisi IN ('bph', 'pemro', 'jaringan', 'medcrev', 'data')),
   name VARCHAR(150) NOT NULL,
-  position VARCHAR(100) CHECK (position IN ('ketum', 'sdm','pr','pm','pmAng', 'sekum', 'bendum','sekAng','bendAng', 'KoorPemro','KoorJaringan','KoorMedcrev','KoorData','anggotaAktif','PemroAng','JaringanAng','MedcrevAng','DataAng')),
+  position VARCHAR(100) CHECK (position IN ('ketuaUmum', 'kepalaBidangSumberDayaUmum','projectManagerI','projectManagerII','sekretarisUmumI', 'sekretarisUmumII', 'bendaharaUmumI','bendaharaUmumII','kepalaBidangHubunganMasyarakat','koordinatorHubunganMasyarakatExternal','koordinatorPemrograman','koordinatorData','koordinatorMediaCreative','koordinatorJaringan','hubunganMasyarakatExternal','pemrogramanAnggota','dataAnggota','jaringanAnggota','mediaCreativeAnggota')),
   start_periode_year  int NOT NULL,
   end_periode_year  int NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
