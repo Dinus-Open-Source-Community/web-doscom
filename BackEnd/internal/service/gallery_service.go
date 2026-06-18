@@ -66,6 +66,7 @@ func (m *GalleryService) InsertGalleryAndFileUpload(
 		GalleryType:  gallery.GalleryType,
 		Description:  gallery.Description,
 		EventDate:    gallery.EventDate,
+		FileURL:      fileURL,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
