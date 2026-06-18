@@ -1,0 +1,121 @@
+---
+import Modal from '@components/ui/admin/Modal.astro'
+import ButtonAdmin from '@components/ui/ButtonAdmin.astro'
+---
+
+<Modal
+  id="delete-coreteam-modal"
+  title="Delete Member?"
+  description="Are you sure you want to delete this member? This action cannot be undone and will permanently remove their data from the server."
+  size="sm"
+  variant="danger"
+>
+  <form id="form-delete-coreteam" class="flex flex-col gap-0">
+    {/* Hidden Input untuk menampung ID target yang akan dihapus */}
+    <input type="hidden" name="delete_target_id" id="delete_target_id" />
+
+    <div
+      class="mt-4 flex w-full items-center justify-end gap-3 border-t border-gray-100 pt-5"
+    >
+      <ButtonAdmin
+        type="button"
+        variant="admin-outline"
+        onclick="window.closeModal('delete-coreteam-modal')"
+        class="w-full sm:w-auto"
+      >
+        Cancel
+      </ButtonAdmin>
+      <button
+        type="submit"
+        class="w-full rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-rose-700 focus:ring-2 focus:ring-rose-600 focus:ring-offset-2 focus:outline-none sm:w-auto"
+      >
+        Yes, Delete
+      </button>
+    </div>
+  </form>
+</Modal>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const deleteForm = document.getElementById(
+      'form-delete-coreteam'
+    ) as HTMLFormElement
+    const deleteTargetIdInput = document.getElementById(
+      'delete_target_id'
+    ) as HTMLInputElement
+
+    // --- FUNGSI GLOBAL PEMBUKA MODAL DELETE ---
+    if (typeof (window as any).openDeleteCoreTeamModal === 'undefined') {
+      ;(window as any).openDeleteCoreTeamModal = (userId: string) => {
+        if (!userId) return
+
+        // Simpan ID ke hidden input form
+        if (deleteTargetIdInput)
+          deleteTargetIdInput.value = userId
+
+          // Panggil fungsi buka modal dari Modal.astro
+        ;(window as any).openModal('delete-coreteam-modal')
+      }
+    }
+
+    // --- LOGIKA SUBMIT (DELETE API) ---
+    if (deleteForm && deleteForm.dataset.listenerAttached !== 'true') {
+      deleteForm.dataset.listenerAttached = 'true'
+
+      deleteForm.addEventListener('submit', async e => {
+        e.preventDefault()
+
+        const submitBtn = deleteForm.querySelector(
+          'button[type="submit"]'
+        ) as HTMLButtonElement
+        const originalText = submitBtn.innerText
+        submitBtn.innerText = 'Deleting...'
+        submitBtn.disabled = true
+
+        const targetId = deleteTargetIdInput.value
+
+        try {
+          const response = await fetch(
+            `https://api.doscom.id/v1/core-team/${targetId}`,
+            {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          )
+
+          const result = await response.json()
+
+          if (response.status === 200 && result.success) {
+            ;(window as any).closeModal('delete-coreteam-modal')
+            ;(window as any).showToast(
+              'Core team member deleted successfully!',
+              'success'
+            )
+
+            // Hapus baris dari DOM secara instan agar tidak perlu reload
+            const rowToHide = document.querySelector(
+              `tr:has(button[onclick*="${targetId}"])`
+            )
+            if (rowToHide) rowToHide.remove()
+          } else {
+            ;(window as any).showToast(
+              result.message || 'Failed to delete data',
+              'error'
+            )
+          }
+        } catch (error) {
+          console.error('Network Error:', error)
+          ;(window as any).showToast(
+            'Network error, please try again.',
+            'error'
+          )
+        } finally {
+          submitBtn.innerText = originalText
+          submitBtn.disabled = false
+        }
+      })
+    }
+  })
+</script>

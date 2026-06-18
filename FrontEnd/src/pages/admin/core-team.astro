@@ -5,12 +5,8 @@ import Table from '../../components/ui/Table.astro'
 import Pagination from '../../components/ui/Pagination.astro'
 
 // Import Icons
-import { Download, Plus, Search, Filter, Edit, More } from '../../assets/icons'
-import {
-  AddCoreTeamModal,
-  EditCoreTeamModal,
-  DeleteCoreTeamModal,
-} from '../../components'
+import { Download, Plus, Search, Filter } from '../../assets/icons'
+import { CoreTeamFormModal, CoreTeamDeleteModal } from '../../components'
 
 // 1. Data Dummy Core Team (Tampilkan semua data)
 const rawDummyData = [
@@ -98,6 +94,7 @@ const headers = ['ID', 'Member', 'Division', 'Status', 'Actions']
         </ButtonAdmin>
         <ButtonAdmin
           id="btn-open-add-coreteam"
+          onclick="window.openAddCoreTeamModal()"
           variant="admin-primary"
           size="small"
           class="font-bold select-none"
@@ -195,9 +192,9 @@ const headers = ['ID', 'Member', 'Division', 'Status', 'Actions']
     </div>
   </div>
 
-  <AddCoreTeamModal />
-  <EditCoreTeamModal />
-  <DeleteCoreTeamModal />
+  <CoreTeamFormModal mode="add" />
+  <CoreTeamFormModal mode="edit" />
+  <CoreTeamDeleteModal />
 </AdminLayout>
 
 <script>
