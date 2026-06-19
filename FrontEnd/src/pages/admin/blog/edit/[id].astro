@@ -1,0 +1,382 @@
+---
+export const prerender = false
+
+import AdminLayout from '@layouts/AdminLayout.astro'
+import ButtonAdmin from '@components/ui/ButtonAdmin.astro'
+import { ROUTES } from '@lib/routes'
+
+// 1. Ambil ID dari URL params
+const { id } = Astro.params
+
+// 2. Mock Data Sementara (Bypass Fetch API)
+let blog: any = null
+
+// --- COMMENT SEMENTARA KODE FETCH ASLINYA ---
+/*
+try {
+  const response = await fetch(`https://api.doscom.id/v1/blogs/${id}`)
+  if (response.ok) {
+    const data = await response.json()
+    blog = data.blog
+  }
+} catch (error) {
+  console.error('Failed to fetch blog detail:', error)
+}
+*/
+
+// --- INJECT DUMMY DATA ---
+// Hapus atau comment bagian ini nanti kalau API sudah siap
+blog = {
+  id: id,
+  title: 'Membangun Ekosistem Open Source di Kampus',
+  slug: 'membangun-ekosistem-open-source',
+  content:
+    'Ini adalah paragraf contoh untuk menguji apakah form textarea berhasil menangkap data dari server SSR. \n\nKamu bisa mencoba mengedit teks ini, mengganti kategori, dan mengeklik save untuk melihat apakah payload yang dikirim ke console sudah benar.',
+  kategori: ['tech', 'event'],
+  status: 'published',
+  published_at: new Date().toISOString(), // Waktu sekarang
+  thumbnail_url: '/assets/photos/dummy-cover.webp',
+  blog_image: [
+    { id: 101, url: '/assets/photos/gallery-1.webp' },
+    { id: 102, url: '/assets/photos/gallery-2.webp' },
+  ],
+}
+
+// Lanjut ke pengecekan (pasti lolos karena blog sudah ada isinya)
+if (!blog) {
+  return Astro.redirect('/admin/blog')
+}
+
+// 3. Helper untuk memformat tanggal RFC3339 ke format input datetime-local (YYYY-MM-DDThh:mm)
+let formattedDate = ''
+if (blog.published_at) {
+  const dateObj = new Date(blog.published_at)
+  // Menghindari error timezone, kita potong string ISO-nya
+  formattedDate = dateObj.toISOString().slice(0, 16)
+}
+
+// Icons
+const ArrowLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`
+const SaveIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`
+---
+
+<AdminLayout title={`Edit Blog: ${blog.title}`}>
+  <div class="flex w-full flex-col gap-8 bg-gray-50/30 p-4 sm:p-8">
+    {/* Page Header */}
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a
+          href="/admin/blog"
+          class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900"
+        >
+          <span set:html={ArrowLeft} />
+        </a>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900">
+            Edit Article
+          </h1>
+          <p class="text-xs text-gray-400">Update your existing blog post</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Form Section */}
+    <form
+      id="form-edit-blog"
+      class="grid grid-cols-1 gap-8 lg:grid-cols-3"
+      data-id={id}
+    >
+      {
+        /* Pertahankan Existing Image agar tidak terhapus (Kirim existingID_image) */
+      }
+      {
+        blog.blog_image &&
+          blog.blog_image.map((img: any) => (
+            <input type="hidden" name="existingID_image" value={img.id} />
+          ))
+      }
+
+      {/* Kolom Kiri: Konten Utama */}
+      <div class="flex flex-col gap-6 lg:col-span-2">
+        <div
+          class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          <div class="flex flex-col gap-2">
+            <label for="title" class="text-sm font-semibold text-gray-700"
+              >Article Title</label
+            >
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={blog.title}
+              required
+              class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-gray-900 transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="slug" class="text-sm font-semibold text-gray-700"
+              >Slug</label
+            >
+            <div class="flex gap-2">
+              <input
+                type="text"
+                id="slug"
+                name="slug"
+                value={blog.slug}
+                required
+                class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-gray-900 transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+              />
+              <button
+                type="button"
+                id="btn-generate-slug"
+                class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium whitespace-nowrap text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
+              >
+                Generate
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="content" class="text-sm font-semibold text-gray-700"
+              >Content</label
+            >
+            <textarea
+              id="content"
+              name="content"
+              required
+              rows="15"
+              class="w-full resize-y rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+              >{blog.content}</textarea
+            >
+          </div>
+        </div>
+      </div>
+
+      {/* Kolom Kanan: Meta & Setting */}
+      <div class="flex flex-col gap-6 lg:col-span-1">
+        {/* Publish Settings */}
+        <div
+          class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          <h3 class="border-b border-gray-100 pb-3 font-bold text-gray-900">
+            Publish Settings
+          </h3>
+
+          <div class="flex flex-col gap-2">
+            <label for="status" class="text-sm font-semibold text-gray-700"
+              >Status</label
+            >
+            <select
+              id="status"
+              name="status"
+              class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            >
+              {/* Fallback ke published jika API mengembalikan null/kosong */}
+              <option value="draft" selected={blog.status === 'draft'}
+                >Draft</option
+              >
+              <option
+                value="published"
+                selected={blog.status === 'published' || !blog.status}
+                >Published</option
+              >
+              <option
+                value="unpublished"
+                selected={blog.status === 'unpublished'}>Unpublished</option
+              >
+              <option
+                value="pending_review"
+                selected={blog.status === 'pending_review'}
+                >Pending Review</option
+              >
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label
+              for="published_at"
+              class="text-sm font-semibold text-gray-700">Publish Date</label
+            >
+            <input
+              type="datetime-local"
+              id="published_at"
+              name="published_at"
+              value={formattedDate}
+              class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
+        </div>
+
+        {/* Categories */}
+        <div
+          class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          <h3 class="border-b border-gray-100 pb-3 font-bold text-gray-900">
+            Categories
+          </h3>
+          <div class="flex flex-col gap-3">
+            {
+              ['tech', 'event', 'tutorial'].map(cat => (
+                <label class="flex cursor-pointer items-center gap-3">
+                  <input
+                    type="checkbox"
+                    name="kategori"
+                    value={cat}
+                    checked={blog.kategori?.includes(cat)}
+                    class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+                  />
+                  <span class="text-sm text-gray-700 capitalize">{cat}</span>
+                </label>
+              ))
+            }
+          </div>
+        </div>
+
+        {/* Media */}
+        <div
+          class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          <h3 class="border-b border-gray-100 pb-3 font-bold text-gray-900">
+            Media
+          </h3>
+
+          {/* Tampilkan Thumbnail/Gambar Lama kalau ada */}
+          {
+            blog.thumbnail_url && (
+              <div class="mb-2">
+                <p class="mb-2 text-xs font-semibold text-gray-500">
+                  Current Cover:
+                </p>
+                <img
+                  src={blog.thumbnail_url}
+                  alt="Current Cover"
+                  class="aspect-video w-full rounded-lg bg-gray-100 object-cover"
+                />
+              </div>
+            )
+          }
+
+          <div class="flex flex-col gap-2">
+            <label for="files" class="text-sm font-semibold text-gray-700"
+              >Replace/Add Images</label
+            >
+            <input
+              type="file"
+              id="files"
+              name="files"
+              multiple
+              accept="image/*"
+              class="w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-gray-700 hover:file:bg-gray-200"
+            />
+            <p class="text-[11px] text-gray-400">
+              Upload new images to add them to the gallery.
+            </p>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <ButtonAdmin
+          type="submit"
+          id="btn-submit"
+          variant="admin-primary"
+          class="w-full justify-center py-3 text-base shadow-lg"
+        >
+          <span class="h-5 w-5" set:html={SaveIcon} />
+          Update Article
+        </ButtonAdmin>
+      </div>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const titleInput = document.getElementById('title') as HTMLInputElement
+    const slugInput = document.getElementById('slug') as HTMLInputElement
+    const form = document.getElementById('form-edit-blog') as HTMLFormElement
+    const submitBtn = document.getElementById('btn-submit') as HTMLButtonElement
+    const generateSlugBtn = document.getElementById(
+      'btn-generate-slug'
+    ) as HTMLButtonElement
+
+    // Trigger Generate Slug
+    if (generateSlugBtn && titleInput && slugInput) {
+      generateSlugBtn.addEventListener('click', () => {
+        const titleValue = titleInput.value
+        if (!titleValue) return
+        ;(window as any).showToast('Judul kosong!', 'error')
+
+        slugInput.value = titleValue
+          .toLowerCase()
+          .trim()
+          .replace(/[\s\W-]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+      })
+    }
+
+    // Handle Form Submit (PUT Request)
+    if (form) {
+      form.addEventListener('submit', async e => {
+        e.preventDefault()
+
+        const originalText = submitBtn.innerHTML
+        submitBtn.innerHTML = 'Updating...'
+        submitBtn.disabled = true
+
+        const blogId = form.dataset.id // Ambil ID dari atribut data-id form
+        const formData = new FormData(form)
+
+        // Konversi Date
+        const publishedAt = formData.get('published_at') as string
+        if (publishedAt) {
+          formData.set('published_at', new Date(publishedAt).toISOString())
+        } else {
+          formData.delete('published_at')
+        }
+
+        try {
+          const token = localStorage.getItem('access_token')
+
+          const response = await fetch(
+            `https://api.doscom.id/v1/blogs/${blogId}`,
+            {
+              method: 'PUT', // Menggunakan metode PUT sesuai spec
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: formData,
+            }
+          )
+
+          const result = await response.json()
+
+          if (response.ok) {
+            ;(window as any).showToast(
+              'Article updated successfully!',
+              'success'
+            )
+            setTimeout(() => {
+              window.location.href = '/admin/blog'
+            }, 1000)
+          } else {
+            ;(window as any).showToast(
+              result.message || 'Update failed.',
+              'error'
+            )
+          }
+        } catch (error) {
+          console.error('Submission Error:', error)
+          ;(window as any).showToast(
+            'Network error, please try again.',
+            'error'
+          )
+        } finally {
+          submitBtn.innerHTML = originalText
+          submitBtn.disabled = false
+        }
+      })
+    }
+  })
+</script>

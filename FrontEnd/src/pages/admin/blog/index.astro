@@ -1,0 +1,235 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro'
+import ButtonAdmin from '@components/ui/ButtonAdmin.astro'
+import Table from '@components/ui/Table.astro'
+import Pagination from '@components/ui/Pagination.astro'
+import DeleteBlogModal from '@components/modals/admin/DeleteBlogModal.astro'
+import { Plus, Search, Filter } from '@assets/icons'
+
+// 1. Ambil Parameter dari URL
+const url = new URL(Astro.request.url)
+const currentPage = url.searchParams.get('page') || '1'
+const limit = url.searchParams.get('limit') || '10'
+
+const categoryFilters = url.searchParams.getAll('kategory[]')
+const searchQuery = url.searchParams.get('search') || ''
+
+// 2. Susun URL API (Dibiarkan untuk referensi nanti)
+const apiUrl = new URL('https://api.doscom.id/v1/blogs')
+apiUrl.searchParams.set('page', currentPage)
+apiUrl.searchParams.set('limit', limit)
+
+if (searchQuery) apiUrl.searchParams.set('search', searchQuery)
+categoryFilters.forEach(cat => apiUrl.searchParams.append('kategory[]', cat))
+
+// 3. INJECT DUMMY DATA
+let blogs = [
+  {
+    id: 1,
+    title: 'Mengenal Arsitektur Microservices',
+    slug: 'mengenal-arsitektur-microservices',
+    kategori: ['tech'],
+    thumbnail_url:
+      'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=500',
+    status: 'published',
+  },
+  {
+    id: 2,
+    title: 'Recap Release Party Doscom 2026',
+    slug: 'recap-release-party-doscom-2026',
+    kategori: ['event'],
+    thumbnail_url:
+      'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=500',
+    status: 'draft',
+  },
+  {
+    id: 3,
+    title: 'Tutorial Install Arch Linux dan Dual Boot Windows',
+    slug: 'tutorial-install-arch-linux',
+    kategori: ['tutorial', 'tech'],
+    thumbnail_url: '', // Sengaja dikosongkan untuk mengetes fallback default image
+    status: 'published',
+  },
+]
+let totalPage = 1
+let pageNow = 1
+
+// --- COMMENT SEMENTARA FETCH ASLI ---
+/*
+try {
+  const response = await fetch(apiUrl.toString())
+  if (response.ok) {
+    const data = await response.json()
+    blogs = data.blogs || []
+    totalPage = data.totalPage || 1
+    pageNow = data.currentPage || 1
+  }
+} catch (error) {
+  console.error('Failed to fetch blogs:', error)
+}
+*/
+
+// 4. Mapping Data ke Format Table Astro
+const tableData = blogs.map((blog: any) => ({
+  id: blog.id.toString(),
+  name: blog.title,
+  email: blog.slug,
+  // Gabungkan array kategori jadi string misal: "tutorial, tech"
+  date: Array.isArray(blog.kategori) ? blog.kategori.join(', ') : blog.kategori,
+  status: blog.status === 'draft' ? 'Draft' : 'Published',
+  avatar: blog.thumbnail_url || '/assets/photos/default-avatar.webp',
+}))
+
+const headers = ['ID', 'Title & Slug', 'Category', 'Status', 'Actions']
+---
+
+<AdminLayout title="Blog Management">
+  <div class="flex w-full flex-col gap-8 bg-gray-50/30 p-8">
+    {/* Page Header */}
+    <div
+      class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 select-none">
+          Blog Articles
+        </h1>
+        <p class="mt-1 text-xs text-gray-400 select-none">
+          Manage publications, news, and technical articles
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <ButtonAdmin
+          onclick="window.location.href='/admin/blog/create'"
+          variant="admin-primary"
+          size="small"
+          class="font-bold select-none"
+        >
+          <span
+            class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+            set:html={Plus}
+          />
+          Write Article
+        </ButtonAdmin>
+      </div>
+    </div>
+
+    {/* Data Card Wrapper */}
+    <div
+      class="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+    >
+      {/* Toolbar: Search & Filter */}
+      <form
+        action="/admin/blog"
+        method="GET"
+        class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+      >
+        <input type="hidden" name="page" value="1" />
+
+        {/* Search Bar */}
+        <div class="relative w-full sm:max-w-xs">
+          <span
+            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400"
+          >
+            <span
+              class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+              set:html={Search}
+            />
+          </span>
+          <input
+            type="text"
+            name="search"
+            value={searchQuery}
+            placeholder="Search article..."
+            class="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pr-4 pl-11 text-sm transition-all outline-none placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          />
+        </div>
+
+        {/* Filter Wrapper */}
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <select
+            name="kategory[]"
+            onchange="this.form.submit()"
+            class="cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 shadow-sm transition-colors outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+          >
+            <option value="" selected={categoryFilters.length === 0}
+              >All Categories</option
+            >
+            <option value="tech" selected={categoryFilters.includes('tech')}
+              >Tech</option
+            >
+            <option value="event" selected={categoryFilters.includes('event')}
+              >Event</option
+            >
+            <option
+              value="tutorial"
+              selected={categoryFilters.includes('tutorial')}>Tutorial</option
+            >
+          </select>
+
+          <ButtonAdmin
+            type="submit"
+            variant="admin-outline"
+            size="icon"
+            class="rounded-xl p-2.5 text-gray-500 hover:border-gray-300 hover:bg-gray-100/70 hover:text-gray-900"
+          >
+            <span
+              class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+              set:html={Filter}
+            />
+          </ButtonAdmin>
+        </div>
+      </form>
+
+      {/* Data Table */}
+      {
+        tableData.length > 0 ? (
+          <div id="table-container">
+            <Table
+              headers={headers}
+              data={tableData}
+              editAction="goToEditPage"
+              moreAction="openDeleteBlogModal"
+            />
+          </div>
+        ) : (
+          <div class="py-12 text-center text-sm text-gray-500">
+            No articles found. Try adjusting your search or filters.
+          </div>
+        )
+      }
+
+      {/* Pagination */}
+      {
+        totalPage > 1 && (
+          <Pagination
+            variant="datatable"
+            currentPage={pageNow}
+            totalPages={totalPage}
+            startEntry={(pageNow - 1) * Number(limit) + 1}
+            endEntry={Math.min(
+              pageNow * Number(limit),
+              pageNow * Number(limit) - Number(limit) + tableData.length
+            )}
+            totalEntries={totalPage * Number(limit)}
+          />
+        )
+      }
+    </div>
+  </div>
+
+  {/* Modal Delete */}
+  <DeleteBlogModal />
+</AdminLayout>
+
+<script>
+  // Fungsi navigasi yang akan dipanggil oleh tombol edit di dalam Table.astro
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof (window as any).goToEditPage === 'undefined') {
+      ;(window as any).goToEditPage = (id: string) => {
+        if (id) {
+          window.location.href = `/admin/blog/edit/${id}`
+        }
+      }
+    }
+  })
+</script>

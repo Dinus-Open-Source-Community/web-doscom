@@ -10,12 +10,19 @@ interface Props extends HTMLAttributes<'button'> {
     | 'admin-outline'
     | 'admin-cyan-primary'
     | 'admin-cyan-outline'
+    | 'admin-danger' // <-- Tambahan varian baru
   size?: 'small' | 'default' | 'large' | 'icon' | 'full'
   rounded?: 'none' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
   class?: string
 }
 
-const { variant = 'primary', size = 'default', rounded, class: extraClass = '', ...rest } = Astro.props
+const {
+  variant = 'primary',
+  size = 'default',
+  rounded,
+  class: extraClass = '',
+  ...rest
+} = Astro.props
 
 const baseStyles =
   'inline-flex items-center justify-center transition-all duration-200 font-semibold focus-visible:ring-2 focus-visible:ring-offset-2'
@@ -23,10 +30,13 @@ const baseStyles =
 const variantStyles = {
   primary:
     'bg-[var(--color-primary)] text-[var(--text-primary)] hover:shadow-md hover:opacity-95 focus-visible:ring-[var(--color-primary)] cursor-pointer',
-  secondary: 'bg-[var(--color-secondary)] text-[var(--text-primary)] hover:shadow-xs cursor-pointer',
-  outline: 'bg-transparent text-[var(--text-primary)] border-3 border-[var(--color-primary)] cursor-pointer',
+  secondary:
+    'bg-[var(--color-secondary)] text-[var(--text-primary)] hover:shadow-xs cursor-pointer',
+  outline:
+    'bg-transparent text-[var(--text-primary)] border-3 border-[var(--color-primary)] cursor-pointer',
 
-  'admin-primary': 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm focus-visible:ring-gray-900 cursor-default',
+  'admin-primary':
+    'bg-gray-900 text-white hover:bg-gray-800 shadow-sm focus-visible:ring-gray-900 cursor-default',
   'admin-outline':
     'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm focus-visible:ring-gray-200 cursor-default',
 
@@ -34,6 +44,10 @@ const variantStyles = {
     'border border-cyan-600 bg-cyan-600 text-white shadow-sm hover:bg-cyan-500 focus-visible:ring-cyan-600 cursor-default',
   'admin-cyan-outline':
     'border border-cyan-200 bg-cyan-50 text-cyan-700 shadow-sm hover:bg-cyan-100/80 focus-visible:ring-cyan-200 cursor-default',
+
+  // <-- Styling untuk tombol delete/danger
+  'admin-danger':
+    'border border-rose-600 bg-rose-600 text-white shadow-sm hover:bg-rose-700 focus-visible:ring-rose-600 cursor-default',
 }
 
 const roundedStyles = {
@@ -47,7 +61,9 @@ const roundedStyles = {
 }
 
 const defaultRounded = variant.startsWith('admin-') ? 'xl' : 'full'
-const currentRounded = rounded ? roundedStyles[rounded] : roundedStyles[defaultRounded]
+const currentRounded = rounded
+  ? roundedStyles[rounded]
+  : roundedStyles[defaultRounded]
 
 const sizeStyles = {
   small: 'px-4 py-2 text-sm gap-2',
@@ -58,6 +74,9 @@ const sizeStyles = {
 }
 ---
 
-<button class={`${baseStyles} ${variantStyles[variant]} ${currentRounded} ${sizeStyles[size]} ${extraClass}`} {...rest}>
+<button
+  class={`${baseStyles} ${variantStyles[variant]} ${currentRounded} ${sizeStyles[size]} ${extraClass}`}
+  {...rest}
+>
   <slot />
 </button>

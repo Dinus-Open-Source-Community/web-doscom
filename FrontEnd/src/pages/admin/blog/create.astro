@@ -1,0 +1,328 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro'
+import ButtonAdmin from '@components/ui/ButtonAdmin.astro'
+import { ROUTES } from '@lib/routes'
+
+// Kamu bisa sesuaikan icon SVG ini dengan komponen icon yang kamu punya
+const ArrowLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`
+const SaveIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`
+---
+
+<AdminLayout title="Create Blog Article">
+  <div class="flex w-full flex-col gap-8 bg-gray-50/30 p-4 sm:p-8">
+    {/* Page Header */}
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a
+          href={ROUTES.admin.blog}
+          class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900"
+        >
+          <span set:html={ArrowLeft} />
+        </a>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900">
+            Write New Article
+          </h1>
+          <p class="text-xs text-gray-400">
+            Create and publish a new blog post
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* Form Section */}
+    <form id="form-create-blog" class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      {/* Kolom Kiri: Konten Utama (Span 2) */}
+      <div class="flex flex-col gap-6 lg:col-span-2">
+        <div
+          class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          {/* Title */}
+          <div class="flex flex-col gap-2">
+            <label for="title" class="text-sm font-semibold text-gray-700"
+              >Article Title <span class="text-rose-500">*</span></label
+            >
+            <input
+              type="text"
+              id="title"
+              name="title"
+              required
+              placeholder="e.g. Mengenal Arsitektur Microservices"
+              class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
+
+          {/* Slug */}
+          <div class="flex flex-col gap-2">
+            <label for="slug" class="text-sm font-semibold text-gray-700"
+              >Slug <span class="text-rose-500">*</span></label
+            >
+            <div class="flex gap-2">
+              <input
+                type="text"
+                id="slug"
+                name="slug"
+                required
+                placeholder="mengenal-arsitektur-microservices"
+                class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+              />
+              <button
+                type="button"
+                id="btn-generate-slug"
+                class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium whitespace-nowrap text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 focus:outline-none"
+              >
+                Generate
+              </button>
+            </div>
+            <p class="text-[11px] text-gray-400">
+              URL friendly name. Click generate to create from title.
+            </p>
+          </div>
+
+          {/* Content Area */}
+          <div class="flex flex-col gap-2">
+            <label for="content" class="text-sm font-semibold text-gray-700"
+              >Content <span class="text-rose-500">*</span></label
+            >
+            <textarea
+              id="content"
+              name="content"
+              required
+              rows="15"
+              placeholder="Write your article content here (HTML or Markdown accepted)..."
+              class="w-full resize-y rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      {/* Kolom Kanan: Meta & Setting */}
+      <div class="flex flex-col gap-6 lg:col-span-1">
+        {/* Card Publish Settings */}
+        <div
+          class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          <h3 class="border-b border-gray-100 pb-3 font-bold text-gray-900">
+            Publish Settings
+          </h3>
+
+          <div class="flex flex-col gap-2">
+            <label for="status" class="text-sm font-semibold text-gray-700"
+              >Status <span class="text-rose-500">*</span></label
+            >
+            <select
+              id="status"
+              name="status"
+              required
+              class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+              <option value="unpublished">Unpublished</option>
+              <option value="pending_review">Pending Review</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label
+              for="published_at"
+              class="text-sm font-semibold text-gray-700">Publish Date</label
+            >
+            <input
+              type="datetime-local"
+              id="published_at"
+              name="published_at"
+              class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+            />
+            <p class="text-[11px] text-gray-400">
+              Leave blank for immediate publish.
+            </p>
+          </div>
+        </div>
+
+        {/* Card Categories */}
+        <div
+          class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          <h3 class="border-b border-gray-100 pb-3 font-bold text-gray-900">
+            Categories <span class="text-rose-500">*</span>
+          </h3>
+          <div class="flex flex-col gap-3">
+            {
+              /* Array Checkbox. Jika BE minta nama key-nya pakai kurung siku, ubah name menjadi "kategori[]" */
+            }
+            <label class="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                name="kategori"
+                value="tech"
+                class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+              />
+              <span class="text-sm text-gray-700">Tech</span>
+            </label>
+            <label class="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                name="kategori"
+                value="event"
+                class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+              />
+              <span class="text-sm text-gray-700">Event</span>
+            </label>
+            <label class="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                name="kategori"
+                value="tutorial"
+                class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
+              />
+              <span class="text-sm text-gray-700">Tutorial</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Card Media */}
+        <div
+          class="flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          <h3 class="border-b border-gray-100 pb-3 font-bold text-gray-900">
+            Media
+          </h3>
+          <div class="flex flex-col gap-2">
+            <label for="files" class="text-sm font-semibold text-gray-700"
+              >Upload Images</label
+            >
+            <input
+              type="file"
+              id="files"
+              name="files"
+              multiple
+              accept="image/*"
+              class="w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-gray-700 hover:file:bg-gray-200"
+            />
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <ButtonAdmin
+          type="submit"
+          id="btn-submit"
+          variant="admin-primary"
+          class="w-full justify-center py-3 text-base shadow-lg"
+        >
+          <span class="h-5 w-5" set:html={SaveIcon} />
+          Save Article
+        </ButtonAdmin>
+      </div>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const titleInput = document.getElementById('title') as HTMLInputElement
+    const slugInput = document.getElementById('slug') as HTMLInputElement
+    const form = document.getElementById('form-create-blog') as HTMLFormElement
+    const submitBtn = document.getElementById('btn-submit') as HTMLButtonElement
+
+    // Trigger Generate Slug dari Title
+    const generateSlugBtn = document.getElementById(
+      'btn-generate-slug'
+    ) as HTMLButtonElement
+
+    if (generateSlugBtn && titleInput && slugInput) {
+      generateSlugBtn.addEventListener('click', () => {
+        const titleValue = titleInput.value
+
+        if (!titleValue) {
+          // Kasih peringatan kalau judulnya masih kosong
+          ;(window as any).showToast('Please fill the title first!', 'error')
+          return
+        }
+
+        slugInput.value = titleValue
+          .toLowerCase()
+          .trim()
+          .replace(/[\s\W-]+/g, '-') // Replace spasi dan karakter non-word dengan strip
+          .replace(/^-+|-+$/g, '') // Hilangkan strip di awal/akhir
+      })
+    }
+
+    // Handle Form Submit (Multipart/Form-Data)
+    if (form) {
+      form.addEventListener('submit', async e => {
+        e.preventDefault()
+
+        // Validasi Kategori minimal 1
+        const kategoriChecked = form.querySelectorAll(
+          'input[name="kategori"]:checked'
+        )
+        if (kategoriChecked.length === 0) {
+          ;(window as any).showToast(
+            'Silakan pilih minimal 1 kategori.',
+            'error'
+          )
+          return
+        }
+
+        const originalText = submitBtn.innerHTML
+        submitBtn.innerHTML = 'Saving...'
+        submitBtn.disabled = true
+
+        // FormData otomatis menangani input file dan array dari checkbox
+        const formData = new FormData(form)
+
+        // Konversi datetime-local ke RFC3339 jika diisi
+        const publishedAt = formData.get('published_at') as string
+        if (publishedAt) {
+          const dateObj = new Date(publishedAt)
+          formData.set('published_at', dateObj.toISOString())
+        } else {
+          formData.delete('published_at') // Jangan kirim string kosong
+        }
+
+        try {
+          // Asumsi kamu menyimpan token JWT di localStorage
+          const token = localStorage.getItem('access_token')
+
+          const response = await fetch('https://api.doscom.id/v1/blogs', {
+            method: 'POST',
+            // CATATAN PENTING: Jangan set 'Content-Type': 'multipart/form-data' secara manual!
+            // Browser akan mengaturnya otomatis beserta boundary file-nya.
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          })
+
+          const result = await response.json()
+
+          if (response.ok) {
+            ;(window as any).showToast(
+              result.message || 'Article published successfully!',
+              'success'
+            )
+            // Redirect kembali ke list blog setelah delay singkat
+            setTimeout(() => {
+              window.location.href = '/admin/blog'
+            }, 1500)
+          } else {
+            ;(window as any).showToast(
+              result.message || 'Validation failed.',
+              'error'
+            )
+          }
+        } catch (error) {
+          console.error('Submission Error:', error)
+          ;(window as any).showToast(
+            'Network error, please try again.',
+            'error'
+          )
+        } finally {
+          submitBtn.innerHTML = originalText
+          submitBtn.disabled = false
+        }
+      })
+    }
+  })
+</script>

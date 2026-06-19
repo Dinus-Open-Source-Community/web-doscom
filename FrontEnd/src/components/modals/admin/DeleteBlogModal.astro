@@ -1,0 +1,133 @@
+---
+import Modal from '../../ui/admin/Modal.astro'
+import ButtonAdmin from '../../ui/ButtonAdmin.astro'
+---
+
+<Modal
+  id="delete-blog-modal"
+  title="Delete Article?"
+  description="Are you sure you want to delete this article? This action cannot be undone and will permanently remove the data from our servers."
+  size="sm"
+  variant="danger"
+>
+  <form id="form-delete-blog" class="flex flex-col gap-4">
+    {/* Hidden Input untuk menyimpan ID Blog yang akan dihapus */}
+    <input type="hidden" name="target_id" class="target-id-input" />
+
+    <div
+      class="mt-4 flex w-full flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-end"
+    >
+      <ButtonAdmin
+        type="button"
+        variant="admin-outline"
+        onclick="window.closeModal('delete-blog-modal')"
+        class="w-full justify-center sm:w-auto"
+      >
+        Cancel
+      </ButtonAdmin>
+      <ButtonAdmin
+        type="submit"
+        variant="admin-danger"
+        class="w-full justify-center sm:w-auto"
+      >
+        Yes, Delete Article
+      </ButtonAdmin>
+    </div>
+  </form>
+</Modal>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- FUNGSI GLOBAL PEMBUKA MODAL ---
+    if (typeof (window as any).openDeleteBlogModal === 'undefined') {
+      ;(window as any).openDeleteBlogModal = (blogId: string) => {
+        if (!blogId) return
+
+        const delForm = document.getElementById('form-delete-blog')
+        if (delForm) {
+          const idInput = delForm.querySelector(
+            '.target-id-input'
+          ) as HTMLInputElement
+          if (idInput) idInput.value = blogId
+        }
+
+        ;(window as any).openModal('delete-blog-modal')
+      }
+    }
+
+    // --- LOGIKA SUBMIT (Delete API) ---
+    const delForm = document.getElementById(
+      'form-delete-blog'
+    ) as HTMLFormElement
+
+    if (delForm && delForm.dataset.listenerAttached !== 'true') {
+      delForm.dataset.listenerAttached = 'true'
+
+      delForm.addEventListener('submit', async e => {
+        e.preventDefault()
+
+        const submitBtn = delForm.querySelector(
+          'button[type="submit"]'
+        ) as HTMLButtonElement
+        const originalText = submitBtn.innerText
+        submitBtn.innerText = 'Deleting...'
+        submitBtn.disabled = true
+
+        const formData = new FormData(delForm)
+        const targetId = formData.get('target_id')
+
+        try {
+          const token = localStorage.getItem('access_token')
+
+          const response = await fetch(
+            `https://api.doscom.id/v1/blogs/${targetId}`,
+            {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          )
+
+          let resultMessage = 'Article deleted successfully.'
+
+          if (response.ok) {
+            try {
+              const textResponse = await response.text()
+              if (textResponse) {
+                const jsonResponse = JSON.parse(textResponse)
+                resultMessage = jsonResponse.message || resultMessage
+              }
+            } catch (jsonError) {
+              console.warn(
+                'Backend sent 204 but invalid JSON, safe bypass executed.'
+              )
+            }
+
+            ;(window as any).closeModal('delete-blog-modal')
+            ;(window as any).showToast(resultMessage, 'success')
+
+            setTimeout(() => {
+              window.location.reload()
+            }, 800)
+          } else {
+            const errorData = await response.json().catch(() => ({}))
+            ;(window as any).showToast(
+              errorData.message || 'Failed to delete article.',
+              'error'
+            )
+          }
+        } catch (error) {
+          console.error('Network Error:', error)
+          ;(window as any).showToast(
+            'Network error, please try again.',
+            'error'
+          )
+        } finally {
+          submitBtn.innerText = originalText
+          submitBtn.disabled = false
+        }
+      })
+    }
+  })
+</script>
