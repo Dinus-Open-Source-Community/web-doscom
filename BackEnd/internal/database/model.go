@@ -7,16 +7,18 @@ import (
 )
 
 type Models struct {
-	Users          entity.UserModel
-	Works          entity.WorkModel
-	WorkGallery    entity.WorkGalleryModel
-	Blogs          entity.BlogModel
-	BlogGallery    entity.BlogGalleryModel
-	Gallery        entity.GalleryModel
-	Pengurus       entity.PengurusModel
-	PengurusSosmed entity.PengurusSosmedModel
-	FileUploads    entity.FileUploadModel
-	RefreshToken   entity.RefreshTokenModel
+	Users           entity.UserModel
+	Works           entity.WorkModel
+	WorkGallery     entity.WorkGalleryModel
+	Blogs           entity.BlogModel
+	BlogGallery     entity.BlogGalleryModel
+	Gallery         entity.GalleryModel
+	Pengurus        entity.PengurusModel
+	PengurusSosmed  entity.PengurusSosmedModel
+	FileUploads     entity.FileUploadModel
+	RefreshToken    entity.RefreshTokenModel
+	HistoryTimeline entity.HistoryTimelineModel
+	HistoryPhotos   entity.HistoryPhotosModel
 }
 
 func NewModel(db *gorm.DB) Models {
@@ -33,6 +35,12 @@ func NewModel(db *gorm.DB) Models {
 		},
 		FileUploads: entity.FileUploadModel{DB: db},
 		RefreshToken: entity.RefreshTokenModel{
+			DB: db,
+		},
+		HistoryTimeline: entity.HistoryTimelineModel{
+			DB: db,
+		},
+		HistoryPhotos: entity.HistoryPhotosModel{
 			DB: db,
 		},
 	}

@@ -43,14 +43,14 @@ services:
   backend:
     build:
       context: ./BackEnd
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: doscom-backend
     restart: unless-stopped
     working_dir: /app
     env_file:
       - ./BackEnd/.env
-    environment:
-      DBURL: postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?sslmode=${DB_SSLMODE}
+    #environment:
+      #DBURL: postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?sslmode=${DB_SSLMODE}
     ports:
       - "3000:3000"
     depends_on:
@@ -58,6 +58,8 @@ services:
       - minio
     volumes:
       - ./BackEnd/storage/uploads/foto:/app/storage/uploads/foto:ro
+      - ./BackEnd/storage/uploads/work:/app/storage/uploads/work:ro
+      - ./BackEnd/storage/uploads/history:/app/storage/uploads/history:ro
     networks:
       - doscom-network
     entrypoint: ["/bin/sh", "/app/docker-entrypoint.sh"]

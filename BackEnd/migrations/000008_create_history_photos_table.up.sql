@@ -1,7 +1,7 @@
 CREATE TABLE history_photos (
   id SERIAL PRIMARY KEY,
   id_history INT REFERENCES history_timeline(id),
-  imager_url TEXT,
+  image_url TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

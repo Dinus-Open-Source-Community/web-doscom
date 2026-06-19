@@ -8,6 +8,7 @@ import (
 
 	blogAuthorization "web_doscom/internal/authorization/blog"
 	"web_doscom/internal/database/model/dto"
+	"web_doscom/internal/response"
 	"web_doscom/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -47,10 +48,12 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 	userID := c.MustGet("user_id").(int)
 
 	if err := blogAuthorization.CheckRolePermission(user_role); err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "forbiddennnnn",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"forbidden",
+			err,
+		)
 		return
 	}
 
@@ -62,9 +65,12 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 
 	form, err := c.MultipartForm()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Failed to read file",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"failed to read file",
+			err,
+		)
 		return
 	}
 
@@ -89,17 +95,22 @@ func (h *BlogHandler) CreateBlog(c *gin.Context) {
 		user_role,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "Failed to insert data",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to insert data",
+			err,
+		)
+		return
 	}
 
 	// response
-	c.JSON(http.StatusOK, gin.H{
-		"message": "successfully create blog",
-		"data":    blogResponse,
-	})
+	response.Success(
+		c,
+		"successfully create blog",
+		http.StatusOK,
+		blogResponse,
+	)
 }
 
 // List all Blogs godoc
@@ -122,21 +133,28 @@ func (h *BlogHandler) GetAllBlogs(c *gin.Context) {
 	// service blog
 	blogs, totalData, err := h.Service.GetAllBlogs(ctx, page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "Failed to fetch blog data",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to fetch blog data",
+			err,
+		)
 	}
 
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
 	currentPage := (offset / limit) + 1
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":     "Succsess get all blogs",
-		"data":        blogs,
-		"totalPage":   totalPage,
-		"currentPage": currentPage,
-	})
+	response.Success(
+		c,
+		"successfully fetch data",
+		http.StatusOK,
+		gin.H{
+			"message":     "successfully fetch data",
+			"blogs":       blogs,
+			"totalPage":   totalPage,
+			"currentPage": currentPage,
+		},
+	)
 
 }
 
@@ -154,22 +172,32 @@ func (h *BlogHandler) GetAllBlogs(c *gin.Context) {
 func (h *BlogHandler) GetBlogByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid id",
+			err,
+		)
 		return
 	}
 
 	blog, err := h.Service.GetBlogByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "blog not found",
-		})
+		response.Error(
+			c,
+			http.StatusNotFound,
+			"blog not found",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "blog found successfully",
-		"blog":    blog,
-	})
+	response.Success(
+		c,
+		"blog found successfully",
+		http.StatusOK,
+		blog,
+	)
 }
 
 // Update Blog godoc
@@ -190,23 +218,35 @@ func (h *BlogHandler) Update(c *gin.Context) {
 	userID := c.MustGet("user_id").(int)
 	userRole := c.MustGet("role").(string)
 	if err := blogAuthorization.CheckRolePermission(userRole); err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "forbiddennnnn",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"forbidden",
+			err,
+		)
 		return
 	}
 
 	ctx := c.Request.Context()
 	idBlog, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id blog"})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid id blog",
+			err,
+		)
 		return
 	}
 
 	var dataPatch dto.BlogPatch
 	if err := c.ShouldBind(&dataPatch); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid id blog",
+			err,
+		)
 		return
 	}
 
@@ -226,17 +266,21 @@ func (h *BlogHandler) Update(c *gin.Context) {
 		userRole,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "Failed to update blog, something went wrong",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to update blog, something went wrong",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "successfully update blog",
-		"data":    blogResponse,
-	})
+	response.Success(
+		c,
+		"successfully update blog",
+		http.StatusOK,
+		blogResponse,
+	)
 }
 
 // get all blogs and get blog by kategory
@@ -250,9 +294,12 @@ func (h *BlogHandler) ListByKategori(c *gin.Context) {
 
 	kategoriArray, exists := c.GetQueryArray("kategori")
 	if exists && len(kategoriArray) > 3 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "max 3 kategory allowed",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"max 3 kategory allowed",
+			nil,
+		)
 		return
 	}
 
@@ -270,10 +317,12 @@ func (h *BlogHandler) ListByKategori(c *gin.Context) {
 			offset,
 		)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   err.Error(),
-				"message": "failed to fetch data",
-			})
+			response.Error(
+				c,
+				http.StatusInternalServerError,
+				"failed to fetch data",
+				err,
+			)
 			return
 		}
 	} else {
@@ -283,22 +332,30 @@ func (h *BlogHandler) ListByKategori(c *gin.Context) {
 			limit,
 		)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   err.Error(),
-				"message": "failed to fetch data",
-			})
+			response.Error(
+				c,
+				http.StatusInternalServerError,
+				"failed to fetch data",
+				err,
+			)
 			return
 		}
 	}
 
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
 	currentPage := (offset / limit) + 1
-	c.JSON(http.StatusOK, gin.H{
-		"message":     "successfully fetch data",
-		"blogs":       blogs,
-		"totalPage":   totalPage,
-		"currentPage": currentPage,
-	})
+
+	response.Success(
+		c,
+		"successfully fetch data",
+		http.StatusOK,
+		gin.H{
+			"message":     "successfully fetch data",
+			"blogs":       blogs,
+			"totalPage":   totalPage,
+			"currentPage": currentPage,
+		},
+	)
 }
 
 // admin handler
@@ -310,17 +367,22 @@ func (h *BlogHandler) ListBlogs(c *gin.Context) {
 
 	userRole := c.MustGet("role").(string)
 	if err := blogAuthorization.CheckRolePermission(userRole); err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "forbiddennnnn",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"forbidden",
+			err,
+		)
 		return
 	}
 	kategoriArray, exists := c.GetQueryArray("kategory")
 	if exists && len(kategoriArray) > 3 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "max 3 kategory allowed",
-		})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"max 3 kategory allowed",
+			nil,
+		)
 		return
 	}
 
@@ -332,22 +394,29 @@ func (h *BlogHandler) ListBlogs(c *gin.Context) {
 		limit,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "terjadi kesalahan ketika mengambil data",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to fetch data",
+			err,
+		)
 		return
 	}
 
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
 	currentPage := (offset / limit) + 1
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":     "successfully fetch data",
-		"blogs":       blogs,
-		"totalPage":   totalPage,
-		"currentPage": currentPage,
-	})
+	response.Success(
+		c,
+		"successfully fetch data",
+		http.StatusOK,
+		gin.H{
+			"message":     "successfully fetch data",
+			"blogs":       blogs,
+			"totalPage":   totalPage,
+			"currentPage": currentPage,
+		},
+	)
 }
 
 // Delete Blog godoc
@@ -364,29 +433,42 @@ func (h *BlogHandler) Delete(c *gin.Context) {
 	ctx := c.Request.Context()
 	userRole := c.MustGet("role").(string)
 	if err := blogAuthorization.CheckRolePermission(userRole); err != nil {
-		c.JSON(http.StatusForbidden, gin.H{
-			"error":   err.Error(),
-			"message": "forbiddennnnn",
-		})
+		response.Error(
+			c,
+			http.StatusForbidden,
+			"forbidden",
+			err,
+		)
 		return
 	}
 
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			"invalid id",
+			err,
+		)
 		return
 	}
 
 	// call service deleteblogid
 	if err := h.Service.DeleteBlogByID(ctx, id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   err.Error(),
-			"message": "terjadi kesalahan ketika menghapus data :)",
-		})
+		response.Error(
+			c,
+			http.StatusInternalServerError,
+			"failed to delete data",
+			err,
+		)
 		return
 	}
 
-	c.JSON(http.StatusNoContent, gin.H{
-		"message": "successfully delete data",
-	})
+	response.Success(
+		c,
+		"successfully delete data",
+		http.StatusNoContent,
+		nil,
+	)
 }
