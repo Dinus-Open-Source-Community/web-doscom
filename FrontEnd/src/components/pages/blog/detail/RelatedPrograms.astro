@@ -1,0 +1,107 @@
+---
+const programs = [
+  {
+    title: 'Release Party',
+    desc: 'Acara tahunan menyambut anggota baru dan perkenalan produk teknologi unggulan komunitas.',
+    tags: ['Networking', 'Programming'],
+    img: '/assets/photos/release-party.webp',
+  },
+  {
+    title: 'Doscom University',
+    desc: 'Pelatihan intensif mingguan untuk mendalami berbagai pilar keilmuan IT modern.',
+    tags: ['Hardware', 'Multimedia'],
+    img: '/assets/photos/doscom-univ.webp',
+  },
+  {
+    title: 'Open Source Go To School',
+    desc: 'Penyuluhan dan sosialisasi pentingnya open source ke sekolah-sekolah.',
+    tags: ['Networking', 'Public Relation'],
+    img: '/assets/photos/osgts.webp',
+  },
+]
+---
+
+<section class="w-full bg-[#0085FF] py-16 sm:py-24">
+  <div class="mx-auto flex max-w-7xl flex-col gap-10 px-4 sm:px-6 lg:px-8">
+    {/* Header & Carousel Navigation */}
+    <div class="flex items-center justify-between">
+      <h2 class="text-3xl font-bold text-white sm:text-4xl">Our Programs</h2>
+      <div class="flex gap-3">
+        <button
+          aria-label="Previous"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#0085FF] shadow-sm transition-transform hover:scale-105"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg
+          >
+        </button>
+        <button
+          aria-label="Next"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#0085FF] shadow-sm transition-transform hover:scale-105"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg
+          >
+        </button>
+      </div>
+    </div>
+
+    {/* Cards Grid */}
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+      {
+        programs.map(program => (
+          <a
+            href="#"
+            class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-transform hover:-translate-y-2"
+          >
+            {/* Card Image */}
+            <div class="aspect-video w-full overflow-hidden bg-gray-100">
+              <img
+                src={program.img}
+                alt={program.title}
+                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+
+            {/* Card Content */}
+            <div class="flex grow flex-col justify-between p-6">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 sm:text-2xl">
+                  {program.title}
+                </h3>
+                <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-gray-600">
+                  {program.desc}
+                </p>
+              </div>
+
+              {/* Card Badges */}
+              <div class="mt-6 flex flex-wrap gap-2">
+                {program.tags.map(tag => (
+                  <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0085FF]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
