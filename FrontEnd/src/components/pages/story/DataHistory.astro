@@ -1,70 +1,142 @@
 ---
+import type { HistoryItem } from '../../../lib/types'
+
 interface Props {
-	year?: string;
-	description?: string;
+	year: string
+	description: string
+	items: HistoryItem[]
+	allHistory: string
+	allYears: string
 }
 
-const {
-	year = '2025-Present',
-	// Default description persis seperti requestmu
-	description = `DOSCOM adalah komunitas open source di Universitas Dian Nuswantoro yang
-      berfokus pada pengembangan, edukasi, dan kolaborasi dalam dunia teknologi
-      terbuka. <br class="md:block hidden" />
-      Kami percaya bahwa semangat open source bukan hanya tentang kode, tetapi juga
-      tentang berbagi pengetahuan, membangun bersama, dan tumbuh sebagai satu komunitas.`,
-} = Astro.props;
+const { year, description, items, allHistory: allHistoryJson, allYears: allYearsJson } = Astro.props
+
+const allPhotos = items.flatMap((h) => h.photos ?? [])
+const photoUrls = allPhotos.map((p) => p.image_url).filter(Boolean)
 ---
 
-<div class="bg-white w-full h-full">
+<div class="bg-white w-full h-full" id="data-history-root">
 	<div class="py-6 max-w-7xl mx-auto px-4 md:px-6">
-		<div
-			class="flex flex-col-reverse md:flex-row py-6 font-jakarta w-full justify-between items-start md:items-center gap-6 md:gap-0"
-		>
-			<p
-				class="text-xl text-[var(--text-secondary)] font-normal md:w-[463px] w-full tracking-tight"
-			>
-				<span set:html={description} />
+		<div class="flex flex-col-reverse md:flex-row py-6 font-jakarta w-full justify-between items-start md:items-center gap-6 md:gap-0">
+			<p class="text-xl text-[var(--text-secondary)] font-normal md:w-[463px] w-full tracking-tight">
+				<span id="data-description" set:html={description} />
 			</p>
-			<h1
-				class="text-5xl font-bold tracking-tight justify-start md:justify-center items-center flex"
-			>
+			<h1 id="data-year" class="text-5xl font-bold tracking-tight justify-start md:justify-center items-center flex">
 				{year}
 			</h1>
 		</div>
 
-		<div
-			class="grid grid-cols-1 py-4 md:grid-cols-3 auto-rows-[minmax(100px,auto)] gap-4"
-		>
-			<div
-				class="bg-[#D9D9D9] text-white rounded-2xl flex items-center justify-center row-span-1 md:row-span-6 col-span-1"
-			>
-			</div>
-
-			<div
-				class="bg-[#D9D9D9] text-white rounded-2xl flex items-center justify-center col-span-1 md:col-span-2 row-span-4"
-			>
-				<img
-					src="/assets/image/fotbar-rp.jpg"
-					alt="fotbar"
-					class="rounded-2xl w-fit h-fit object-cover"
-				/>
-			</div>
-			<div
-				class="bg-[#D9D9D9] text-white rounded-2xl flex items-center justify-center row-span-2"
-			>
-			</div>
-			<div
-				class="bg-[#D9D9D9] text-white rounded-2xl flex items-center justify-center row-span-4"
-			>
-			</div>
-			<div
-				class="bg-[#D9D9D9] text-white rounded-2xl flex items-center justify-center row-span-2"
-			>
-			</div>
-			<div
-				class="bg-[#D9D9D9] text-white rounded-2xl flex items-center justify-center row-span-2"
-			>
-			</div>
+		<div id="data-grid" class="grid grid-cols-1 py-4 md:grid-cols-3 auto-rows-[minmax(100px,auto)] gap-4">
+			{photoUrls.length > 0 ? (
+				<>
+					<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-1 md:row-span-6 col-span-1">
+						{photoUrls[0] ? <img src={photoUrls[0]} alt="" class="h-full w-full object-cover" /> : null}
+					</div>
+					<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden col-span-1 md:col-span-2 row-span-4">
+						{photoUrls[1] ? <img src={photoUrls[1]} alt="" class="h-full w-full object-cover" /> : null}
+					</div>
+					<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-2">
+						{photoUrls[2] ? <img src={photoUrls[2]} alt="" class="h-full w-full object-cover" /> : null}
+					</div>
+					<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-4">
+						{photoUrls[3] ? <img src={photoUrls[3]} alt="" class="h-full w-full object-cover" /> : null}
+					</div>
+					<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-2">
+						{photoUrls[4] ? <img src={photoUrls[4]} alt="" class="h-full w-full object-cover" /> : null}
+					</div>
+					<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-2">
+						{photoUrls[5] ? <img src={photoUrls[5]} alt="" class="h-full w-full object-cover" /> : null}
+					</div>
+				</>
+			) : (
+				<div id="data-empty" class="col-span-full flex items-center justify-center py-16 text-gray-400 text-lg">
+					Belum ada foto untuk periode ini.
+				</div>
+			)}
 		</div>
 	</div>
 </div>
+
+<script>
+	const historyData = JSON.parse(document.getElementById('story-data')?.textContent ?? '[]')
+	const yearTabs = document.querySelectorAll('.tab-year')
+
+	function renderGrid(items: any[]) {
+		const photos = items.flatMap((h: any) => h.photos ?? []).map((p: any) => p.image_url).filter(Boolean)
+		const yearEl = document.getElementById('data-year')
+		const descEl = document.getElementById('data-description')
+		const gridEl = document.getElementById('data-grid')
+
+		if (yearEl) yearEl.textContent = items.length > 0 ? items[0].year : ''
+		if (descEl) descEl.innerHTML = items.length > 0 ? items[0].description : ''
+
+		if (!gridEl) return
+
+		if (photos.length > 0) {
+			gridEl.innerHTML = `
+				<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-1 md:row-span-6 col-span-1">
+					${photos[0] ? `<img src="${photos[0]}" alt="" class="h-full w-full object-cover" />` : ''}
+				</div>
+				<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden col-span-1 md:col-span-2 row-span-4">
+					${photos[1] ? `<img src="${photos[1]}" alt="" class="h-full w-full object-cover" />` : ''}
+				</div>
+				<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-2">
+					${photos[2] ? `<img src="${photos[2]}" alt="" class="h-full w-full object-cover" />` : ''}
+				</div>
+				<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-4">
+					${photos[3] ? `<img src="${photos[3]}" alt="" class="h-full w-full object-cover" />` : ''}
+				</div>
+				<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-2">
+					${photos[4] ? `<img src="${photos[4]}" alt="" class="h-full w-full object-cover" />` : ''}
+				</div>
+				<div class="bg-[#D9D9D9] rounded-2xl overflow-hidden row-span-2">
+					${photos[5] ? `<img src="${photos[5]}" alt="" class="h-full w-full object-cover" />` : ''}
+				</div>
+			`
+		} else {
+			gridEl.innerHTML = `<div class="col-span-full flex items-center justify-center py-16 text-gray-400 text-lg">Belum ada foto untuk periode ini.</div>`
+		}
+	}
+
+	function filterByYear(year: string) {
+		const filtered = year ? historyData.filter((h: any) => h.year === year) : historyData
+		renderGrid(filtered)
+	}
+
+	yearTabs.forEach((tab) => {
+		tab.addEventListener('click', () => {
+			const year = tab.getAttribute('data-year') ?? ''
+			const url = new URL(window.location.href)
+			if (year) {
+				url.searchParams.set('year', year)
+			} else {
+				url.searchParams.delete('year')
+			}
+			window.history.replaceState({}, '', url.toString())
+
+			yearTabs.forEach((t) => {
+				t.classList.remove('text-white', 'font-bold', 'cursor-default')
+				t.classList.add('text-white/60', 'font-medium', 'cursor-pointer')
+			})
+			tab.classList.remove('text-white/60', 'font-medium', 'cursor-pointer')
+			tab.classList.add('text-white', 'font-bold', 'cursor-default')
+
+			filterByYear(year)
+		})
+	})
+
+	const params = new URLSearchParams(window.location.search)
+	const initialYear = params.get('year') ?? ''
+	if (initialYear) {
+		const matchTab = document.querySelector(`.tab-year[data-year="${initialYear}"]`)
+		if (matchTab) {
+			yearTabs.forEach((t) => {
+				t.classList.remove('text-white', 'font-bold', 'cursor-default')
+				t.classList.add('text-white/60', 'font-medium', 'cursor-pointer')
+			})
+			matchTab.classList.remove('text-white/60', 'font-medium', 'cursor-pointer')
+			matchTab.classList.add('text-white', 'font-bold', 'cursor-default')
+			filterByYear(initialYear)
+		}
+	}
+</script>
