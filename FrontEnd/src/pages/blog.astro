@@ -1,12 +1,43 @@
 ---
-import PublicLayout from '../layouts/PublicLayout.astro'
-import Section1 from '../components/pages/blog/Section1.astro'
-import Section2 from '../components/pages/blog/Section2.astro'
-import Section3 from '../components/pages/blog/Section3.astro'
+import PublicLayout from "../layouts/PublicLayout.astro";
+import Section2 from "../components/pages/blog/Section2.astro";
+import Section3 from "../components/pages/blog/Section3.astro";
+import { DivisionHeaderDivision } from "@components/index";
+import { blogService } from "@services/blog.service";
+import type { BlogThumbnail } from "@lib/types";
+
+const kategori = Astro.url.searchParams.get("kategori") ?? "";
+const search = Astro.url.searchParams.get("search") ?? "";
+const page = Number(Astro.url.searchParams.get("page")) || 1;
+const limit = 9;
+
+let blogs: BlogThumbnail[] = [];
+let totalPages = 1;
+let categories: string[] = [];
+
+try {
+  const res = await blogService.list({ page, limit, kategori: kategori ? [kategori] : undefined, search: search || undefined });
+  blogs = (res.blogs ?? []) as BlogThumbnail[];
+  totalPages = res.totalPage ?? res.totalPages ?? 1;
+
+  const cats = new Set<string>();
+  blogs.forEach((b) => {
+    const raw = (b as Record<string, unknown>).kategori;
+    if (Array.isArray(raw)) raw.forEach((c: string) => cats.add(c));
+    else if (raw) cats.add(String(raw));
+  });
+  categories = Array.from(cats);
+} catch {}
 ---
 
 <PublicLayout title="Blogs">
-  <Section1 />
-  <Section2 />
+  <DivisionHeaderDivision
+    title="Blog"
+    description=" tim yang bertanggung jawab untuk menghasilkan konten-konten kreatif dan
+            menarik secara visual maupun audio untuk berbagai platform, seperti
+            media sosial, website, dan media lainnya"
+    backgroundImage="/assets/photos/header-division.jpg"
+  />
+  <Section2 {blogs} {categories} activeCategory={kategori} currentPage={page} {totalPages} {search} />
   <Section3 />
 </PublicLayout>
