@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS file_uploads (
 	id SERIAL PRIMARY KEY,
 	user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-	category VARCHAR(50) NOT NULL CHECK (category IN ('gallery', 'blog', 'work', 'pengurus')),
+	category VARCHAR(50) NOT NULL CHECK (category IN ('gallery', 'blog', 'work', 'pengurus', 'history')),
 	original_filename VARCHAR(255) NOT NULL,
 	stored_filename VARCHAR(255) NOT NULL,
 	file_size BIGINT NOT NULL,

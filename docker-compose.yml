@@ -59,6 +59,7 @@ services:
     volumes:
       - ./BackEnd/storage/uploads/foto:/app/storage/uploads/foto:ro
       - ./BackEnd/storage/uploads/work:/app/storage/uploads/work:ro
+      - ./BackEnd/storage/uploads/history:/app/storage/uploads/history:ro
     networks:
       - doscom-network
     entrypoint: ["/bin/sh", "/app/docker-entrypoint.sh"]
