@@ -1,7 +1,10 @@
 package dto
 
 import (
+	"encoding/json"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 // use to get input from client
@@ -40,15 +43,15 @@ type BlogPatch struct {
 }
 
 type BlogResponse struct {
-	ID           int                    `gorm:"primaryKey" json:"id"`
-	AuthorID     int                    `json:"author_id"`
-	Title        string                 `json:"title"`
-	Slug         string                 `json:"slug" gorm:"unique"`
-	Content      string                 `json:"content"`
-	Kategori     []string               `json:"kategori"`
-	ThumbnailURL string                 `json:"thumbnail_url"`
-	PublishedAt  *time.Time             `json:"published_at"`
-	BlogImage    []*BlogGalleryResponse `json:"blog_image"`
+	ID           int             `gorm:"primaryKey" json:"id"`
+	AuthorID     int             `json:"author_id"`
+	Title        string          `json:"title"`
+	Slug         string          `json:"slug" gorm:"unique"`
+	Content      string          `json:"content"`
+	Kategori     pq.StringArray  `gorm:"type:blog_category[]" json:"kategori"`
+	ThumbnailURL string          `json:"thumbnail_url"`
+	PublishedAt  *time.Time      `json:"published_at"`
+	BlogImage    json.RawMessage `gorm:"column:blog_image" json:"blog_image"`
 }
 
 type BlogThumbnail struct {

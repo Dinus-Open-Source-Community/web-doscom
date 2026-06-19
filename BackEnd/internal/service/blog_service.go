@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"mime/multipart"
@@ -224,6 +225,10 @@ func (m *BlogService) CreateBlog(
 			return fmt.Errorf("failed to insert blog gallery %w", err)
 		}
 
+		blogImageJson, err := json.Marshal(blogGalleryResponse)
+		if err != nil {
+			return fmt.Errorf("failed to marshal blog gallery response %w", err)
+		}
 		blogDataResponse = dto.BlogResponse{
 			ID:           blog.ID,
 			AuthorID:     blog.AuthorID,
@@ -233,7 +238,7 @@ func (m *BlogService) CreateBlog(
 			Kategori:     blog.Kategori,
 			ThumbnailURL: blog.ThumbnailURL,
 			PublishedAt:  blog.PublishedAt,
-			BlogImage:    blogGalleryResponse,
+			BlogImage:    blogImageJson,
 		}
 
 		return nil
@@ -369,7 +374,10 @@ func (m *BlogService) UpdateBlog(
 			})
 		}
 	}
-
+	blogImageJSON, err := json.Marshal(blogGallery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode blog gallery: %w", err)
+	}
 	result := &dto.BlogResponse{
 		ID:           blogUpdate.ID,
 		AuthorID:     blogUpdate.AuthorID,
@@ -379,7 +387,7 @@ func (m *BlogService) UpdateBlog(
 		Kategori:     blogUpdate.Kategori,
 		ThumbnailURL: blogUpdate.ThumbnailURL,
 		PublishedAt:  blogUpdate.PublishedAt,
-		BlogImage:    blogGallery,
+		BlogImage:    blogImageJSON,
 	}
 
 	return result, nil
