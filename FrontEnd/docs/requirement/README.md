@@ -32,6 +32,7 @@ Menu sidebar direncanakan: Dashboard, Super Admin, BPH, Core Team, Blog, Gallery
 | [works/](./works/) | [Works (Public)](./works/README.md) | 3 |
 | [pengurus/](./pengurus/) | [Pengurus (Public & Self)](./pengurus/README.md) | 5 |
 | [upload/](./upload/) | [Upload & Media](./upload/README.md) | 2 |
+| [history/](./history/) | [History Timeline](./history/README.md) | 2 |
 
 ## Modul — Admin (Hak Akses Terbatas)
 
@@ -93,6 +94,8 @@ Menu sidebar direncanakan: Dashboard, Super Admin, BPH, Core Team, Blog, Gallery
 | `admin-pengurus` | DELETE | `/api/v1/admin/pengurus/delete/{id}` | [admin-pengurus/DELETE-admin-pengurus-by-id.md](./admin-pengurus/DELETE-admin-pengurus-by-id.md) |
 | `upload` | GET | `/api/v1/upload/files` | [upload/GET-upload-files.md](./upload/GET-upload-files.md) |
 | `upload` | DELETE | `/api/v1/upload/file` | [upload/DELETE-upload-file.md](./upload/DELETE-upload-file.md) |
+| `history` | GET | `/api/v1/history` | [history/GET-history-list.md](./history/GET-history-list.md) |
+| `history` | GET | `/api/v1/history/{id}` | [history/GET-history-by-id.md](./history/GET-history-by-id.md) |
 
 ## Arsitektur Frontend
 

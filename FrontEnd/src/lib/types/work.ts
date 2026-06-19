@@ -10,7 +10,7 @@ export interface WorkPublic {
   technologies: string[];
   project_date: string;
   image_url: string;
-  gallery?: unknown;
+  gallery?: string[];
 }
 
 export interface WorkInternal extends WorkPublic {

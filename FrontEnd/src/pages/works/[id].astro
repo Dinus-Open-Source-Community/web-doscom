@@ -1,0 +1,67 @@
+---
+import PublicLayout from "@layouts/PublicLayout.astro";
+import ProjectHero from "@components/pages/works/detail/ProjectHero.astro";
+import ProjectOverview from "@components/pages/works/detail/ProjectOverview.astro";
+import ProjectGallery from "@components/pages/works/detail/ProjectGallery.astro";
+import { OurWorks } from "@components/index";
+import RelatedWorks from "@components/pages/works/detail/RelatedWorks.astro";
+import { workService } from "@services/work.service";
+import type { WorkPublic } from "@lib/types";
+
+let work: WorkPublic | undefined;
+let works: WorkPublic[] = [];
+let galleryImages: string[] = [];
+
+if (Astro.params.id) {
+  try {
+    work = await workService.getById(parseInt(Astro.params.id));
+  } catch {}
+}
+
+if (work?.gallery) {
+  galleryImages = work.gallery.slice(0, 5);
+}
+
+try {
+  const worksResponse = await workService.list();
+  works = (worksResponse["work data"] ??
+    worksResponse.worksData ??
+    []) as WorkPublic[];
+} catch {}
+
+export async function getStaticPaths() {
+  let items: WorkPublic[] = [];
+  try {
+    const res = await workService.list({ limit: 100 });
+    items = (res["work data"] ?? res.worksData ?? []) as WorkPublic[];
+  } catch {}
+
+  return items.map((w) => ({
+    params: { id: String(w.id) },
+    props: { work: w },
+  }));
+}
+---
+
+<PublicLayout
+  title={work ? `Web Doscom - ${work.title}` : "Web Doscom - Works Detail"}
+>
+  <main
+    class="mx-auto mt-10 flex max-w-7xl flex-col gap-16 px-4 py-12 sm:px-6 lg:gap-24 lg:px-8 lg:py-20"
+  >
+    {
+      work ? (
+        <>
+          <div class="flex flex-col gap-12 lg:gap-16">
+            <ProjectHero work={work} />
+            <ProjectOverview work={work} />
+          </div>
+          <ProjectGallery images={galleryImages} />
+        </>
+      ) : (
+        <p class="py-12 text-center text-gray-500">Karya tidak ditemukan.</p>
+      )
+    }
+  </main>
+  <RelatedWorks />
+</PublicLayout>

@@ -1,0 +1,56 @@
+---
+import PublicLayout from "@layouts/PublicLayout.astro";
+import BlogHero from "@components/pages/blog/detail/BlogHero.astro";
+import BlogOverview from "@components/pages/blog/detail/BlogOverview.astro";
+import BlogGallery from "@components/pages/blog/detail/BlogGallery.astro";
+import RelatedPrograms from "@components/pages/blog/detail/RelatedPrograms.astro";
+import { blogService } from "@services/blog.service";
+import type { Blog } from "@lib/types";
+
+let blog: Blog | undefined;
+let galleryImages: string[] = [];
+
+if (Astro.params.id) {
+  try {
+    blog = await blogService.getById(parseInt(Astro.params.id));
+  } catch {}
+}
+
+if (blog?.blog_image) {
+  galleryImages = blog.blog_image
+    .map((img) => img.file_url || img.thumbnail_url || "")
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
+export async function getStaticPaths() {
+  let items: Blog[] = [];
+  try {
+    const res = await blogService.list({ limit: 100 });
+    items = (res.blogs ?? []) as Blog[];
+  } catch {}
+
+  return items.map((b) => ({
+    params: { id: String(b.id) },
+    props: { blog: b },
+  }));
+}
+---
+
+<PublicLayout title={blog ? `Web Doscom - ${blog.title}` : "Web Doscom - Blog"}>
+  <main
+    class="mx-auto mt-10 flex max-w-7xl flex-col gap-16 px-4 py-12 sm:px-6 lg:gap-24 lg:px-8 lg:py-20"
+  >
+    {blog ? (
+      <>
+        <div class="flex flex-col gap-12 lg:gap-16">
+          <BlogHero blog={blog} />
+          <BlogOverview blog={blog} />
+        </div>
+        <BlogGallery images={galleryImages} />
+      </>
+    ) : (
+      <p class="py-12 text-center text-gray-500">Blog tidak ditemukan.</p>
+    )}
+  </main>
+</PublicLayout>

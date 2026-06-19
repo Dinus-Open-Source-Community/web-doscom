@@ -216,40 +216,40 @@ const categories = Array.isArray(category) ? category : category ? [category] : 
 
 {
 	variant === 'blogs' && (
-		<div
-			class:list={[
-				'group relative flex aspect-video w-full flex-col justify-end overflow-hidden rounded-xl bg-gray-200 p-6 transition-all hover:shadow-lg',
-				index < 2 ? 'h-80 md:col-span-3' : 'h-64 md:col-span-2',
-			]}
-		>
-			{/* Background Placeholder */}
-			<div class="absolute inset-0 bg-gray-300 transition-colors group-hover:bg-gray-400" />
+		<div class="group relative flex aspect-video h-72 w-full flex-col justify-end overflow-hidden rounded-xl bg-gray-200 p-6 transition-all hover:shadow-lg">
+			{image ? (
+				<>
+					<img
+						src={image}
+						alt={title}
+						class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+						loading="lazy"
+					/>
+					<div class="absolute inset-0 bg-black/40" />
+				</>
+			) : (
+				<div class="absolute inset-0 bg-gray-300 transition-colors group-hover:bg-gray-400" />
+			)}
 
-			{/* Content */}
 			<div class="relative z-10 flex items-end justify-between">
 				<div>
-					{/* Logic Font Size: Item besar font-nya lebih besar */}
-					<h3
-						class:list={[
-							'mb-2 font-bold text-gray-900',
-							index < 2 ? 'text-3xl' : 'text-xl',
-						]}
-					>
+					<h3 class="mb-2 text-xl font-bold text-white">
 						{title}
 					</h3>
 
-					{/* Tags Loop */}
 					<div class="flex gap-2">
 						{tags.map((tag) => (
-							<span class="rounded-full bg-gray-400/50 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+							<span class="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
 								{tag}
 							</span>
 						))}
 					</div>
 				</div>
 
-				{/* Button Arrow */}
-				<button class="flex h-10 w-10 items-center justify-center rounded-full bg-black/10 transition-colors hover:bg-black/20">
+				<button
+					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/10 transition-colors hover:bg-black/20"
+					aria-label="Read more"
+				>
 					<span
 						class="h-7 w-7 text-gray-800 [&>svg]:h-full [&>svg]:w-full"
 						set:html={arrowIcon}

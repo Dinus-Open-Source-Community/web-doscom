@@ -1,38 +1,57 @@
 ---
-import Logo from '../../assets/logo-doscom.svg?raw'
-import { ROUTES } from '../../lib/routes'
+import Logo from "../../assets/logo-doscom.svg?raw";
+import { ROUTES } from "../../lib/routes";
 
 const footerLinks = [
-  { name: 'Home', href: ROUTES.home },
-  { name: 'About', href: ROUTES.about },
-  { name: 'Division', href: ROUTES.division.list },
-  { name: 'Works', href: ROUTES.works },
-  { name: 'Blog', href: ROUTES.blog },
-  { name: 'Contact', href: ROUTES.contact },
-]
+  { name: "Home", href: ROUTES.home },
+  { name: "About", href: ROUTES.about },
+  { name: "Division", href: ROUTES.division.list },
+  { name: "Works", href: ROUTES.works },
+  { name: "Blog", href: ROUTES.blog },
+  { name: "Contact", href: ROUTES.contact },
+];
 ---
 
 <footer
   class="flex h-auto min-h-[350px] items-center border-t border-gray-200 bg-white px-6 py-12 text-gray-800 md:min-h-[400px] md:px-8 md:py-16"
 >
-  <div class="mx-auto grid w-full max-w-7xl items-start gap-8 md:grid-cols-2 md:gap-12">
+  <div
+    class="mx-auto grid w-full max-w-7xl items-start gap-8 md:grid-cols-2 md:gap-12"
+  >
     <div class="space-y-5 md:space-y-6">
       <div class="flex">
-        <span class="w-52 text-[var(--color-primary)] [&>svg]:h-full [&>svg]:w-full" set:html={Logo} />
+        <span
+          class="w-52 text-[var(--color-primary)] [&>svg]:h-full [&>svg]:w-full"
+          set:html={Logo}
+        />
       </div>
 
-      <div class="space-y-3 text-base font-normal text-black md:space-y-4 md:text-lg lg:text-xl">
+      <div
+        class="space-y-3 text-base font-normal text-black md:space-y-4 md:text-lg lg:text-xl"
+      >
         <div class="flex items-center gap-3">
-          <img src="/assets/icons/maps.svg" alt="maps" class="h-5 w-5 md:h-6 md:w-6" />
+          <img
+            src="/assets/icons/maps.svg"
+            alt="maps"
+            class="h-5 w-5 md:h-6 md:w-6"
+          />
           <p>Gedung E - UDINUS,<br />Semarang, Jawa Tengah</p>
         </div>
         <div class="flex items-center gap-3">
-          <img src="/assets/icons/mail.svg" alt="mail" class="h-5 w-5 md:h-6 md:w-6" />
-          <p>doscom@udin.ac.id</p>
+          <img
+            src="/assets/icons/mail.svg"
+            alt="mail"
+            class="h-5 w-5 md:h-6 md:w-6"
+          />
+          <p>doscom.go@gmail.com</p>
         </div>
         <div class="flex items-center gap-3">
-          <img src="/assets/icons/phone.svg" alt="phone" class="h-5 w-5 md:h-6 md:w-6" />
-          <p>+62-812-3456-7890</p>
+          <img
+            src="/assets/icons/phone.svg"
+            alt="phone"
+            class="h-5 w-5 md:h-6 md:w-6"
+          />
+          <a href="https://wa.me/+62 857-1208-4018">+62 857-1208-4018</a>
         </div>
       </div>
     </div>
@@ -40,9 +59,11 @@ const footerLinks = [
     <div class="flex flex-col justify-end gap-8 md:flex-row md:gap-12">
       <div class="space-y-3 text-right md:space-y-4 md:text-left">
         <h3 class="mb-3 text-xl font-semibold md:mb-4 md:text-2xl">Links</h3>
-        <ul class="space-y-2 text-base leading-tight font-normal text-black md:text-lg lg:text-xl">
+        <ul
+          class="space-y-2 text-base leading-tight font-normal text-black md:text-lg lg:text-xl"
+        >
           {
-            footerLinks.map(link => (
+            footerLinks.map((link) => (
               <li>
                 <a
                   href={link.href}
@@ -67,17 +88,29 @@ const footerLinks = [
           <a
             href="#"
             class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white transition hover:bg-blue-600 md:h-10 md:w-10"
-            ><img src="/assets/icons/instagram.svg" alt="Instagram" class="h-5 w-5" /></a
+            ><img
+              src="/assets/icons/instagram.svg"
+              alt="Instagram"
+              class="h-5 w-5"
+            /></a
           >
           <a
             href="#"
             class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white transition hover:bg-blue-600 md:h-10 md:w-10"
-            ><img src="/assets/icons/tiktok.svg" alt="tiktok" class="h-5 w-5" /></a
+            ><img
+              src="/assets/icons/tiktok.svg"
+              alt="tiktok"
+              class="h-5 w-5"
+            /></a
           >
           <a
             href="#"
             class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white transition hover:bg-blue-600 md:h-10 md:w-10"
-            ><img src="/assets/icons/linkedin.svg" alt="LinkedIn" class="h-5 w-5" /></a
+            ><img
+              src="/assets/icons/linkedin.svg"
+              alt="LinkedIn"
+              class="h-5 w-5"
+            /></a
           >
         </div>
       </div>

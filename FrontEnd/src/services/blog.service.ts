@@ -1,7 +1,7 @@
 import { api } from "../lib/axios";
 import { API_PATH } from "../lib/api-path";
 import { unwrapBlogDetail } from "../lib/func/blog";
-import { toFormData } from "../lib/func/http";
+import { getEnvelopeData, toFormData } from "../lib/func/http";
 import type {
   Blog,
   BlogListResponse,
@@ -30,14 +30,12 @@ export interface UpdateBlogPayload extends Partial<CreateBlogPayload> {}
 
 export const blogService = {
   list(params?: PublicBlogQuery): Promise<BlogListResponse> {
-    return api
-      .get<BlogListResponse>(API_PATH.blogs.list, { params })
-      .then((response) => response.data);
+    return getEnvelopeData<BlogListResponse>(API_PATH.blogs.list, { params });
   },
 
   getById(id: number | string): Promise<Blog> {
-    return api.get(API_PATH.blogs.detail(id)).then((response) => {
-      return unwrapBlogDetail(response.data as { blog?: Blog } & Blog);
+    return getEnvelopeData<Blog>(API_PATH.blogs.detail(id)).then((data) => {
+      return unwrapBlogDetail(data as { blog?: Blog } & Blog);
     });
   },
 
