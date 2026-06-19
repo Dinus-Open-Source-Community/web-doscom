@@ -11,6 +11,7 @@ func CORSMiddleware() gin.HandlerFunc {
 			"http://localhost:3000",
 			"http://localhost:8080",
 			"http://localhost:3001",
+			"http://localhost:4321",
 		},
 		AllowMethods: []string{
 			"GET",

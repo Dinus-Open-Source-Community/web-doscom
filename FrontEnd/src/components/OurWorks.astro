@@ -1,6 +1,20 @@
 ---
 import Button from './ui/Button.astro';
 import Card from './ui/Card.astro';
+
+interface WorkItem {
+	image_url: string;
+	title: string;
+	description: string;
+	project_type: string;
+	slug: string;
+}
+
+interface Props {
+	items: WorkItem[];
+}
+
+const { items } = Astro.props;
 ---
 
 <div class="w-full bg-white">
@@ -23,7 +37,7 @@ import Card from './ui/Card.astro';
 				/> sustainable manner.
 			</p>
 			<div class="hidden gap-2 md:flex">
-				<Button variant="primary" size="icon"
+				<Button id="works-btn-left" variant="primary" size="icon"
 					><img
 						src="/assets/icons/arrowleft.svg"
 						alt="arrow left"
@@ -31,7 +45,7 @@ import Card from './ui/Card.astro';
 						height="24"
 					/>
 				</Button>
-				<Button variant="primary" size="icon"
+				<Button id="works-btn-right" variant="primary" size="icon"
 					><img
 						src="/assets/icons/arrowright.svg"
 						alt="arrow right"
@@ -44,28 +58,39 @@ import Card from './ui/Card.astro';
 	</div>
 
 	<div
+		id="works-carousel"
 		class="flex gap-4 md:gap-6 overflow-x-auto relative w-full py-4 overflow-visible no-scrollbar md:px-10 snap-x scroll-smooth"
 	>
-		<Card
-			image="/assets/image/Dform.png"
-			variant="works"
-			title="TealinuxOS"
-			desc="A digital platform for community event attendance and registration"
-			category="Operation System"
-		/>
-		<Card
-			image="/assets/image/tealinux.png"
-			variant="works"
-			title="TealinuxOS"
-			desc="A Linux-based operating system with a lightweight and user-friendly interface."
-			category="Operation System"
-		/>
-		<Card
-			image="/assets/image/Dform.png"
-			variant="works"
-			title="Rice Source"
-			desc="An open-source repository for community projects and experiments"
-			category="Open Source"
-		/>
+		{items.map((item) => (
+			<Card
+				image={item.image_url}
+				variant="works"
+				title={item.title}
+				desc={item.description}
+				category={item.project_type}
+			/>
+		))}
 	</div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const carousel = document.getElementById('works-carousel')
+    const btnLeft = document.getElementById('works-btn-left')
+    const btnRight = document.getElementById('works-btn-right')
+
+    if (btnLeft && btnRight && carousel) {
+      btnLeft.addEventListener('click', () => {
+        const cardWidth = carousel.firstElementChild?.clientWidth || 0
+        const gap = parseFloat(getComputedStyle(carousel).columnGap) || 0
+        carousel.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' })
+      })
+
+      btnRight.addEventListener('click', () => {
+        const cardWidth = carousel.firstElementChild?.clientWidth || 0
+        const gap = parseFloat(getComputedStyle(carousel).columnGap) || 0
+        carousel.scrollBy({ left: cardWidth + gap, behavior: 'smooth' })
+      })
+    }
+  })
+</script>

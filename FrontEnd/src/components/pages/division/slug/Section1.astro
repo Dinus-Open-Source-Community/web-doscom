@@ -1,86 +1,17 @@
 ---
-const teamMembers = [
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-  {
-    name: 'Dhion Nur D',
-    role: 'Koordinator Creative Media',
-    image: '/assets/photos/siganteng.png',
-  },
-]
+import type { PengurusPublic } from '../../../../lib/types';
+
+interface Props {
+	members: PengurusPublic[];
+}
+
+const { members } = Astro.props;
+
+function formatPosition(pos: string): string {
+	return pos
+		.replace(/([a-z])([A-Z])/g, '$1 $2')
+		.replace(/^[a-z]/, (s) => s.toUpperCase());
+}
 ---
 
 <section class="font-jakarta relative h-full w-full overflow-hidden bg-white">
@@ -96,33 +27,33 @@ const teamMembers = [
     class="pointer-events-none absolute -bottom-275 left-0 z-0 select-none"
   />
 
-  <div class="relative z-10 w-full px-38 pt-8 pb-17">
+  <div class="relative z-10 w-full px-4 pt-8 pb-10 md:px-8 md:pb-17 lg:px-20 xl:px-38">
     <div class="w-full max-w-167.5">
       <h1 class="mb-2 text-3xl font-semibold text-gray-900 md:text-5xl">
         Our Team
       </h1>
-      <p class="text-[8px] tracking-normal text-gray-700 md:text-lg">
+      <p class="text-xs tracking-normal text-gray-700 md:text-lg">
         A list of planned activities that will be implemented to achieve
         organizational goals in a structured and sustainable manner.
       </p>
     </div>
 
     <div
-      class="mt-8 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4"
+      class="mt-8 grid grid-cols-1 gap-x-4 gap-y-6 md:gap-x-6 md:gap-y-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
       {
-        teamMembers.map(member => (
+        members.map(member => (
           <div class="flex flex-col">
             <img
-              src={member.image}
+              src={member.photo_url}
               alt={`Foto ${member.name}`}
-              class="h-79.5 w-67.5 rounded-2xl object-cover"
+              class="w-full h-60 rounded-2xl object-cover md:h-72 lg:h-79.5 lg:w-67.5"
               loading="lazy"
             />
-            <div class="mt-1">
-              <h3 class="text-[22px] font-semibold">{member.name}</h3>
-              <p class="text-lg leading-3 font-normal text-[#5F5F5F]">
-                {member.role}
+            <div class="mt-2 md:mt-1">
+              <h3 class="text-base font-semibold md:text-lg lg:text-[22px]">{member.name}</h3>
+              <p class="mt-0.5 text-sm leading-normal font-normal text-[#5F5F5F] md:text-base lg:text-lg lg:leading-3">
+                {formatPosition(member.position.trim())}
               </p>
             </div>
           </div>

@@ -6,3 +6,4 @@ export * from "./gallery.service";
 export * from "./work.service";
 export * from "./pengurus.service";
 export * from "./upload.service";
+export * from "./history.service";

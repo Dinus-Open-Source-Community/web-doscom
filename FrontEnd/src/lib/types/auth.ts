@@ -18,4 +18,3 @@ export type AuthResponse = ApiEnvelope<null>;
 
 export type LoginResponse = AuthResponse;
 export type RefreshTokenResponse = AuthResponse;
-export type MessageResponse = AuthResponse;

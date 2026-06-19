@@ -64,6 +64,11 @@ export const API_PATH = {
     me: "/pengurus/me",
   },
 
+  history: {
+    list: "/history",
+    detail: (id: number | string) => `/history/${id}`,
+  },
+
   upload: {
     file: "/upload/file",
     files: "/upload/files",
