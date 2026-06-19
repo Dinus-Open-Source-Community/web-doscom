@@ -1,12 +1,9 @@
 package seeder
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
-	"mime/multipart"
-	"os"
 	"path/filepath"
 	"time"
 	"web_doscom/internal/config"
@@ -18,62 +15,6 @@ import (
 
 	"gorm.io/gorm"
 )
-
-func openSeedImage(path string) (
-	*multipart.FileHeader,
-	multipart.File,
-	func(),
-	error,
-) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	var body bytes.Buffer
-	writer := multipart.NewWriter(&body)
-
-	part, err := writer.CreateFormFile("file", filepath.Base(path))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	if _, err := part.Write(content); err != nil {
-		return nil, nil, nil, err
-	}
-
-	if err := writer.Close(); err != nil {
-		return nil, nil, nil, err
-	}
-
-	reader := multipart.NewReader(&body, writer.Boundary())
-
-	form, err := reader.ReadForm(10 << 20)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	headers := form.File["file"]
-	if len(headers) == 0 {
-		form.RemoveAll()
-		return nil, nil, nil, fmt.Errorf("file header not found")
-	}
-
-	fileHeader := headers[0]
-	file, err := fileHeader.Open()
-	if err != nil {
-		form.RemoveAll()
-		return nil, nil, nil, err
-	}
-
-	cleanup := func() {
-		_ = file.Close()
-		_ = form.RemoveAll()
-	}
-
-	return fileHeader, file, cleanup, nil
-
-}
 
 func SeedPengurus(db *gorm.DB, galleryService *service.GalleryService, sosmedURL []string) error {
 
@@ -820,7 +761,7 @@ func SeedPengurus(db *gorm.DB, galleryService *service.GalleryService, sosmedURL
 	for i := range pengurusList {
 		pengurus := &pengurusList[i]
 		photoPath := filepath.Join("storage", "uploads", "foto", fmt.Sprintf("%d.jpg", pengurus.IDUser))
-		fileHeader, file, cleanup, err := openSeedImage(photoPath)
+		fileHeader, file, cleanup, err := utils.OpenSeedImage(photoPath)
 		if err != nil {
 			return fmt.Errorf("failed to open photo user_id=%d: %w", pengurus.IDUser, err)
 		}

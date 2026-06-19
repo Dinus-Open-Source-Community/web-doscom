@@ -22,8 +22,12 @@ func RunAllSeeders(db *gorm.DB, minioClient *config.MinioClient) {
 		{"pengurus", func(tx *gorm.DB) {
 			RunSeedPengurus(tx, minioClient)
 		}},
-		// {"work", RunSeedWorks},
-		// {"blog", RunSeedBlogs},
+		{"work", func(tx *gorm.DB) {
+			RunSeedWorks(tx, minioClient)
+		}},
+		{"blog", func(tx *gorm.DB) {
+			RunSeedBlogs(tx, minioClient)
+		}},
 	}
 
 	for _, s := range seeders {
