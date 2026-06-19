@@ -2,6 +2,7 @@ import type { PaginationQuery } from "../lib/types";
 import type { AdminBlogQuery, PublicBlogQuery } from "../services/blog.service";
 import type { GalleryQuery } from "../services/gallery.service";
 import type { PublicWorkQuery } from "../services/work.service";
+import type { HistoryQuery } from "../services/history.service";
 import type { UploadCategory } from "../lib/types";
 
 export const authKeys = {
@@ -42,12 +43,15 @@ export const galleryKeys = {
 
 export const workKeys = {
   all: ["works"] as const,
-  byProjectType: (projectType: string, params?: PaginationQuery) =>
-    [...workKeys.all, "project-type", projectType, params] as const,
+  lists: () => [...workKeys.all, "list"] as const,
+  list: (params?: PublicWorkQuery) => [...workKeys.lists(), params] as const,
+  details: () => [...workKeys.all, "detail"] as const,
+  detail: (id: number | string) => [...workKeys.details(), id] as const,
+  types: () => [...workKeys.all, "types"] as const,
   admin: {
     all: ["works", "admin"] as const,
     lists: () => ["works", "admin", "list"] as const,
-    list: (params?: PublicWorkQuery) =>
+    list: (params?: PaginationQuery) =>
       ["works", "admin", "list", params] as const,
     detail: (id: number | string) =>
       ["works", "admin", "detail", id] as const,
@@ -68,6 +72,14 @@ export const pengurusKeys = {
     byUser: (userId: number | string) =>
       ["pengurus", "admin", "user", userId] as const,
   },
+};
+
+export const historyKeys = {
+  all: ["history"] as const,
+  lists: () => [...historyKeys.all, "list"] as const,
+  list: (params?: HistoryQuery) => [...historyKeys.lists(), params] as const,
+  details: () => [...historyKeys.all, "detail"] as const,
+  detail: (id: number | string) => [...historyKeys.details(), id] as const,
 };
 
 export const uploadKeys = {

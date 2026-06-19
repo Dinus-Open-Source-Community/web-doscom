@@ -2,15 +2,15 @@
 
 Modul admin: sidebar **Super Admin** — manajemen akun super admin.
 
-**Hak akses:** `ADMIN` (`SuperAdmin`)
+**Hak akses:** middleware `ADMIN` (`SuperAdmin` only)
 
 ## Functional Requirements
 
 | ID | Requirement |
 | --- | --- |
-| USER-01 | Super Admin dapat melihat daftar super admin |
-| USER-02 | Super Admin dapat membuat akun super admin baru |
-| USER-03 | Super Admin dapat mengganti password user lain |
+| SA-01 | Super Admin dapat melihat daftar super admin |
+| SA-02 | Super Admin dapat membuat akun super admin baru |
+| SA-03 | Super Admin dapat mengganti password user lain |
 
 ## UI Requirements
 
@@ -21,13 +21,7 @@ Modul admin: sidebar **Super Admin** — manajemen akun super admin.
 | Email | `user.email` |
 | Role | `user.role` |
 | Full name | `user.full_name` |
-| Actions | Edit, Change password, Delete |
-
-### Validasi Form
-
-- Email format valid
-- Password min 8 karakter
-- Role harus dari daftar role key valid (`constants.RoleGroup` backend)
+| Actions | Change password |
 
 ## Endpoints
 

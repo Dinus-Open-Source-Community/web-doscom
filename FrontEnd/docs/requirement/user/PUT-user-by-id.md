@@ -2,37 +2,37 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Update data user by ID (partial update).
 
 ## Authentication
 
-Bearer — ADMIN, KOOR, BPH
+Bearer atau cookie — middleware `ADMIN`, `KOOR`, `BPH`
+
+## Path Parameters
+
+| Param | Tipe | Required | Keterangan |
+| --- | --- | --- | --- |
+| id | number | True | User ID |
 
 ## Headers
 
 | Header | Nilai |
 | --- | --- |
 | Content-Type | `application/json` |
-| Authorization | `Bearer {access_token}` |
-
-## Path Parameters
-
-| Param | Tipe | Required | Keterangan |
-| --- | --- | --- | --- |
-| id | integer | True | User ID |
 
 ## Request Body
 
 | Field | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| username | string | False |  |
-| email | string | False |  |
-| fullname | string | False |  |
+| username | string | False | Username |
+| email | string | False | Email |
+| fullname | string | False | Nama lengkap |
 
 **Contoh:**
 
 ```json
 {
+  "email": "updated@doscom.id",
   "fullname": "Updated Name"
 }
 ```
@@ -49,16 +49,23 @@ Format envelope `{ success, message, data, error }`.
   "message": "Successfully update user data",
   "data": {
     "id": 2,
-    "username": "user",
-    "email": "u@example.com",
-    "role": "pemroAnggota",
+    "username": "koor_pemro",
+    "email": "updated@doscom.id",
+    "role": "KoorPemro",
     "full_name": "Updated Name"
-  }
+  },
+  "error": null
 }
 ```
+
+## Response Error
+
+**400** — ID/body invalid.
+
+**403** — role tidak valid.
 
 ## Frontend
 
 - Service: `userService.update`
 - Hook: `useUpdateUserMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.user.detail(id)`

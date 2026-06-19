@@ -22,7 +22,7 @@ fi
 
 
 # Run migrations
-echo "Running database migrations..."
+echo "Running database migrasi..."
 cd /app
 ./migrate down
 ./migrate up

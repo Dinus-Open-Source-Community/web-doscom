@@ -30,7 +30,7 @@ fi
 # Run migrations
 cd /app
 if [ "$DB_CREATED" = true ]; then
-  echo "Running database migrations..."
+  echo "Running database migrasi dev..."
   go run ./cmd/migrate/main.go up
 
   echo "Running Seeder..."

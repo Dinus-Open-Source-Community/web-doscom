@@ -2,17 +2,17 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Detail user by ID (scoped by role caller).
 
 ## Authentication
 
-Bearer — ADMIN, KOOR, BPH
+Bearer atau cookie — middleware `ADMIN`, `KOOR`, `BPH`
 
 ## Path Parameters
 
 | Param | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| id | integer | True | User ID |
+| id | number | True | User ID |
 
 ## Response Success
 
@@ -26,16 +26,25 @@ Format envelope `{ success, message, data, error }`.
   "message": "Get user",
   "data": {
     "id": 2,
-    "username": "user",
-    "email": "u@example.com",
-    "role": "pemroAnggota",
-    "full_name": "User Name"
-  }
+    "username": "koor_pemro",
+    "email": "koor@doscom.id",
+    "role": "KoorPemro",
+    "full_name": "Koordinator Pemro"
+  },
+  "error": null
 }
 ```
+
+## Response Error
+
+**400** — ID invalid.
+
+**403** — role tidak valid.
+
+**404** — user tidak ditemukan atau di luar scope.
 
 ## Frontend
 
 - Service: `userService.getById`
 - Hook: `useUserQuery`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.user.detail(id)`

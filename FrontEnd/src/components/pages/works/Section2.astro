@@ -1,53 +1,96 @@
 ---
-import Chip from '../../ui/Chip.astro'
 import Card from '../../ui/Card.astro'
-import Pagination from '../../ui/Pagination.astro'
-import arrowIcon from '../../../assets/icon-arrow.svg?raw'
+import type { WorkPublic } from '../../../lib/types'
 
-const labels = ['Semua', 'Website', 'Aplikasi', 'Jaringan', 'Data', 'AI', 'Design', 'UI/UX Design']
-const projects = [
-  { title: 'Web Doscom', category: 'Website' },
-  { title: 'Presensi QR', category: 'Aplikasi' },
-  { title: 'Landing Page', category: 'Website' },
-  { title: 'Sistem Keuangan', category: 'System' },
-  { title: 'Game Engine', category: 'Desktop' },
-  { title: 'IoT Dashboard', category: 'Hardware' },
-]
+interface Props {
+  works: WorkPublic[]
+  types: string[]
+  activeType: string
+  currentPage: number
+  totalPages: number
+  search: string
+}
 
-const events = [
-  // 2 Item pertama ini nanti jadi yang BESAR
-  { title: 'Release Party 2025', tags: ['Event', 'Seminar'] },
-  { title: 'Tech Talk 2025', tags: ['Event', 'Sharing'] },
+const { works, types, activeType, currentPage, totalPages, search } = Astro.props
 
-  // Item selanjutnya jadi yang KECIL (Grid 3)
-  { title: 'Workshop React', tags: ['Workshop'] },
-  { title: 'Design System', tags: ['UI/UX'] },
-  { title: 'Golang Backend', tags: ['Backend'] },
-  { title: 'DevOps 101', tags: ['Infra'] },
-  { title: 'Open Source', tags: ['Community'] },
-  { title: 'Hacktoberfest', tags: ['Event'] },
-]
+function displayType(t: string): string {
+  return t.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+}
 ---
 
 <section class="relative flex min-h-screen justify-center bg-white">
   <div class="my-12 flex w-full max-w-[96rem] flex-col gap-5">
-    <div class="flex w-full max-w-[96rem] gap-2 font-semibold">
-      {labels.map((label) => <Chip variant="inactive" label={label} />)}
-    </div>
+    <form method="GET" class="flex w-full items-center justify-between gap-4">
+      <div class="flex w-full max-w-md items-center gap-2">
+        <input
+          type="text"
+          name="search"
+          value={search}
+          placeholder="Cari karya..."
+          class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
+        />
+        <button type="submit" class="rounded-lg bg-(--color-primary) px-4 py-2 text-sm text-white">
+          Cari
+        </button>
+      </div>
+      <select
+        name="type"
+        class="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-(--color-primary)"
+        onchange="this.form.submit()"
+      >
+        <option value="">Semua</option>
+        {types.map(t => (
+          <option value={t} selected={activeType === t}>{displayType(t)}</option>
+        ))}
+      </select>
+    </form>
     <div class="flex flex-col items-center gap-3">
       <div class="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {
-          projects.map((project) => (
+        {works.length > 0 ? (
+          works.map(w => (
             <Card
               variant="projects"
-              title={project.title}
-              category={project.category}
-              image="/assets/photos/works-5.png"
+              title={w.title}
+              category={w.project_type}
+              image={w.image_url}
             />
           ))
-        }
+        ) : (
+          <p class="col-span-full text-center text-gray-500 py-12">Tidak ada karya yang ditemukan.</p>
+        )}
       </div>
-      <Pagination />
+
+      {totalPages > 1 && (
+        <div class="flex items-center gap-2">
+          {currentPage > 1 && (
+            <a
+              href={`?search=${search}${activeType ? `&type=${activeType}` : ''}&page=${currentPage - 1}`}
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-primary)"
+            >
+              <span class="text-white text-xl font-semibold">&lt;</span>
+            </a>
+          )}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => {
+            const href = `?search=${search}${activeType ? `&type=${activeType}` : ''}&page=${p}`
+            return (
+              <a
+                href={href}
+                class={`flex h-10 w-10 items-center justify-center rounded-full ${p === currentPage ? 'bg-(--color-primary) text-white' : 'bg-gray-300 text-black'} text-xl font-semibold`}
+              >
+                {p}
+              </a>
+            )
+          })}
+          {currentPage < totalPages && (
+            <a
+              href={`?search=${search}${activeType ? `&type=${activeType}` : ''}&page=${currentPage + 1}`}
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-primary)"
+            >
+              <span class="text-white text-xl font-semibold">&gt;</span>
+            </a>
+          )}
+        </div>
+      )}
     </div>
   </div>
 </section>

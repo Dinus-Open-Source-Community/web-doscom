@@ -1,36 +1,35 @@
 # Users & Profile
 
-Modul: manajemen user (`/user`) dan halaman **Profile** akun login.
+Modul: manajemen user dan profil akun login.
 
-**Hak akses:** `ADMIN`, `KOOR`, `BPH` (CRUD user) · `ADMIN`, `KOOR`, `BPH`, `PENGURUS` (profil sendiri)
+**Hak akses umum:** middleware `ADMIN`, `KOOR`, `BPH`, `PENGURUS` (endpoint `/me`, `/profile`, `/change-password`)
 
-Endpoint super admin ada di [admin-user/](../admin-user/README.md).
+**Hak akses CRUD user:** middleware `ADMIN`, `KOOR`, `BPH` (role `PENGURUS` ditolak)
 
 ## Functional Requirements
 
 | ID | Requirement |
 | --- | --- |
-| USER-04 | Admin/Koor/BPH dapat list user sesuai role hierarchy |
-| USER-05 | Admin/Koor/BPH dapat create/update/delete user |
-| USER-06 | Tabel user: search, filter role, pagination |
-| USER-07 | Form create user: username, email, fullname, role, password |
-| PROF-01 | Tampilkan data user login (nama, email, role) |
-| PROF-02 | Edit profil user (username, email, fullname) |
-| PROF-03 | Ganti password sendiri |
-| PROF-06 | Sidebar header menampilkan nama & email real (bukan mock) |
+| USER-01 | User login dapat melihat profil sendiri (`GET /user/me`) |
+| USER-02 | User dapat update profil sendiri |
+| USER-03 | User dapat ganti password sendiri |
+| USER-04 | Admin/koordinator/BPH dapat list user (tanpa pagination) |
+| USER-05 | Admin/koordinator/BPH dapat CRUD user sesuai scope role |
+| USER-06 | List user difilter by role creator (backend enforce) |
 
 ## UI Requirements
 
-### Profile Page
+| Halaman | Endpoint |
+| --- | --- |
+| Profile admin | `useMeQuery`, `usePengurusProfileQuery` |
+| User management | `useUsersQuery`, `useCreateUserMutation` |
+| Change password modal | `useChangePasswordMutation` |
 
-1. **Account** — form user profile + change password
-2. Sidebar: ganti mock di `Sidebar.astro` dengan `useMeQuery().data.full_name` dan `.email`
+## Catatan Penting
 
-### Validasi Form
-
-- Email format valid
-- Password min 8 karakter (jika diinput manual)
-- Role harus dari daftar role key valid (`constants.RoleGroup` backend)
+- `GET /user` **tidak** mendukung pagination — mengembalikan seluruh array user sesuai role.
+- Auth via cookie `AccessToken` atau header `Authorization: Bearer`.
+- Response format envelope untuk semua endpoint modul ini.
 
 ## Endpoints
 
@@ -48,5 +47,5 @@ Endpoint super admin ada di [admin-user/](../admin-user/README.md).
 ## Types & Hooks
 
 - Types: `lib/types/user.ts`
-- Hooks: `hooks/user.ts`
-- Service: `userService`
+- Service: `userService.*`
+- Hooks: `hooks/user.ts` — `useMeQuery`, `useUsersQuery`, `useUpdateProfileMutation`, dll.

@@ -1,0 +1,154 @@
+---
+import { Close } from '../../../assets/icons'
+
+interface Props {
+  id: string
+  title: string
+  description?: string
+  size?: 'sm' | 'md' | 'lg'
+  variant?: 'default' | 'danger'
+}
+
+const { id, title, description, size = 'md', variant = 'default' } = Astro.props
+
+const sizeClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-2xl',
+}
+
+const isDanger = variant === 'danger'
+---
+
+{/* Backdrop Wrapper */}
+<div
+  id={id}
+  class="admin-modal-backdrop fixed inset-0 z-100 hidden items-center justify-center bg-gray-900/40 px-4 pt-[5vh] opacity-0 backdrop-blur-sm transition-opacity duration-300 sm:pt-0"
+>
+  {/* Modal Content */}
+  <div
+    class:list={[
+      'admin-modal-content flex w-full scale-95 transform flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 opacity-0 shadow-2xl transition-all duration-300',
+      sizeClasses[size],
+    ]}
+  >
+    {/* Header */}
+    <div
+      class:list={[
+        'mb-6 flex justify-between',
+        isDanger ? 'items-start' : 'items-center',
+      ]}
+    >
+      <div class="flex flex-col gap-1.5">
+        {
+          isDanger && (
+            <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <>
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </>
+              </svg>
+            </div>
+          )
+        }
+        <div>
+          <h2 class="text-lg font-bold text-gray-900">{title}</h2>
+          {
+            description && (
+              <p class="mt-1 text-xs text-gray-400 sm:text-sm">{description}</p>
+            )
+          }
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="btn-close-modal self-start rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900"
+      >
+        <span
+          class="flex h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+          set:html={Close}
+        />
+      </button>
+    </div>
+
+    {/* Form / Content Slot */}
+    <slot />
+  </div>
+</div>
+
+<script>
+  // Logika Global untuk semua modal berbasis div
+  ;(window as any).openModal = (modalId: string) => {
+    const backdrop = document.getElementById(modalId)
+    if (!backdrop) return
+    const content = backdrop.querySelector('.admin-modal-content')
+
+    backdrop.classList.remove('hidden')
+    backdrop.classList.add('flex')
+
+    // Delay super kecil agar transisi CSS terbaca
+    setTimeout(() => {
+      backdrop.classList.remove('opacity-0')
+      content?.classList.remove('opacity-0', 'scale-95')
+      document.body.style.overflow = 'hidden' // Kunci scroll di background
+    }, 10)
+  }
+  ;(window as any).closeModal = (modalId: string) => {
+    const backdrop = document.getElementById(modalId)
+    if (!backdrop) return
+    const content = backdrop.querySelector('.admin-modal-content')
+
+    // Mulai animasi menghilang
+    backdrop.classList.add('opacity-0')
+    content?.classList.add('opacity-0', 'scale-95')
+
+    // Tunggu animasi 300ms selesai sebelum benar-benar di-hide
+    setTimeout(() => {
+      backdrop.classList.add('hidden')
+      backdrop.classList.remove('flex')
+      document.body.style.overflow = ''
+
+      // Reset form otomatis
+      const form = backdrop.querySelector('form')
+      if (form) form.reset()
+    }, 300)
+  }
+
+  // Event Listener Global
+  document.addEventListener('click', e => {
+    const target = e.target as HTMLElement
+
+    // Klik di area backdrop luar
+    if (target.classList.contains('admin-modal-backdrop')) {
+      ;(window as any).closeModal(target.id)
+    }
+
+    // Klik tombol close (Silang / Cancel)
+    const closeBtn = target.closest('.btn-close-modal')
+    if (closeBtn) {
+      const modal = closeBtn.closest('.admin-modal-backdrop')
+      if (modal) (window as any).closeModal(modal.id)
+    }
+  })
+
+  // Tekan Escape untuk menutup modal yang sedang terbuka
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const openModal = document.querySelector('.admin-modal-backdrop.flex')
+      if (openModal) (window as any).closeModal(openModal.id)
+    }
+  })
+</script>

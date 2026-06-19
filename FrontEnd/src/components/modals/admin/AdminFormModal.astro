@@ -1,0 +1,210 @@
+---
+import { Modal } from '../../../components'
+import ButtonAdmin from '../../ui/ButtonAdmin.astro'
+
+interface Props {
+  mode: 'add' | 'edit'
+}
+
+const { mode } = Astro.props
+
+const isAdd = mode === 'add'
+const modalId = isAdd ? 'add-admin-modal' : 'edit-admin-modal'
+const formId = isAdd ? 'form-add-admin' : 'form-edit-admin'
+const title = isAdd ? 'Add Super Admin' : 'Edit Super Admin'
+const desc = isAdd
+  ? 'Create a new super administrator account'
+  : 'Update administrator details'
+const btnText = isAdd ? 'Create Admin' : 'Save Changes'
+---
+
+<Modal id={modalId} title={title} description={desc} size="md">
+  <form id={formId} data-mode={mode} class="admin-form flex flex-col gap-4">
+    {/* Hidden Input untuk menyimpan ID saat Edit */}
+    <input type="hidden" name="target_id" class="target-id-input" />
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700">Full Name</label>
+      <input
+        type="text"
+        name="fullname"
+        required
+        placeholder="e.g., Super Admin Baru"
+        class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-medium text-gray-700">Email Address</label>
+      <input
+        type="email"
+        name="email"
+        required
+        placeholder="e.g., super@doscom.id"
+        class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+      />
+    </div>
+
+    {/* Kolom Password hanya di-render untuk pembuatan Admin baru */}
+    {
+      isAdd && (
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-gray-700">Password</label>
+          <input
+            type="password"
+            name="password"
+            required
+            minlength="8"
+            placeholder="••••••••"
+            class="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm transition-all outline-none focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          />
+        </div>
+      )
+    }
+
+    <div
+      class="mt-2 flex w-full items-center justify-end gap-3 border-t border-gray-100 pt-5"
+    >
+      <ButtonAdmin
+        type="button"
+        variant="admin-outline"
+        onclick={`window.closeModal('${modalId}')`}
+        class="w-full sm:w-auto"
+      >
+        Cancel
+      </ButtonAdmin>
+      <ButtonAdmin
+        type="submit"
+        variant="admin-primary"
+        class="w-full sm:w-auto"
+      >
+        {btnText}
+      </ButtonAdmin>
+    </div>
+  </form>
+</Modal>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- FUNGSI GLOBAL PEMBUKA MODAL ---
+
+    if (typeof (window as any).openAddAdminModal === 'undefined') {
+      ;(window as any).openAddAdminModal = () => {
+        ;(window as any).openModal('add-admin-modal')
+      }
+    }
+
+    if (typeof (window as any).openEditAdminModal === 'undefined') {
+      // Fungsi edit menerima parameter opsional untuk auto-fill form (bisa diisi dari tabel)
+      ;(window as any).openEditAdminModal = (
+        adminId: string,
+        currentName?: string,
+        currentEmail?: string
+      ) => {
+        if (!adminId) return
+        const editForm = document.getElementById('form-edit-admin')
+
+        if (editForm) {
+          const idInput = editForm.querySelector(
+            '.target-id-input'
+          ) as HTMLInputElement
+          if (idInput) idInput.value = adminId
+
+          const nameInput = editForm.querySelector(
+            '[name="fullname"]'
+          ) as HTMLInputElement
+          if (nameInput && currentName) nameInput.value = currentName
+
+          const emailInput = editForm.querySelector(
+            '[name="email"]'
+          ) as HTMLInputElement
+          if (emailInput && currentEmail) emailInput.value = currentEmail
+        }
+
+        ;(window as any).openModal('edit-admin-modal')
+      }
+    }
+
+    // --- LOGIKA SUBMIT GABUNGAN (JSON API) ---
+    const forms = document.querySelectorAll(
+      '.admin-form'
+    ) as NodeListOf<HTMLFormElement>
+
+    forms.forEach(form => {
+      if (form.dataset.listenerAttached === 'true') return
+      form.dataset.listenerAttached = 'true'
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault()
+
+        const submitBtn = form.querySelector(
+          'button[type="submit"]'
+        ) as HTMLButtonElement
+        const originalText = submitBtn.innerText
+        submitBtn.innerText = 'Saving...'
+        submitBtn.disabled = true
+
+        const mode = form.getAttribute('data-mode')
+        const isAdd = mode === 'add'
+
+        try {
+          const formData = new FormData(form)
+          const targetId = formData.get('target_id')
+
+          // Hapus target_id dari payload karena tidak dibutuhkan oleh backend
+          formData.delete('target_id')
+
+          // Konversi FormData ke JSON Object
+          const dataPayload = Object.fromEntries(formData.entries())
+
+          // Penentuan Endpoint & Method
+          const endpoint = isAdd
+            ? 'https://api.doscom.id/v1/superadmin'
+            : `https://api.doscom.id/v1/superadmin/${targetId}`
+
+          // Untuk JSON, edit umumnya menggunakan PUT murni (tidak perlu _method spoofing)
+          const fetchMethod = isAdd ? 'POST' : 'PUT'
+
+          const response = await fetch(endpoint, {
+            method: fetchMethod,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dataPayload),
+          })
+
+          const result = await response.json()
+
+          if (
+            (response.status === 201 || response.status === 200) &&
+            result.success
+          ) {
+            const modalId = isAdd ? 'add-admin-modal' : 'edit-admin-modal'
+            ;(window as any).closeModal(modalId)
+            ;(window as any).showToast(
+              `Super Admin ${isAdd ? 'created' : 'updated'} successfully!`,
+              'success'
+            )
+
+            // Opsional: Reload halaman untuk refresh data tabel
+            // setTimeout(() => window.location.reload(), 1000)
+          } else {
+            ;(window as any).showToast(
+              result.message || 'Failed to process request',
+              'error'
+            )
+          }
+        } catch (error) {
+          console.error('Network Error:', error)
+          ;(window as any).showToast(
+            'Network error, please try again.',
+            'error'
+          )
+        } finally {
+          submitBtn.innerText = originalText
+          submitBtn.disabled = false
+        }
+      })
+    })
+  })
+</script>

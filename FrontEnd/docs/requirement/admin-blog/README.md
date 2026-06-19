@@ -1,6 +1,6 @@
 # Admin — Blog Management
 
-Modul admin: sidebar **Blog** — CRUD artikel.
+Modul admin: CRUD artikel blog.
 
 **Hak akses:** `SuperAdmin`, `KoorMedcrev`
 
@@ -8,27 +8,27 @@ Modul admin: sidebar **Blog** — CRUD artikel.
 
 | ID | Requirement |
 | --- | --- |
-| BLOG-01 | List blog dengan pagination & filter kategori |
-| BLOG-02 | Create blog dengan rich content + gambar |
-| BLOG-03 | Edit blog (termasuk ganti/reuse gambar existing) |
-| BLOG-04 | Delete blog |
-| BLOG-05 | Preview thumbnail & kategori di tabel |
-| BLOG-06 | Status: draft, published, scheduled, dll. |
-| BLOG-07 | Max 3 kategori per blog |
+| BLOG-ADM-01 | List semua blog (termasuk draft) dengan filter kategori |
+| BLOG-ADM-02 | Create blog dengan upload gambar / existing gallery ID |
+| BLOG-ADM-03 | Update blog |
+| BLOG-ADM-04 | Delete blog |
+| BLOG-ADM-05 | Kelola status publish |
 
-## UI Requirements
+## Format Respons
 
-| Elemen | Requirement |
-| --- | --- |
-| Tabel | Kolom: thumbnail, title, kategori, status, published_at, actions |
-| Editor | Rich text untuk `content` (Tiptap/similar — TBD) |
-| Image picker | Upload baru + pilih dari gallery existing (`existingID_image`) |
-| Slug | Auto-generate dari title, editable |
-| Validasi | Max 3 kategori, slug required |
+Blog admin menggunakan **flat JSON** (tanpa envelope). Lihat [shared.md](../shared.md).
 
-## Status Values (Backend)
+## Status Valid
 
-`draft`, `published`, `scheduled`, `unpublished`, `rejected`, `pending_review`
+`draft`, `published`, `unpublished`, `rejected`, `pending_review`
+
+**Tidak ada** status `scheduled`.
+
+## Backend Quirk — Admin List Query
+
+Admin list memakai query param **`kategory[]`** (typo di backend handler), bukan `kategori[]`.
+
+Frontend type: `AdminBlogQuery.kategory?: string[]`
 
 ## Endpoints
 
@@ -43,5 +43,5 @@ Modul admin: sidebar **Blog** — CRUD artikel.
 ## Types & Hooks
 
 - Types: `lib/types/blog.ts`
-- Hooks: `hooks/blog.ts` — `useAdminBlogsQuery`, `useCreateBlogMutation`, dll.
 - Service: `blogService.admin.*`
+- Hooks: `useAdminBlogsQuery`, `useCreateBlogMutation`, `useUpdateBlogMutation`, `useDeleteBlogMutation`

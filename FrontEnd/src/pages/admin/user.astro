@@ -3,8 +3,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro'
 import ButtonAdmin from '../../components/ui/ButtonAdmin.astro'
 import Table from '../../components/ui/Table.astro'
 import Pagination from '../../components/ui/Pagination.astro'
-import { Download, Plus, Search, Filter, Edit, More } from '../../assets/icons'
-import { AddAdminModal, ChangePasswordModal } from '../../components'
+import { Download, Plus, Search, Filter } from '../../assets/icons'
+
+import AdminFormModal from '@components/modals/admin/AdminFormModal.astro'
+import ChangePasswordModal from '@components/modals/admin/ChangePasswordModal.astro'
 
 // Simulasi fetch data API
 const apiResponse = {
@@ -61,6 +63,7 @@ const tableData = apiResponse.data.map(admin => ({
         </ButtonAdmin>
         <ButtonAdmin
           id="btn-open-add-admin"
+          onclick="window.openAddAdminModal()"
           variant="admin-primary"
           size="small"
           class="font-bold select-none"
@@ -131,6 +134,8 @@ const tableData = apiResponse.data.map(admin => ({
       />
     </div>
   </div>
-  <AddAdminModal />
+
+  <AdminFormModal mode="add" />
+  <AdminFormModal mode="edit" />
   <ChangePasswordModal />
 </AdminLayout>

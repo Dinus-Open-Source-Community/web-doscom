@@ -2,17 +2,17 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Detail pengurus by pengurus ID (admin view, termasuk email dan id_user).
 
 ## Authentication
 
-Bearer — KOOR, BPH, ADMIN
+Bearer atau cookie — middleware `KOOR`, `BPH`, `ADMIN`
 
 ## Path Parameters
 
 | Param | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| id | integer | True |  |
+| id | number | True | Pengurus ID |
 
 ## Response Success
 
@@ -26,14 +26,28 @@ Format envelope `{ success, message, data, error }`.
   "message": "Successfully get data",
   "data": {
     "id": 1,
-    "name": "Member",
-    "email": "m@example.com"
-  }
+    "id_user": 5,
+    "photo_url": "https://...",
+    "email": "user@doscom.id",
+    "divisi": "pemro",
+    "name": "John Doe",
+    "position": "koordinatorPemrograman",
+    "sosmed": [],
+    "start_periode_year": 2024,
+    "end_periode_year": 2025,
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z"
+  },
+  "error": null
 }
 ```
+
+## Response Error
+
+**404** — tidak ditemukan atau di luar scope divisi.
 
 ## Frontend
 
 - Service: `pengurusService.admin.getById`
 - Hook: `useAdminPengurusQuery`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.admin.pengurus.detail(id)`

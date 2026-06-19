@@ -1,3 +1,5 @@
+import type { ApiEnvelope } from "./common";
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -11,14 +13,8 @@ export interface RegisterPayload {
   fullname: string;
 }
 
-export interface LoginResponse {
-  acces_token?: string;
-  access_token?: string;
-  message?: string;
-  "message:"?: string;
-}
+/** Auth endpoints return envelope; tokens are set via HttpOnly cookies. */
+export type AuthResponse = ApiEnvelope<null>;
 
-export interface RefreshTokenResponse {
-  access_token: string;
-  message?: string;
-}
+export type LoginResponse = AuthResponse;
+export type RefreshTokenResponse = AuthResponse;

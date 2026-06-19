@@ -2,48 +2,67 @@
 
 ## Ringkasan
 
-Dokumentasi request/response endpoint backend.
+Buat blog baru dengan konten, kategori, status, dan gambar.
 
 ## Authentication
 
-Bearer — SuperAdmin, KoorMedcrev
+Bearer atau cookie — middleware `SuperAdmin`, `KoorMedcrev`
 
 ## Headers
 
 | Header | Nilai |
 | --- | --- |
 | Content-Type | `multipart/form-data` |
-| Authorization | `Bearer {access_token}` |
 
-## Form Data
+## Request Body (Form Data)
 
 | Field | Tipe | Required | Keterangan |
 | --- | --- | --- | --- |
-| title | string | True |  |
-| slug | string | True | Unique |
-| content | string | True | HTML/content |
-| kategori | string[] | True | Max 3 |
-| status | string | True | draft|published|scheduled|... |
-| published_at | datetime | False | RFC3339 |
-| existingID_image | number[] | False | Reuse gallery IDs |
+| title | string | True | Judul |
+| slug | string | True | Slug unik |
+| content | string | True | Konten (HTML/markdown) |
+| kategori | string[] | True | Array kategori |
+| status | string | True | `draft`, `published`, `unpublished`, `rejected`, `pending_review` |
+| published_at | string | False | RFC3339 datetime |
+| existingID_image | number[] | False | ID gallery existing |
 | files | file[] | False | Upload gambar baru |
 
 ## Response Success
 
 **Status:** `200`
 
+Format **flat** (tanpa envelope):
+
 ```json
 {
   "message": "successfully create blog",
   "data": {
     "id": 1,
-    "title": "Judul"
+    "author_id": 2,
+    "title": "Judul Artikel",
+    "slug": "judul-artikel",
+    "content": "...",
+    "kategori": ["tech"],
+    "thumbnail_url": "https://...",
+    "published_at": null,
+    "blog_image": []
   }
 }
 ```
+
+## Response Error
+
+**403** — role tidak diizinkan.
+
+**400** — validasi gagal.
+
+## Catatan
+
+- Tidak ada status `scheduled`.
+- Status default di service: `draft` jika kosong.
 
 ## Frontend
 
 - Service: `blogService.admin.create`
 - Hook: `useCreateBlogMutation`
-- API path: `API_PATH` di `lib/api-path.ts`
+- API path: `API_PATH.admin.blogs.list`

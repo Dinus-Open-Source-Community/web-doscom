@@ -7,3 +7,4 @@ export * from "./gallery";
 export * from "./work";
 export * from "./pengurus";
 export * from "./upload";
+export * from "./history";

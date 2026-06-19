@@ -15,9 +15,13 @@ Modul: manajemen file MinIO — dipakai silang oleh blog, gallery, work, penguru
 
 | Endpoint | Role |
 | --- | --- |
-| `GET /upload/files` | Semua user login |
+| `GET /upload/files` | Semua user login (auth middleware tanpa role filter) |
 | `DELETE /upload/file` | Semua user login |
 | `POST /upload/image` | **Disabled** (commented di backend) |
+
+## Format Respons
+
+Upload menggunakan **flat JSON** dengan field `success`, `message` — bukan envelope standar `{ data, error }`.
 
 ## UI Requirements
 
@@ -31,10 +35,6 @@ Modul: manajemen file MinIO — dipakai silang oleh blog, gallery, work, penguru
 
 Upload routes hanya diregister jika MinIO client tersedia di backend (`routes.go`). Jika MinIO down, endpoint upload tidak available.
 
-## Future Requirement
-
-Aktifkan `POST /upload/image` untuk upload standalone — koordinasi dengan tim backend.
-
 ## Endpoints
 
 | Method | Path | Dokumen |
@@ -46,4 +46,4 @@ Aktifkan `POST /upload/image` untuk upload standalone — koordinasi dengan tim 
 
 - Types: `lib/types/upload.ts`
 - Service: `uploadService`
-- Hooks: `hooks/upload.ts`
+- Hooks: `useUploadFilesQuery`, `useDeleteUploadFileMutation`

@@ -1,6 +1,20 @@
 ---
 import Button from './ui/Button.astro';
 import Card from './ui/Card.astro';
+
+interface WorkItem {
+	image_url: string;
+	title: string;
+	description: string;
+	project_type: string;
+	slug: string;
+}
+
+interface Props {
+	items: WorkItem[];
+}
+
+const { items } = Astro.props;
 ---
 
 <div
@@ -25,7 +39,7 @@ import Card from './ui/Card.astro';
 		</p>
 
 		<div class="hidden md:flex gap-2 md:sticky top-0 right-4">
-			<Button variant="primary" size="icon">
+			<Button id="programs-btn-left" variant="primary" size="icon">
 				<img
 					src="/assets/icons/arrowleft.svg"
 					alt="arrow left"
@@ -33,7 +47,7 @@ import Card from './ui/Card.astro';
 					height="24"
 				/>
 			</Button>
-			<Button variant="primary" size="icon">
+			<Button id="programs-btn-right" variant="primary" size="icon">
 				<img
 					src="/assets/icons/arrowright.svg"
 					alt="arrow right"
@@ -45,49 +59,39 @@ import Card from './ui/Card.astro';
 	</div>
 
 	<div
+		id="programs-carousel"
 		class="relative flex flex-row overflow-x-auto pt-2 no-scrollbar gap-4 md:gap-6"
 	>
-		<Card
-			image="/assets/image/realeaseParty.jpg"
-			title="Release Party"
-			desc="Release Party adalah momen istimewa di mana Doscom secara resmi meluncurkan TeaLinuxOS, sebuah distro Linux berbasis open source yang dikembangkan secara mandiri oleh Doscom (Dinus Open Source Community)"
-			titleButton="Look Now"
-			variant="programs"
-		/>
-		<Card
-			image="/assets/image/oots.jpg"
-			title="Open Source On The School"
-			desc="Open Source on The School adalah program berbagi ilmu dan inspirasi untuk siswa tingkat sekolah. Di sini, peserta diperkenalkan pada dunia open source, pemrograman dasar, dan pentingnya kolaborasi dalam teknologi."
-			titleButton="Look Now"
-			variant="programs"
-		/>
-		<Card
-			image="/assets/image/du.jpg"
-			title="Doscom University"
-			desc="Doscom University adalah sebuah program pelatihan atau event yang diselenggarakan oleh Doscom (Dinus Open Source Community), sebuah komunitas open source di bawah naungan Univeristas Dian Nuswantoro. "
-			titleButton="Look Now"
-			variant="programs"
-		/>
-		<Card
-			image="/assets/image/realeaseParty.jpg"
-			title="Release Party"
-			desc="Release Party adalah momen istimewa di mana Doscom secara resmi meluncurkan TeaLinuxOS, sebuah distro Linux berbasis open source yang dikembangkan secara mandiri oleh Doscom (Dinus Open Source Community)"
-			titleButton="Look Now"
-			variant="programs"
-		/>
-		<Card
-			image="/assets/image/oots.jpg"
-			title="Open Source On The School"
-			desc="Open Source on The School adalah program berbagi ilmu dan inspirasi untuk siswa tingkat sekolah. Di sini, peserta diperkenalkan pada dunia open source, pemrograman dasar, dan pentingnya kolaborasi dalam teknologi."
-			titleButton="Look Now"
-			variant="programs"
-		/>
-		<Card
-			image="/assets/image/du.jpg"
-			title="Doscom University"
-			desc="Doscom University adalah sebuah program pelatihan atau event yang diselenggarakan oleh Doscom (Dinus Open Source Community), sebuah komunitas open source di bawah naungan Univeristas Dian Nuswantoro. "
-			titleButton="Look Now"
-			variant="programs"
-		/>
+		{items.map((item) => (
+			<Card
+				image={item.image_url}
+				title={item.title}
+				desc={item.description}
+				titleButton="Look Now"
+				variant="programs"
+			/>
+		))}
 	</div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const carousel = document.getElementById('programs-carousel')
+    const btnLeft = document.getElementById('programs-btn-left')
+    const btnRight = document.getElementById('programs-btn-right')
+
+    if (btnLeft && btnRight && carousel) {
+      btnLeft.addEventListener('click', () => {
+        const cardWidth = carousel.firstElementChild?.clientWidth || 0
+        const gap = parseFloat(getComputedStyle(carousel).columnGap) || 0
+        carousel.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' })
+      })
+
+      btnRight.addEventListener('click', () => {
+        const cardWidth = carousel.firstElementChild?.clientWidth || 0
+        const gap = parseFloat(getComputedStyle(carousel).columnGap) || 0
+        carousel.scrollBy({ left: cardWidth + gap, behavior: 'smooth' })
+      })
+    }
+  })
+</script>

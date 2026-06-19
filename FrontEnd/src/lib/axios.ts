@@ -3,7 +3,7 @@ import { getAccessToken } from "./func/auth";
 import { toApiError } from "./func/error";
 
 export const api = axios.create({
-  baseURL: import.meta.env.PUBLIC_API_URL ?? "http://localhost:8080/api/v1",
+  baseURL: import.meta.env.SSR_API_URL ?? import.meta.env.PUBLIC_API_URL ?? "http://localhost:8080/api/v1",
   withCredentials: true,
 });
 
