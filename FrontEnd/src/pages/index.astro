@@ -6,17 +6,32 @@ import Home from '../components/Home.astro'
 import OurPrograms from '../components/OurPrograms.astro'
 import OurWorks from '../components/OurWorks.astro'
 import OurActivities from '../components/OurActivities.astro'
+import { workService } from '../services/work.service'
+
+interface WorkItem {
+	image_url: string
+	title: string
+	description: string
+	project_type: string
+	slug: string
+}
+
+let works: WorkItem[] = []
+try {
+	const worksResponse = await workService.list()
+	works = (worksResponse["work data"] ?? worksResponse.worksData ?? []) as WorkItem[]
+} catch {}
 ---
 
 <PublicLayout title="Home">
   <section class="w-full bg-white">
     <Home />
-    <OurPrograms />
+    <OurPrograms items={works} />
     <div class="mt-12 h-full w-full bg-(--color-primary)">
       <VisiMisi />
     </div>
-    <OurWorks />
-    <OurActivities />
+    <OurWorks items={works} />
+    <OurActivities items={works} />
     <CreateImpact />
   </section>
 </PublicLayout>

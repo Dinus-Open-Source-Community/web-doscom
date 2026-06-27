@@ -1,13 +1,11 @@
-version: '3.9'
-
 services:
   # PostgreSQL Database
   db:
     image: postgres:16-alpine
     container_name: doscom-db
     restart: unless-stopped
-    env_file:
-      - ./BackEnd/.env
+    #env_file:
+    #  - ./BackEnd/.env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -19,6 +17,28 @@ services:
     networks:
       - doscom-network
 
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: doscom-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000" # MinIO API
+      - "9001:9001" # MinIO Console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    networks:
+      - doscom-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
   # Go Backend
   backend:
     build:
@@ -29,15 +49,20 @@ services:
     working_dir: /app
     env_file:
       - ./BackEnd/.env
+    environment:
+      DBURL: postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?sslmode=${DB_SSLMODE}
     ports:
       - "3000:3000"
     depends_on:
       - db
-    # volumes:
-    #   - ./BackEnd:/app
+      - minio
+    volumes:
+      - ./BackEnd/storage/uploads/foto:/app/storage/uploads/foto:ro
+      - ./BackEnd/storage/uploads/work:/app/storage/uploads/work:ro
+      - ./BackEnd/storage/uploads/history:/app/storage/uploads/history:ro
     networks:
       - doscom-network
-    entrypoint: [ "/bin/sh", "/app/docker-entrypoint.sh" ]
+    entrypoint: ["/bin/sh", "/app/docker-entrypoint.sh"]
 
   # Frontend (Vite/Next/React)
   frontend:
@@ -55,6 +80,7 @@ services:
       - /usr/src/app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+      - SSR_API_URL=${SSR_API_URL}
     networks:
       - doscom-network
     command: npm run dev -- --host 0.0.0.0
@@ -65,33 +91,11 @@ services:
     container_name: doscom-adminer
     restart: unless-stopped
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       - db
     networks:
       - doscom-network
-
-  # MinIO Object Storage
-  minio:
-    image: minio/minio:latest
-    container_name: doscom-minio
-    restart: unless-stopped
-    ports:
-      - "9000:9000" # MinIO API
-      - "9001:9001" # MinIO Console
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
-    volumes:
-      - minio_data:/data
-    networks:
-      - doscom-network
-    command: server /data --console-address ":9001"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
-      interval: 30s
-      timeout: 20s
-      retries: 3
 
 networks:
   doscom-network:

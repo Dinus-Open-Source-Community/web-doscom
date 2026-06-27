@@ -13,7 +13,7 @@ tmp/
 # --------------------------
 # folder rak penting
 # --------------------------
-storage/
+# storage/
 
 # --------------------------
 # Node / npm (backend might use some node scripts)

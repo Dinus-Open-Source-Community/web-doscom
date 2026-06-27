@@ -1,0 +1,40 @@
+---
+import type { WorkPublic } from "@lib/types";
+
+interface Props {
+  work: WorkPublic;
+}
+
+const { work } = Astro.props as Props;
+---
+
+<section class="flex flex-col gap-8">
+  <div
+    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-end"
+  >
+    <h1
+      class="text-4xl font-bold tracking-tight text-gray-900 md:text-5xl lg:text-6xl"
+    >
+      {work.title}
+    </h1>
+    <span class="text-lg font-medium text-gray-600 md:text-xl">
+      {work.project_type}
+    </span>
+  </div>
+
+  <div
+    class="relative aspect-video w-full overflow-hidden rounded-3xl bg-gray-100 sm:aspect-[21/9]"
+  >
+    {work.image_url ? (
+      <img
+        src={work.image_url}
+        alt={work.title}
+        class="h-full w-full object-cover object-center"
+      />
+    ) : (
+      <div class="flex h-full w-full items-center justify-center text-gray-400">
+        No Image
+      </div>
+    )}
+  </div>
+</section>

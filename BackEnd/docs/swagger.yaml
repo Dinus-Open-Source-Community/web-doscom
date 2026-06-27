@@ -1,1367 +1,2354 @@
+swagger: '2.0'
+info:
+  title: Web Doscom API
+  description: 'Dokumentasi REST API Web Doscom (DOSCOM Udinus).
+
+
+    ## Autentikasi
+
+    - Login via POST /api/v1/auth/login untuk mendapatkan access token JWT.
+
+    - Kirim token pada header Authorization: Bearer {access_token}.
+
+    - Refresh token disimpan pada HTTP-only cookie RefreshToken (path /api/v1/auth).
+
+    - Perbarui access token via POST /api/v1/auth/refresh (cookie wajib ada).
+
+
+    ## Format Respons
+
+    Semua endpoint mengembalikan envelope JSON standar:
+
+    - success (boolean)
+
+    - message (string)
+
+    - data (any, bisa null)
+
+    - error (string atau null, hanya ada saat gagal)
+
+
+    ## Role Groups (middleware)
+
+    - ADMIN: SuperAdmin
+
+    - KOOR: KoorPemro, KoorJaringan, KoorData, KoorMedcrev, BPH
+
+    - BPH: BPH
+
+    - PENGURUS: pemroAnggota, jaringanAnggota, medcrevAnggota, dataAnggota, BPHAnggota
+
+    '
+  version: '1.0'
+  contact:
+    name: DOSCOM Udinus
 basePath: /
+schemes:
+- http
+- https
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    in: header
+    name: Authorization
+    description: 'JWT access token. Format: Bearer {access_token}'
 definitions:
-  internal_handler.DeleteFileRequest:
+  ApiSuccessResponse:
+    type: object
     properties:
-      file_name:
+      success:
+        type: boolean
+        example: true
+      message:
         type: string
+      data:
+        type: object
+        x-nullable: true
+  ApiErrorResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+        example: false
+      message:
+        type: string
+      error:
+        type: string
+        x-nullable: true
+      data:
+        type: object
+        x-nullable: true
+  AuthErrorResponse:
+    type: object
+    properties:
+      error:
+        type: string
+      message:
+        type: string
+        x-nullable: true
+  LoginRequest:
+    type: object
     required:
-    - file_name
-    type: object
-  internal_handler.DeleteFileResponse:
+    - email
+    - password
     properties:
-      message:
+      email:
         type: string
-      success:
-        type: boolean
+        format: email
+        example: admin@doscom.id
+      password:
+        type: string
+        format: password
+        example: password123
+  RegisterRequest:
     type: object
-  internal_handler.ListFilesResponse:
+    required:
+    - email
+    - fullname
     properties:
-      count:
-        type: integer
-      files:
-        items:
-          type: string
-        type: array
-      message:
+      username:
         type: string
-      success:
-        type: boolean
+      email:
+        type: string
+        format: email
+      password:
+        type: string
+        format: password
+        minLength: 8
+      role:
+        type: string
+        description: Role key user (contoh SuperAdmin, KoorMedcrev, pemroAnggota)
+      fullname:
+        type: string
+  UserResponse:
     type: object
-  internal_handler.UploadImageResponse:
     properties:
-      file_name:
-        type: string
-      file_url:
-        type: string
-      message:
-        type: string
-      success:
-        type: boolean
-    type: object
-  multipart.FileHeader:
-    properties:
-      filename:
-        type: string
-      header:
-        $ref: '#/definitions/textproto.MIMEHeader'
-      size:
-        format: int64
-        type: integer
-    type: object
-  textproto.MIMEHeader:
-    additionalProperties:
-      items:
-        type: string
-      type: array
-    type: object
-  web_doscom_internal_database_model.Blog:
-    properties:
-      content:
-        type: string
-      created_at:
-        type: string
       id:
         type: integer
-      id_pengurus:
-        type: integer
-      id_work:
-        type: integer
-      is_published:
-        default: false
-        type: boolean
-      kategori:
+      username:
         type: string
-      published_at:
+      email:
+        type: string
+      role:
+        type: string
+      full_name:
+        type: string
+  UserPatch:
+    type: object
+    properties:
+      username:
+        type: string
+      email:
+        type: string
+      fullname:
+        type: string
+  ChangePasswordRequest:
+    type: object
+    required:
+    - old_password
+    - new_password
+    properties:
+      old_password:
+        type: string
+        format: password
+      new_password:
+        type: string
+        format: password
+  AdminChangePasswordRequest:
+    type: object
+    required:
+    - new_password
+    properties:
+      new_password:
+        type: string
+        format: password
+  BlogThumbnail:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
         type: string
       slug:
         type: string
+      kategori:
+        type: string
+      thumbnail_url:
+        type: string
+  BlogGalleryResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+      blog_id:
+        type: integer
+      gallery_id:
+        type: integer
+  BlogResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+      author_id:
+        type: integer
       title:
         type: string
-      updated_at:
+      slug:
         type: string
-    type: object
-  web_doscom_internal_database_model.BlogPatch:
-    properties:
       content:
         type: string
-      id_activity:
-        type: integer
-      id_asset:
-        type: integer
-      id_pengurus:
-        type: integer
-      id_work:
-        type: integer
-      is_published:
-        type: boolean
       kategori:
+        type: array
+        items:
+          type: string
+      thumbnail_url:
         type: string
       published_at:
         type: string
-      slug:
-        type: string
+        format: date-time
+        x-nullable: true
+      blog_image:
+        type: array
+        items:
+          $ref: '#/definitions/BlogGalleryResponse'
+  BlogPatch:
+    type: object
+    properties:
       title:
         type: string
+      slug:
+        type: string
+      content:
+        type: string
+      kategori:
+        type: array
+        items:
+          type: string
+      status:
+        type: string
+        enum:
+        - draft
+        - published
+        - scheduled
+        - unpublished
+        - rejected
+        - pending_review
+      published_at:
+        type: string
+        format: date-time
+      existingID_image:
+        type: array
+        items:
+          type: integer
+  BlogListPublicResponse:
     type: object
-  web_doscom_internal_database_model.GalleryResponse:
     properties:
-      description:
+      message:
         type: string
-      event_date:
+      blogs:
+        type: array
+        items:
+          $ref: '#/definitions/BlogThumbnail'
+      totalPage:
+        type: integer
+      currentPage:
+        type: integer
+  BlogDetailResponse:
+    type: object
+    properties:
+      message:
         type: string
+      blog:
+        $ref: '#/definitions/BlogResponse'
+  BlogCreateResponse:
+    type: object
+    properties:
+      message:
+        type: string
+      data:
+        $ref: '#/definitions/BlogResponse'
+  GalleryResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+      id_users:
+        type: integer
       file_upload_id:
         type: integer
       gallery_name:
         type: string
       gallery_type:
         type: string
+        description: fun, proker, achievment, work, activity, blog, pengurus, dll.
+      description:
+        type: string
+      event_date:
+        type: string
+        format: date
+      file_url:
+        type: string
+  GalleryListResponse:
+    type: object
+    properties:
+      message:
+        type: string
+      totalPages:
+        type: integer
+      currentPage:
+        type: integer
+      gallery:
+        type: array
+        items:
+          $ref: '#/definitions/GalleryResponse'
+  PengurusSosmedResponse:
+    type: object
+    properties:
+      platform:
+        type: string
+      username:
+        type: string
+      url:
+        type: string
+      is_primary:
+        type: boolean
+  PengurusResponse:
+    type: object
+    properties:
       id:
         type: integer
-      id_users:
+      id_user:
         type: integer
-    type: object
-  web_doscom_internal_database_model.LoginRequest:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  web_doscom_internal_database_model.PengurusPatch:
-    properties:
-      divisi:
-        type: string
-      email:
-        type: string
-      period:
-        maxLength: 50
-        type: string
-      position:
-        description: condition just for koor and super_admin
-        type: string
-      sosmed:
-        type: string
-      url_asset:
-        $ref: '#/definitions/multipart.FileHeader'
-    type: object
-  web_doscom_internal_database_model.PengurusResponse:
-    properties:
-      divisi:
-        type: string
-      email:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      period:
-        type: string
       photo_url:
         type: string
+      email:
+        type: string
+      divisi:
+        type: string
+        enum:
+        - bph
+        - pemro
+        - jaringan
+        - medcrev
+        - data
+      name:
+        type: string
       position:
         type: string
       sosmed:
+        type: array
+        items:
+          $ref: '#/definitions/PengurusSosmedResponse'
+      start_periode_year:
+        type: integer
+      end_periode_year:
+        type: integer
+      created_at:
         type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  PengurusPublicResponse:
     type: object
-  web_doscom_internal_database_model.RefreshTokenErrorResponse:
     properties:
-      error:
-        example: token expired
-        type: string
-      message:
-        example: refresh token invalid or expired
-        type: string
-    type: object
-  web_doscom_internal_database_model.RefreshTokenSuccessResponse:
-    properties:
-      message:
-        example: refresh token success
-        type: string
-      token:
-        example: new_access_token_here
-        type: string
-    type: object
-  web_doscom_internal_database_model.RegisterRequest:
-    properties:
-      email:
-        type: string
-      fullname:
-        type: string
-      password:
-        type: string
-      role:
-        type: string
-      username:
-        type: string
-    required:
-    - email
-    - fullname
-    type: object
-  web_doscom_internal_database_model.UserPatch:
-    properties:
-      email:
-        type: string
-      fullname:
-        type: string
-      username:
-        type: string
-    type: object
-  web_doscom_internal_database_model.UserResponse:
-    properties:
-      email:
-        type: string
-      full_name:
-        type: string
       id:
         type: integer
-      role:
+      photo_url:
         type: string
-      username:
+      divisi:
         type: string
-    type: object
-info:
-  contact: {}
-  description: API Documentation Web Doscom
-  title: Web Doscom API
-  version: "1.0"
-paths:
-  /api/v1/admin/:
-    get:
-      description: Mendapatkan daftar semua user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get all users
-      tags:
-      - Super_Admin
-    post:
-      consumes:
-      - application/json
-      description: Membuat user baru
-      parameters:
-      - description: Email, FullName, Role
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Create new user
-      tags:
-      - Super_Admin
-  /api/v1/admin/{id}:
-    get:
-      description: Mendapatkan user berdasarkan ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get user by ID
-      tags:
-      - Super_Admin
-    put:
-      consumes:
-      - application/json
-      description: Mengupdate data user berdasarkan ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: User info
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/web_doscom_internal_database_model.UserPatch'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Update user
-      tags:
-      - Super_Admin
-  /api/v1/admin/superadmin:
-    post:
-      consumes:
-      - application/json
-      description: Membuat user dengan role superadmin (hanya untuk admin/superadmin)
-      parameters:
-      - description: User info
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "409":
-          description: Conflict
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Create superadmin user
-      tags:
-      - Super_Admin
-  /api/v1/blogs:
-    get:
-      description: Get all blog posts
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/web_doscom_internal_database_model.Blog'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: List all blogs
-      tags:
-      - Blog
-  /api/v1/blogs/:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Create blog dengan upload gambar baru dan/atau memilih gambar yang
-        sudah ada
-      parameters:
-      - description: Judul Blog
-        in: formData
-        name: title
-        required: true
+      name:
         type: string
-      - description: Slug Blog
-        in: formData
-        name: slug
-        required: true
+      position:
         type: string
-      - description: Konten Blog
-        in: formData
-        name: content
-        required: true
-        type: string
-      - description: Kategori Blog
-        in: formData
-        name: kategori
-        required: true
-        type: string
-      - description: Tanggal publish (format RFC3339)
-        in: formData
-        name: published_at
-        type: string
-      - description: Status publish
-        in: formData
-        name: is_published
-        type: boolean
-      - description: ID Work
-        in: formData
-        name: id_work
-        required: true
-        type: integer
-      - description: ID Pengurus
-        in: formData
-        name: id_pengurus
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Blog created successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Create a new blog
-      tags:
-      - Blog
-  /api/v1/blogs/{id}:
-    delete:
-      description: Delete a blog post
-      parameters:
-      - description: Blog ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Delete blog
-      tags:
-      - Blog
-    get:
-      description: Get detailed information of a blog
-      parameters:
-      - description: Blog ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.Blog'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get blog by ID
-      tags:
-      - Blog
-    put:
-      consumes:
-      - application/json
-      description: Update existing blog post
-      parameters:
-      - description: Blog ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Update data
-        in: body
-        name: blog
-        required: true
-        schema:
-          $ref: '#/definitions/web_doscom_internal_database_model.BlogPatch'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.Blog'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update blog
-      tags:
-      - Blog
-  /api/v1/gallery/:
-    get:
-      consumes:
-      - application/json
-      description: Mengambil data gallery berdasarkan tipe tertentu
-      parameters:
-      - description: Gallery type (fun, proker, achievment, work, activity, blog,
-          pengurus, etc)
-        in: query
-        name: type
-        required: true
-        type: string
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Page limit
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully fetch gallery data
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized, role tidak valid
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Failed to fetch gallery data
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get Gallery By Type
-      tags:
-      - Gallery
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload multiple images or videos to MinIO storage with metadata.
-        All files stored in MinIO bucket 'doscom-uploads/gallery'.
-      parameters:
-      - description: Type of gallery (fun, proker, achievment, work, activity, blog,
-          pengurus, etc)
-        in: formData
-        name: gallery_type
-        required: true
-        type: string
-      - description: Description of gallery
-        in: formData
-        name: description
-        required: true
-        type: string
-      - description: Event date (YYYY-MM-DD)
-        in: formData
-        name: event_date
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: Upload multiple image/video files
-        in: formData
-        items:
-          type: file
-        name: files
-        required: true
+      sosmed:
         type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully uploaded to MinIO
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.GalleryResponse'
-        "400":
-          description: Bad request - missing fields or invalid files
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized - authentication required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Server error - upload failed
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Upload gallery images/videos
-      tags:
-      - Gallery
-  /api/v1/gallery/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete gallery data dan file nya berdasarkan ID
-      parameters:
-      - description: Gallery ID
-        in: path
-        name: id
-        required: true
+        items:
+          $ref: '#/definitions/PengurusSosmedResponse'
+      start_periode_year:
         type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Successfully delete Gallery
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid ID
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Gallery not found
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Delete gallery by ID
-      tags:
-      - Gallery
-  /api/v1/koor/:
-    get:
-      description: Mendapatkan daftar semua user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get all users
-      tags:
-      - Koor
+      end_periode_year:
+        type: integer
+  WorkResponseClient:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      tagline:
+        type: string
+      description:
+        type: string
+      slug:
+        type: string
+      project_type:
+        type: string
+      technologies:
+        type: array
+        items:
+          type: string
+      project_date:
+        type: string
+        format: date-time
+      image_url:
+        type: string
+      gallery:
+        type: object
+  WorkResponseInternal:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      tagline:
+        type: string
+      description:
+        type: string
+      slug:
+        type: string
+      project_type:
+        type: string
+      status:
+        type: string
+      technologies:
+        type: array
+        items:
+          type: string
+      project_date:
+        type: string
+        format: date-time
+      image_url:
+        type: string
+      gallery:
+        type: object
+  WorkGalleryResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+      id_work:
+        type: integer
+      id_gallery:
+        type: integer
+  WorkUpdateResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+      pengurus_id:
+        type: integer
+      title:
+        type: string
+      tagline:
+        type: string
+      description:
+        type: string
+      slug:
+        type: string
+      project_type:
+        type: string
+      technologies:
+        type: array
+        items:
+          type: string
+      project_date:
+        type: string
+        format: date-time
+      image_url:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+        format: date-time
+      created_at:
+        type: string
+        format: date-time
+      work_gallery:
+        type: array
+        items:
+          $ref: '#/definitions/WorkGalleryResponse'
+  WorkPatch:
+    type: object
+    properties:
+      pengurus_id:
+        type: integer
+      title:
+        type: string
+      tagline:
+        type: string
+      description:
+        type: string
+      slug:
+        type: string
+      project_type:
+        type: string
+      project_date:
+        type: string
+        format: date-time
+      status:
+        type: string
+      technologies:
+        type: array
+        items:
+          type: string
+      existingID_image:
+        type: array
+        items:
+          type: integer
+  WorkListPublicData:
+    type: object
+    properties:
+      work data:
+        type: array
+        items:
+          $ref: '#/definitions/WorkResponseClient'
+      totalPage:
+        type: integer
+      currentPage:
+        type: integer
+  WorkListAdminData:
+    type: object
+    properties:
+      worksData:
+        type: array
+        items:
+          $ref: '#/definitions/WorkResponseInternal'
+      totalPage:
+        type: integer
+      currentPage:
+        type: integer
+  DeleteFileRequest:
+    type: object
+    required:
+    - file_name
+    properties:
+      file_name:
+        type: string
+        example: gallery/abc123.jpg
+  DeleteFileResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+  ListFilesResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
+      files:
+        type: array
+        items:
+          type: string
+      count:
+        type: integer
+  WorkUpdateStatusRequest:
+    type: object
+    required:
+    - status
+    properties:
+      status:
+        type: string
+        description: 'Status work (contoh: approved, rejected, pending)'
+  HistoryPhotosResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+      id_history:
+        type: integer
+      image_url:
+        type: string
+  HistoryTimelineResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+      id_author:
+        type: integer
+      title:
+        type: string
+      year:
+        type: integer
+      description:
+        type: string
+      display_order:
+        type: integer
+      photos:
+        type: array
+        items:
+          $ref: '#/definitions/HistoryPhotosResponse'
+  HistoryListResponse:
+    type: object
+    properties:
+      message:
+        type: string
+      history:
+        type: array
+        items:
+          $ref: '#/definitions/HistoryTimelineResponse'
+      totalPage:
+        type: integer
+      currentPage:
+        type: integer
+paths:
+  /api/v1/auth/login:
     post:
+      tags:
+      - Auth
+      summary: Login user
+      description: 'Autentikasi user dan mengembalikan JWT access token.
+
+        Refresh token disimpan otomatis pada cookie HTTP-only RefreshToken.
+
+        '
       consumes:
       - application/json
-      description: Membuat user baru
       parameters:
-      - description: Email, FullName
+      - name: body
         in: body
-        name: user
         required: true
         schema:
-          $ref: '#/definitions/web_doscom_internal_database_model.RegisterRequest'
-      produces:
-      - application/json
+          $ref: '#/definitions/LoginRequest'
       responses:
-        "200":
-          description: OK
+        '200':
+          description: Login berhasil
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Create new user
-      tags:
-      - Koor
-  /api/v1/koor/{id}:
-    get:
-      description: Mendapatkan user berdasarkan ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get user by ID
-      tags:
-      - Koor
-    put:
-      consumes:
-      - application/json
-      description: Mengupdate data user berdasarkan ID
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: User info
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/web_doscom_internal_database_model.UserPatch'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Update user
-      tags:
-      - Koor
-  /api/v1/login:
-    post:
-      consumes:
-      - application/json
-      description: Login untuk user dengan role Admin atau Super_Admin
-      parameters:
-      - description: Login credentials
-        in: body
-        name: login
-        required: true
-        schema:
-          $ref: '#/definitions/web_doscom_internal_database_model.LoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Login berhasil, kembalikan token JWT
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
           description: Request body invalid
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Email/password salah atau akses ditolak
+            $ref: '#/definitions/ApiErrorResponse'
+        '401':
+          description: Email/password salah atau role tidak valid
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Error saat membuat token
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal membuat token
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Admin login
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/auth/register:
+    post:
       tags:
       - Auth
-  /api/v1/logout:
-    post:
+      summary: Register user
+      description: Mendaftarkan user baru. Semua field wajib diisi, password minimal
+        8 karakter.
       consumes:
       - application/json
-      description: Logout user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Logout user
-      tags:
-      - Auth
-  /api/v1/pengurus/:
-    get:
-      consumes:
-      - application/json
-      description: Mengambil semua data penguru
       parameters:
-      - description: Filter by divisi (optional)
-        in: query
-        name: divisi
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get all Pengurus
-      tags:
-      - Pengurus
-    post:
-      consumes:
-      - multipart/form-data
-      description: Create pengurus with profile picture upload to MinIO. All files
-        uploaded to MinIO bucket.
-      parameters:
-      - description: Profile Picture (image file)
-        in: formData
-        name: file
-        required: true
-        type: file
-      - description: User ID (optional, auto-filled for non-admin)
-        in: formData
-        name: id_user
-        type: integer
-      - description: Email (optional, auto-filled for non-admin)
-        in: formData
-        name: email
-        type: string
-      - description: 'Divisi - Valid values: bph, pemro, jaringan, medcrev, data'
-        in: formData
-        name: divisi
-        required: true
-        type: string
-      - description: Name (2-150 characters)
-        in: formData
-        name: name
-        required: true
-        type: string
-      - description: 'Position - Valid values: ketum, sdm, pr, pm, pm_ang, sekum,
-          bendum, sek_ang, ben_ang, kor_pemro, kor_jaringan, kor_medcrev, kor_data,
-          anggota, pemro_ang, jaringan_ang, medcrev_ang, data_ang'
-        in: formData
-        name: position
-        required: true
-        type: string
-      - description: 'Social Media Platform (optional) - Valid values: instagram,
-          linkedin, github. Leave empty for default ''instagram'''
-        in: formData
-        name: sosmed
-        type: string
-      - description: Period (YYYY-MM-DD format)
-        in: formData
-        name: period
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
-        "400":
-          description: Validation error - check divisi, position, or sosmed values
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Server error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create new pengurus
-      tags:
-      - Pengurus
-  /api/v1/pengurus/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete data pengurus berdasarkan ID
-      parameters:
-      - description: Pengurus ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Delete Pengurus
-      tags:
-      - Pengurus
-    get:
-      consumes:
-      - application/json
-      description: Mengambil data pengurus berdasarkan ID
-      parameters:
-      - description: Pengurus ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get Pengurus by ID
-      tags:
-      - Pengurus
-    put:
-      consumes:
-      - application/json
-      description: Update data pengurus berdasarkan ID
-      parameters:
-      - description: Pengurus ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Pengurus info
+      - name: body
         in: body
-        name: pengurus
         required: true
         schema:
-          $ref: '#/definitions/web_doscom_internal_database_model.PengurusPatch'
-      produces:
-      - application/json
+          $ref: '#/definitions/RegisterRequest'
       responses:
-        "200":
-          description: OK
+        '200':
+          description: User berhasil dibuat
           schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.PengurusResponse'
-        "400":
-          description: Bad Request
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: Validasi gagal
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal menyimpan user
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/auth/refresh:
+    post:
+      tags:
+      - Auth
+      summary: Refresh access token
+      description: 'Menghasilkan access token baru menggunakan refresh token pada
+        cookie RefreshToken.
+
+        Cookie harus sudah diset dari proses login sebelumnya.
+
+        '
+      responses:
+        '200':
+          description: Token baru berhasil dibuat
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '401':
+          description: Refresh token tidak valid atau expired
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/auth/logout:
+    post:
+      tags:
+      - Auth
+      summary: Logout user
+      description: Menghapus refresh token dari database dan cookie browser.
+      responses:
+        '200':
+          description: Logout berhasil
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '401':
+          description: Cookie refresh token tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal menghapus refresh token
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/user/me:
+    get:
+      tags:
+      - User
+      summary: Get current user
+      description: Mengambil profil user yang sedang login.
       security:
-      - ApiKeyAuth: []
-      summary: Update Pengurus
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Data user saat ini
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/UserResponse'
+        '403':
+          description: Role tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/user/profile:
+    put:
+      tags:
+      - User
+      summary: Update own profile
+      description: Memperbarui profil user yang sedang login.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/UserPatch'
+      responses:
+        '200':
+          description: Profil berhasil diperbarui
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: Request body invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal memperbarui data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/user/change-password:
+    put:
+      tags:
+      - User
+      summary: Change own password
+      description: Mengganti password user yang sedang login.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ChangePasswordRequest'
+      responses:
+        '201':
+          description: Password berhasil diubah
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: Request body invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengubah password
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/user:
+    get:
+      tags:
+      - User
+      summary: List users by role
+      description: 'Mengambil daftar user sesuai hierarki role pemanggil.
+
+        Role yang diizinkan: ADMIN, KOOR, BPH (PENGURUS ditolak).
+
+        '
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Daftar user
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/definitions/UserResponse'
+        '403':
+          description: Tidak memiliki akses
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    post:
+      tags:
+      - User
+      summary: Create user
+      description: 'Membuat user baru dengan role default sesuai pembuat.
+
+        Role pembuat: ADMIN, KOOR, BPH (PENGURUS ditolak).
+
+        '
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/RegisterRequest'
+      responses:
+        '201':
+          description: User berhasil dibuat
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: Field wajib tidak lengkap
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Role tidak diizinkan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal membuat user
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/user/{id}:
+    get:
+      tags:
+      - User
+      summary: Get user by ID
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+        description: User ID
+      responses:
+        '200':
+          description: Data user
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/UserResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Role tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: User tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    put:
+      tags:
+      - User
+      summary: Update user by ID
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/UserPatch'
+      responses:
+        '200':
+          description: User berhasil diperbarui
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: Request invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Role tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal memperbarui
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    delete:
+      tags:
+      - User
+      summary: Delete user by ID
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: User berhasil dihapus
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Role tidak diizinkan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal menghapus
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/user:
+    get:
+      tags:
+      - Admin User
+      summary: Get super admin data
+      description: Hanya dapat diakses oleh role ADMIN (SuperAdmin).
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Data super admin
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '403':
+          description: Akses ditolak
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/user/super-admin:
+    post:
+      tags:
+      - Admin User
+      summary: Create super admin
+      description: Membuat user dengan role SuperAdmin. Hanya ADMIN yang diizinkan.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/RegisterRequest'
+      responses:
+        '201':
+          description: Super admin berhasil dibuat
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: Field wajib tidak lengkap
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Akses ditolak
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '409':
+          description: Email sudah terdaftar
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal membuat user
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/user/{id}/change-password:
+    put:
+      tags:
+      - Admin User
+      summary: Admin change user password
+      description: Super admin mengganti password user lain tanpa password lama.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/AdminChangePasswordRequest'
+      responses:
+        '200':
+          description: Password berhasil diubah
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: ID atau body invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Bukan super admin
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengubah password
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/blogs:
+    get:
+      tags:
+      - Blog
+      summary: List blogs (public)
+      description: 'Mengambil daftar blog publik dengan paginasi.
+
+        Filter opsional kategori (query array, maksimal 3 kategori).
+
+        '
+      parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+      - name: limit
+        in: query
+        type: integer
+        default: 10
+      - name: kategori
+        in: query
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+      responses:
+        '200':
+          description: Daftar blog
+          schema:
+            $ref: '#/definitions/BlogListPublicResponse'
+        '400':
+          description: Maksimal 3 kategori
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/blogs/{id}:
+    get:
+      tags:
+      - Blog
+      summary: Get blog by ID (public)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Detail blog
+          schema:
+            $ref: '#/definitions/BlogDetailResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Blog tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/blogs:
+    get:
+      tags:
+      - Blog
+      summary: List blogs (admin)
+      description: Role yang diizinkan SuperAdmin, KoorMedcrev.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+      - name: limit
+        in: query
+        type: integer
+        default: 10
+      - name: kategory
+        in: query
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+        description: Filter kategori (maksimal 3)
+      responses:
+        '200':
+          description: Daftar blog admin
+          schema:
+            $ref: '#/definitions/BlogListPublicResponse'
+        '400':
+          description: Maksimal 3 kategori
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    post:
+      tags:
+      - Blog
+      summary: Create blog (admin)
+      description: 'Membuat blog baru dengan upload file dan/atau referensi gallery
+        existing.
+
+        Role: SuperAdmin, KoorMedcrev.
+
+        '
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: title
+        in: formData
+        required: true
+        type: string
+      - name: slug
+        in: formData
+        required: true
+        type: string
+      - name: content
+        in: formData
+        required: true
+        type: string
+      - name: kategori
+        in: formData
+        required: true
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+      - name: status
+        in: formData
+        required: true
+        type: string
+        enum:
+        - draft
+        - published
+        - scheduled
+        - unpublished
+        - rejected
+        - pending_review
+      - name: published_at
+        in: formData
+        type: string
+        format: date-time
+      - name: existingID_image
+        in: formData
+        type: array
+        collectionFormat: multi
+        items:
+          type: integer
+      - name: files
+        in: formData
+        type: file
+        description: Gambar blog (multiple)
+      responses:
+        '200':
+          description: Blog berhasil dibuat
+          schema:
+            $ref: '#/definitions/BlogCreateResponse'
+        '400':
+          description: Validasi gagal
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal menyimpan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/blogs/{id}:
+    get:
+      tags:
+      - Blog
+      summary: Get blog by ID (admin)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Detail blog
+          schema:
+            $ref: '#/definitions/BlogDetailResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Blog tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    put:
+      tags:
+      - Blog
+      summary: Update blog (admin)
+      description: Update blog dengan multipart form-data (field opsional + file baru).
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      - name: title
+        in: formData
+        type: string
+      - name: slug
+        in: formData
+        type: string
+      - name: content
+        in: formData
+        type: string
+      - name: kategori
+        in: formData
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+      - name: status
+        in: formData
+        type: string
+      - name: published_at
+        in: formData
+        type: string
+        format: date-time
+      - name: existingID_image
+        in: formData
+        type: array
+        collectionFormat: multi
+        items:
+          type: integer
+      - name: files
+        in: formData
+        type: file
+      responses:
+        '200':
+          description: Blog berhasil diperbarui
+          schema:
+            $ref: '#/definitions/BlogCreateResponse'
+        '400':
+          description: Request invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal memperbarui
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    delete:
+      tags:
+      - Blog
+      summary: Delete blog (admin)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '204':
+          description: Blog berhasil dihapus
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal menghapus
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/gallery:
+    get:
+      tags:
+      - Gallery
+      summary: List gallery (public)
+      description: Mengambil gallery dengan paginasi dan filter tahun opsional.
+      parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+      - name: limit
+        in: query
+        type: integer
+        default: 10
+      - name: start_year
+        in: query
+        type: string
+        description: Filter tahun awal (YYYY)
+      - name: end_year
+        in: query
+        type: string
+        description: Filter tahun akhir (YYYY)
+      responses:
+        '200':
+          description: Daftar gallery
+          schema:
+            $ref: '#/definitions/GalleryListResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/gallery:
+    post:
+      tags:
+      - Gallery
+      summary: Upload gallery (admin)
+      description: 'Upload maksimal 5 file sekaligus ke MinIO bucket doscom-uploads/gallery.
+
+        Role: SuperAdmin, KoorMedcrev.
+
+        '
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: gallery_name
+        in: formData
+        required: true
+        type: string
+      - name: gallery_type
+        in: formData
+        required: true
+        type: string
+        description: fun, proker, achievment, work, activity, blog, pengurus, dll.
+      - name: description
+        in: formData
+        required: true
+        type: string
+      - name: event_date
+        in: formData
+        required: true
+        type: string
+        format: date
+        description: Format YYYY-MM-DD
+      - name: files
+        in: formData
+        required: true
+        type: array
+        collectionFormat: csv
+        items:
+          type: file
+      responses:
+        '200':
+          description: Gallery berhasil diupload
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/GalleryResponse'
+        '400':
+          description: Validasi gagal atau file kosong
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Role tidak diizinkan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Upload gagal
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/gallery/{id}:
+    delete:
+      tags:
+      - Gallery
+      summary: Delete gallery (admin)
+      description: Menghapus gallery beserta file di MinIO. Role SuperAdmin, KoorMedcrev.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Gallery berhasil dihapus
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Gallery tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/pengurus/division/{division}:
+    get:
       tags:
       - Pengurus
+      summary: List pengurus by division (public)
+      parameters:
+      - name: division
+        in: path
+        required: true
+        type: string
+        enum:
+        - bph
+        - pemro
+        - jaringan
+        - medcrev
+        - data
+      responses:
+        '200':
+          description: Daftar pengurus per divisi
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/definitions/PengurusPublicResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/pengurus:
+    post:
+      tags:
+      - Pengurus
+      summary: Create own pengurus profile
+      description: 'Pengurus membuat profil sendiri. id_user otomatis diisi dari token.
+
+        Role: PENGURUS, KOOR, BPH, ADMIN.
+
+        '
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: file
+        in: formData
+        type: file
+        description: Foto profil (opsional)
+      - name: email
+        in: formData
+        type: string
+      - name: divisi
+        in: formData
+        required: true
+        type: string
+      - name: name
+        in: formData
+        required: true
+        type: string
+      - name: position
+        in: formData
+        required: true
+        type: string
+      - name: sosmed
+        in: formData
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+        description: URL sosmed (maks 4)
+      - name: start_periode_year
+        in: formData
+        required: true
+        type: integer
+      - name: end_periode_year
+        in: formData
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Profil pengurus dibuat
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/PengurusResponse'
+        '400':
+          description: Validasi gagal
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal membuat profil
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/pengurus/profile:
+    get:
+      tags:
+      - Pengurus
+      summary: Get own pengurus profile
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Profil pengurus saat ini
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/PengurusResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/pengurus/me:
+    put:
+      tags:
+      - Pengurus
+      summary: Update own pengurus profile
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: email
+        in: formData
+        type: string
+      - name: divisi
+        in: formData
+        type: string
+      - name: name
+        in: formData
+        type: string
+      - name: position
+        in: formData
+        type: string
+      - name: sosmed
+        in: formData
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+      - name: start_periode_year
+        in: formData
+        type: integer
+      - name: end_periode_year
+        in: formData
+        type: integer
+      - name: file
+        in: formData
+        type: file
+      responses:
+        '200':
+          description: Profil diperbarui
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/PengurusResponse'
+        '400':
+          description: Request invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Profil tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal memperbarui
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    delete:
+      tags:
+      - Pengurus
+      summary: Delete own pengurus profile
+      security:
+      - BearerAuth: []
+      responses:
+        '204':
+          description: Profil dihapus
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '403':
+          description: Role tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Profil tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/pengurus:
+    post:
+      tags:
+      - Pengurus
+      summary: Create pengurus profile (admin)
+      description: Admin/koor membuat profil pengurus untuk user lain. Role KOOR,
+        BPH, ADMIN.
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: file
+        in: formData
+        type: file
+      - name: id_user
+        in: formData
+        type: integer
+      - name: email
+        in: formData
+        type: string
+      - name: divisi
+        in: formData
+        required: true
+        type: string
+      - name: name
+        in: formData
+        required: true
+        type: string
+      - name: position
+        in: formData
+        required: true
+        type: string
+      - name: sosmed
+        in: formData
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+      - name: start_periode_year
+        in: formData
+        required: true
+        type: integer
+      - name: end_periode_year
+        in: formData
+        required: true
+        type: integer
+      responses:
+        '201':
+          description: Pengurus dibuat
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/PengurusResponse'
+        '400':
+          description: Validasi gagal
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '409':
+          description: Email sudah terdaftar
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal membuat pengurus
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/pengurus/{id}:
+    get:
+      tags:
+      - Pengurus
+      summary: Get pengurus by ID (admin)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Data pengurus
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/PengurusResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    put:
+      tags:
+      - Pengurus
+      summary: Update pengurus by ID (admin)
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      - name: email
+        in: formData
+        type: string
+      - name: divisi
+        in: formData
+        type: string
+      - name: name
+        in: formData
+        type: string
+      - name: position
+        in: formData
+        type: string
+      - name: sosmed
+        in: formData
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+      - name: start_periode_year
+        in: formData
+        type: integer
+      - name: end_periode_year
+        in: formData
+        type: integer
+      - name: file
+        in: formData
+        type: file
+      responses:
+        '200':
+          description: Pengurus diperbarui
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/PengurusResponse'
+        '400':
+          description: Request invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Akses ditolak
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal memperbarui
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/pengurus/by-user/{user_id}:
+    get:
+      tags:
+      - Pengurus
+      summary: Get pengurus by user ID (admin)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Data pengurus
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/PengurusResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/pengurus/delete/{id}:
+    delete:
+      tags:
+      - Pengurus
+      summary: Delete pengurus by ID (admin)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '204':
+          description: Pengurus dihapus
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/works:
+    get:
+      tags:
+      - Work
+      summary: List works by division (admin)
+      description: Role SuperAdmin atau koordinator divisi terkait.
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+      - name: limit
+        in: query
+        type: integer
+        default: 10
+      responses:
+        '200':
+          description: Daftar work internal
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/WorkListAdminData'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    post:
+      tags:
+      - Work
+      summary: Create work (admin)
+      description: 'Membuat work/portfolio baru dengan upload gambar.
+
+        Field dikirim via multipart/form-data.
+
+        '
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      parameters:
+      - name: pengurus_id
+        in: formData
+        required: true
+        type: integer
+      - name: title
+        in: formData
+        required: true
+        type: string
+      - name: tagline
+        in: formData
+        required: true
+        type: string
+      - name: description
+        in: formData
+        required: true
+        type: string
+      - name: slug
+        in: formData
+        required: true
+        type: string
+      - name: project_type
+        in: formData
+        required: true
+        type: string
+      - name: technologies[]
+        in: formData
+        required: true
+        type: array
+        collectionFormat: multi
+        items:
+          type: string
+      - name: project_date
+        in: formData
+        required: true
+        type: string
+        format: date
+        description: Format YYYY-MM-DD
+      - name: status
+        in: formData
+        required: true
+        type: string
+      - name: division
+        in: formData
+        type: string
+      - name: existingID_image
+        in: formData
+        type: array
+        collectionFormat: multi
+        items:
+          type: integer
+      - name: files
+        in: formData
+        type: file
+        description: Gambar work (multiple)
+      responses:
+        '201':
+          description: Work berhasil dibuat
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: Validasi gagal
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal menyimpan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/works/{id}:
+    get:
+      tags:
+      - Work
+      summary: Get work by ID (admin)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Detail work
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/WorkResponseInternal'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Work tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    put:
+      tags:
+      - Work
+      summary: Update work (admin)
+      description: Update work dengan JSON body dan file opsional (multipart).
+      security:
+      - BearerAuth: []
+      consumes:
+      - multipart/form-data
+      - application/json
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      - name: body
+        in: body
+        schema:
+          $ref: '#/definitions/WorkPatch'
+      - name: files
+        in: formData
+        type: file
+      responses:
+        '200':
+          description: Work diperbarui
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/WorkUpdateResponse'
+        '400':
+          description: Request invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal memperbarui
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+    delete:
+      tags:
+      - Work
+      summary: Delete work (admin)
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '204':
+          description: Work dihapus
+          schema:
+            $ref: '#/definitions/ApiSuccessResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal menghapus
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
   /api/v1/upload/file:
     delete:
-      consumes:
-      - application/json
-      - application/json
-      description: |-
-        Delete a file from MinIO storage
-        Delete an uploaded file from MinIO storage
+      tags:
+      - Upload
+      summary: Delete file from MinIO
+      description: Menghapus file berdasarkan nama/path file. Membutuhkan autentikasi
+        JWT.
+      security:
+      - BearerAuth: []
       parameters:
-      - description: Delete request
+      - name: body
         in: body
-        name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handler.DeleteFileRequest'
-      - description: File name to delete
-        in: body
-        name: request
-        required: true
-        schema:
-          additionalProperties:
-            type: string
-          type: object
-      produces:
-      - application/json
-      - application/json
+          $ref: '#/definitions/DeleteFileRequest'
       responses:
-        "200":
-          description: File deleted successfully
+        '200':
+          description: File berhasil dihapus
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Invalid request
+            $ref: '#/definitions/DeleteFileResponse'
+        '400':
+          description: Request invalid
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
+            $ref: '#/definitions/DeleteFileResponse'
+        '401':
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Delete failed
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal menghapus file
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      - BearerAuth: []
-      summary: Delete file from MinIO
-      tags:
-      - upload
-      - Upload
+            $ref: '#/definitions/DeleteFileResponse'
   /api/v1/upload/files:
     get:
-      consumes:
-      - application/json
-      - application/json
-      description: |-
-        List all files in a specific category folder
-        List all files in a specific category from MinIO
-      parameters:
-      - description: Category (gallery, blog, work, pengurus)
-        in: query
-        name: category
-        required: true
-        type: string
-      - description: Category to filter (gallery, blog, work, pengurus)
-        in: query
-        name: category
-        type: string
-      produces:
-      - application/json
-      - application/json
-      responses:
-        "200":
-          description: Files retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_handler.ListFilesResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Failed to list files
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      - BearerAuth: []
+      tags:
+      - Upload
       summary: List files from MinIO
-      tags:
-      - upload
-      - Upload
-  /api/v1/upload/image:
-    post:
-      consumes:
-      - multipart/form-data
-      - multipart/form-data
-      description: |-
-        Upload an image file to MinIO storage
-        Upload an image file to MinIO object storage with category
-      parameters:
-      - description: Image file
-        in: formData
-        name: file
-        required: true
-        type: file
-      - description: Category (gallery, blog, work, pengurus)
-        in: formData
-        name: category
-        required: true
-        type: string
-      - description: Image file to upload
-        in: formData
-        name: file
-        required: true
-        type: file
-      - description: Category (gallery, blog, work, pengurus)
-        in: formData
-        name: category
-        required: true
-        type: string
-      produces:
-      - application/json
-      - application/json
-      responses:
-        "200":
-          description: File uploaded successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Upload failed
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+      description: Menampilkan daftar file pada kategori tertentu.
       security:
-      - ApiKeyAuth: []
       - BearerAuth: []
-      summary: Upload image to MinIO
-      tags:
-      - upload
-      - Upload
-  /auth/refresh:
-    post:
-      consumes:
-      - application/json
-      description: Generate new access token using refresh token stored in HTTP-only
-        cookie
-      produces:
-      - application/json
+      parameters:
+      - name: category
+        in: query
+        required: true
+        type: string
+        enum:
+        - gallery
+        - blog
+        - work
+        - pengurus
       responses:
-        "200":
-          description: OK
+        '200':
+          description: Daftar file
           schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.RefreshTokenSuccessResponse'
-        "401":
+            $ref: '#/definitions/ListFilesResponse'
+        '400':
+          description: Kategori tidak valid
+          schema:
+            $ref: '#/definitions/ListFilesResponse'
+        '401':
           description: Unauthorized
           schema:
-            $ref: '#/definitions/web_doscom_internal_database_model.RefreshTokenErrorResponse'
-      summary: Refresh access token
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal mengambil daftar file
+          schema:
+            $ref: '#/definitions/ListFilesResponse'
+  /api/v1/works:
+    get:
       tags:
-      - Auth
-securityDefinitions:
-  BearerAuth:
-    in: header
-    name: Authorization
-    type: apiKey
-swagger: "2.0"
+      - Work
+      summary: List works (public)
+      description: Mengambil daftar portfolio/work publik dengan paginasi dan filter
+        project type opsional.
+      parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+      - name: limit
+        in: query
+        type: integer
+        default: 10
+      - name: projecttype
+        in: query
+        type: string
+        description: Filter berdasarkan tipe proyek
+      responses:
+        '200':
+          description: Daftar work publik
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/WorkListPublicData'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/works/types:
+    get:
+      tags:
+      - Work
+      summary: List work types (public)
+      description: Mengambil daftar tipe proyek yang tersedia.
+      responses:
+        '200':
+          description: Daftar tipe proyek
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: string
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/works/{id}:
+    get:
+      tags:
+      - Work
+      summary: Get work by ID (public)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Detail work
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/WorkResponseClient'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: Work tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/admin/works/{id}/status:
+    put:
+      tags:
+      - Work
+      summary: Update work status (admin/BPH moderation)
+      description: 'Mengubah status work. Role: ADMIN (SuperAdmin), BPH.'
+      security:
+      - BearerAuth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/WorkUpdateStatusRequest'
+      responses:
+        '200':
+          description: Status work diperbarui
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/WorkUpdateResponse'
+        '400':
+          description: Request invalid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '500':
+          description: Gagal memperbarui status
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/history:
+    get:
+      tags:
+      - History
+      summary: List history timelines (public)
+      description: Mengambil daftar history/timeline dengan paginasi.
+      parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+      - name: limit
+        in: query
+        type: integer
+        default: 10
+      responses:
+        '200':
+          description: Daftar history
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/HistoryListResponse'
+        '500':
+          description: Gagal mengambil data
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+  /api/v1/history/{id}:
+    get:
+      tags:
+      - History
+      summary: Get history timeline by ID (public)
+      parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Detail history
+          schema:
+            allOf:
+            - $ref: '#/definitions/ApiSuccessResponse'
+            - type: object
+              properties:
+                data:
+                  $ref: '#/definitions/HistoryTimelineResponse'
+        '400':
+          description: ID tidak valid
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'
+        '404':
+          description: History tidak ditemukan
+          schema:
+            $ref: '#/definitions/ApiErrorResponse'

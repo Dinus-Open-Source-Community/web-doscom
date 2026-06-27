@@ -8,7 +8,7 @@ CREATE TYPE work_status AS ENUM (
 
 CREATE TABLE IF NOT EXISTS work (
 	id SERIAL PRIMARY KEY,
-	pengurus_id INT REFERENCES pengurus(id), -- to link work to pengurus who did it for team recognition
+	pengurus_id INT REFERENCES pengurus(id) ON DELETE SET NULL, -- to link work to pengurus who did it for team recognition
 	title VARCHAR(300) NOT NULL,
 	tagline VARCHAR(100),
 	description TEXT,

@@ -1,8 +1,10 @@
 package seeder
 
 import (
-	"gorm.io/gorm"
 	"log"
+	"web_doscom/internal/config"
+
+	"gorm.io/gorm"
 )
 
 type SeederFunc func(tx *gorm.DB)
@@ -12,14 +14,23 @@ type Seeder struct {
 	Fn   SeederFunc
 }
 
-func RunAllSeeders(db *gorm.DB) {
+func RunAllSeeders(db *gorm.DB, minioClient *config.MinioClient) {
 	log.Println("Starting database seeding...")
 
 	seeders := []Seeder{
 		{"users", SeedUsers},
-		{"pengurus", RunSeedPengurus},
-		{"work", RunSeedWorks},
-		{"blog", RunSeedBlogs},
+		{"pengurus", func(tx *gorm.DB) {
+			RunSeedPengurus(tx, minioClient)
+		}},
+		{"work", func(tx *gorm.DB) {
+			RunSeedWorks(tx, minioClient)
+		}},
+		{"blog", func(tx *gorm.DB) {
+			RunSeedBlogs(tx, minioClient)
+		}},
+		{"history", func(tx *gorm.DB) {
+			RunSeedHistory(tx, minioClient)
+		}},
 	}
 
 	for _, s := range seeders {

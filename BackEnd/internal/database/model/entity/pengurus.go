@@ -3,7 +3,9 @@ package entity
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"web_doscom/internal/database/model/dto"
@@ -24,23 +26,25 @@ var ValidDivisi = map[string]bool{
 }
 
 var ValidPosition = map[string]bool{
-	"ketum":        true,
-	"sdm":          true,
-	"pr":           true,
-	"pm":           true,
-	"pmAng":        true,
-	"KoorPemro":    true,
-	"KoorJaringan": true,
-	"KoorMedcrev":  true,
-	"KoorData":     true,
-	"sekum":        true,
-	"bendum":       true,
-	"sekAng":       true,
-	"bendAng":      true,
-	"PemroAng":     true,
-	"JaringanAng":  true,
-	"MedcrevAng":   true,
-	"DataAng":      true,
+	"ketuaUmum":                             true,
+	"kepalaBidangSumberDayaUmum":            true,
+	"projectManagerI":                       true,
+	"projectManagerII":                      true,
+	"koordinatorPemrograman":                true,
+	"koordinatorJaringan":                   true,
+	"koordinatorMediaCreative":              true,
+	"koordinatorData":                       true,
+	"sekretarisUmumI":                       true,
+	"sekretarisUmumII":                      true,
+	"kepalaBidangHubunganMasyarakat":        true,
+	"koordinatorHubunganMasyarakatExternal": true,
+	"bendaharaUmumI":                        true,
+	"bendaharaUmumII":                       true,
+	"hubunganMasyarakatExternal":            true,
+	"pemrogramanAnggota":                    true,
+	"jaringanAnggota":                       true,
+	"mediaCreativeAnggota":                  true,
+	"dataAnggota":                           true,
 }
 
 var ValidSosmed = map[string]bool{
@@ -84,6 +88,10 @@ func (Pengurus) TableName() string {
 	return "pengurus"
 }
 
+func (m *PengurusModel) WithTx(tx *gorm.DB) *PengurusModel {
+	return &PengurusModel{DB: tx}
+}
+
 // User model stub for role validation (should be replaced with your User struct)
 type UserGet struct {
 	ID    int
@@ -95,6 +103,7 @@ type UserGet struct {
 func (m *PengurusModel) InsertPengurus(pengurus *Pengurus) error {
 	// Validasi user_id ke tabel users (pseudo, harus ada model User)
 	var user User
+	log.Printf("user id %d", pengurus.IDUser)
 	if err := m.DB.First(&user, pengurus.IDUser).Error; err != nil {
 		return fmt.Errorf("user_id tidak ditemukan")
 	}
@@ -127,8 +136,95 @@ func (m *PengurusModel) FindByEmail(email string) (*Pengurus, error) {
 	return &pengurus, nil
 }
 
-// Get pengurus by id
-func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.PengurusResponse, error) {
+// Get pengurus by user id
+func (m *PengurusModel) GetPengurusByUserID(ctx context.Context, id int) (*dto.PengurusResponse, error) {
+	var pengurusRow dto.PengurusRow
+
+	query := `
+		SELECT
+			p.id,
+			p.id_user,
+			p.photo_url,
+			p.name,
+			p.email,
+			p.divisi,
+			p.position,
+			p.start_periode_year,
+			p.end_periode_year,
+			p.created_at,
+			p.updated_at,
+			COALESCE(sosmed.urls, '[]'::json) AS sosmed
+		FROM pengurus p
+		LEFT JOIN LATERAL (
+			SELECT json_agg(
+				json_build_object(
+					'platform', ps.platform,
+					'username', ps.username,
+					'url', ps.url,
+					'is_primary', ps.is_primary
+				)
+			) AS urls FROM pengurus_sosmed ps WHERE ps.pengurus_id = p.id
+		)sosmed ON true WHERE p.id_user = $1
+	`
+
+	result := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurusRow)
+	if result.Error != nil {
+		return nil, fmt.Errorf("error while getting the data: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("record not found, hayoo id nya ngga ada xixixixi :Þ")
+	}
+
+	var sosmed []dto.PengurusSosmedResponse
+	if err := json.Unmarshal(pengurusRow.Sosmed, &sosmed); err != nil {
+		return nil, fmt.Errorf("error while unmarshalling sosmed: %w", err)
+	}
+
+	return &dto.PengurusResponse{
+		ID:               pengurusRow.ID,
+		IDUser:           pengurusRow.IDUser,
+		PhotoURL:         pengurusRow.PhotoURL,
+		Email:            pengurusRow.Email,
+		Divisi:           pengurusRow.Divisi,
+		Name:             pengurusRow.Name,
+		Position:         pengurusRow.Position,
+		Sosmed:           sosmed,
+		StartPeriodeYear: pengurusRow.StartPeriodeYear,
+		EndPeriodeYear:   pengurusRow.EndPeriodeYear,
+		CreatedAt:        pengurusRow.CreatedAt,
+		UpdatedAt:        pengurusRow.UpdatedAt,
+	}, nil
+}
+
+func (m *PengurusModel) GetPengurusByUserIDWithoutSosmed(
+	ctx context.Context,
+	userID int,
+) (dto.PengurusResponse, error) {
+
+	var pengurus dto.PengurusResponse
+
+	err := m.DB.WithContext(ctx).
+		Model(&Pengurus{}).
+		Where("id_user = ?", userID).
+		Take(&pengurus).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dto.PengurusResponse{}, nil
+	}
+
+	if err != nil {
+		return dto.PengurusResponse{}, fmt.Errorf(
+			"get pengurus by user id: %w",
+			err,
+		)
+	}
+
+	return pengurus, nil
+}
+
+// get pengurus by id
+func (m *PengurusModel) GetPengurusByID(ctx context.Context, id int) (*dto.PengurusResponse, error) {
 	var pengurusRow dto.PengurusRow
 
 	query := `
@@ -158,12 +254,17 @@ func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.Pengu
 		)sosmed ON true WHERE p.id = $1
 	`
 
-	if err := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurusRow).Error; err != nil {
-		return nil, fmt.Errorf("error while getting the data: %w", err)
+	result := m.DB.WithContext(ctx).Raw(query, id).Scan(&pengurusRow)
+	if result.Error != nil {
+		return nil, fmt.Errorf("error while getting the data: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("record not found, hayoo id nya ngga ada xixixixi :Þ")
 	}
 
 	var sosmed []dto.PengurusSosmedResponse
 	if err := json.Unmarshal(pengurusRow.Sosmed, &sosmed); err != nil {
+		log.Printf("[model] error nya disini")
 		return nil, fmt.Errorf("error while unmarshalling sosmed: %w", err)
 	}
 
@@ -183,16 +284,27 @@ func (m *PengurusModel) GetPengurusById(ctx context.Context, id int) (*dto.Pengu
 	}, nil
 }
 
-// Get all pengurus data
-func (m *PengurusModel) GetAllPengurusByDivisi(ctx context.Context, divisi string) ([]Pengurus, error) {
-	pengurus := []Pengurus{}
-	db := m.DB.WithContext(ctx)
-	if divisi != "" {
-		db = db.Where("divisi = ?", divisi)
+func (m *PengurusModel) GetPengurusByIDWithoutSosmed(
+	ctx context.Context,
+	pengurusID int,
+) (dto.PengurusResponse, error) {
+
+	var pengurus dto.PengurusResponse
+
+	err := m.DB.WithContext(ctx).
+		Model(&Pengurus{}).
+		Where("id = ?", pengurusID).
+		Take(&pengurus).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return dto.PengurusResponse{}, nil
 	}
-	if err := db.Find(&pengurus).Error; err != nil {
-		return nil, err
+
+	if err != nil {
+		return dto.PengurusResponse{}, fmt.Errorf("get pengurus by user id: %w", err)
 	}
+
 	return pengurus, nil
 }
 
@@ -213,12 +325,20 @@ func (m *PengurusModel) UpdatePengurus(Id int, patch dto.PengurusPatch) (*Pengur
 	return &pengurus, nil
 }
 
-func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*dto.PengurusResponse, error) {
+func (m *PengurusModel) UpdatePenguruspartial(id int, data map[string]any) (*dto.PengurusResponse, error) {
+	return m.UpdatePengurusPartialBy("id", id, data)
+}
+
+func (m *PengurusModel) UpdatePengurusPartialByUserID(userID int, data map[string]any) (*dto.PengurusResponse, error) {
+	return m.UpdatePengurusPartialBy("id_user", userID, data)
+}
+
+func (m *PengurusModel) UpdatePengurusPartialBy(column string, value int, data map[string]any) (*dto.PengurusResponse, error) {
 	var updatePengurus Pengurus
 
 	result := m.DB.Model(&updatePengurus).
 		Clauses(clause.Returning{}).
-		Where("id = ?", id).
+		Where(column+" = ?", value).
 		Updates(data)
 
 	if result.Error != nil {
@@ -243,8 +363,10 @@ func (m *PengurusModel) UpdatePengurusPartial(id int, data map[string]any) (*dto
 
 // Delete pengurus
 func (m *PengurusModel) DeletePengurus(ctx context.Context, id int) error {
+	log.Printf("[model] id nya disini %d", id)
 	result := m.DB.WithContext(ctx).Delete(&Pengurus{}, id)
 	if result.Error != nil {
+		log.Printf("[model] error nya disini")
 		return fmt.Errorf("failed to delete data %w", result.Error)
 	}
 
@@ -261,14 +383,18 @@ func (m *PengurusModel) GetPengurusByDivisi(ctx context.Context, division string
 		return nil, fmt.Errorf("division required")
 	}
 
-	if err := m.DB.WithContext(ctx).
+	result := m.DB.WithContext(ctx).
 		Model(&Pengurus{}).
 		Select("id, photo_url, email, divisi, name, position,  start_periode_year, end_periode_year").
 		Where("divisi = ?", division).
 		Order("name ASC").
-		Scan(&dataPengurus).
-		Error; err != nil {
-		return nil, fmt.Errorf("terjadi error ketika ambil data wlee %w", err)
+		Scan(&dataPengurus)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("terjadi error ketika ambil data >ᴗ< :%w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return nil, fmt.Errorf("ngga ada datanya >ᴗ<, divisi nya belum ada wak, hayaa")
 	}
 
 	return dataPengurus, nil

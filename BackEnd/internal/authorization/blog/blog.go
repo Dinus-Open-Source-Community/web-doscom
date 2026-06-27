@@ -32,7 +32,6 @@ var (
 	// untuk user validasi
 	blogStatusModerated = map[string]struct{}{
 		constants.StatusPublished: {},
-		constants.StatusScheduled: {},
 		constants.StatusUnpublish: {},
 		constants.StatusRejected:  {},
 	}
@@ -41,7 +40,6 @@ var (
 		constants.StatusDraft:     {},
 		constants.StatusPending:   {},
 		constants.StatusPublished: {},
-		constants.StatusScheduled: {},
 		constants.StatusUnpublish: {},
 		constants.StatusRejected:  {},
 	}

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Close, Join } from '../../assets/icons'
+import { ROUTES } from '../../lib/routes'
 
 interface Props {
   logoHtml: string
@@ -7,12 +8,12 @@ interface Props {
 }
 
 const navItems = [
-  { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
-  { name: 'Division', href: '/division' },
-  { name: 'Works', href: '/works' },
-  { name: 'Blog', href: '/blog' },
-  { name: 'Contact', href: '/contact' },
+  { name: 'Home', href: ROUTES.home },
+  { name: 'About', href: ROUTES.about },
+  { name: 'Division', href: ROUTES.division.list },
+  { name: 'Works', href: ROUTES.works },
+  { name: 'Blog', href: ROUTES.blog },
+  { name: 'Contact', href: ROUTES.contact },
 ]
 
 export default function Navbar({ logoHtml, currentPath }: Props) {
@@ -40,7 +41,7 @@ export default function Navbar({ logoHtml, currentPath }: Props) {
         <div className="flex w-[92vw] max-w-[1500px] items-center justify-between rounded-full bg-white px-8 py-3 text-black shadow-xl backdrop-blur-md 2xl:w-[85vw]">
           <div className="flex items-center">
             <a
-              href="/"
+              href={ROUTES.home}
               className="w-32 text-[#0A84DC] md:w-36 [&>svg]:h-full [&>svg]:w-full"
               dangerouslySetInnerHTML={{ __html: logoHtml }}
             />

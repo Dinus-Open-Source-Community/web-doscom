@@ -6,16 +6,17 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"web_doscom/internal/response"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 var RoleGroups = map[string][]string{
-	"KOOR":    {"KoorPemro", "KoorJaringan", "KoorData", "KoorMedcrev", "BPH"},
-	"ADMIN":   {"SuperAdmin"},
-	"BPH":     {"BPH"},
-	"ANGGOTA": {"pemroAnggota", "jaringanAnggota", "medcrevAnggota", "dataAnggota", "BPHAnggota"},
+	"KOOR":     {"KoorPemro", "KoorJaringan", "KoorData", "KoorMedcrev", "BPH"},
+	"ADMIN":    {"SuperAdmin"},
+	"BPH":      {"BPH"},
+	"PENGURUS": {"pemroAnggota", "jaringanAnggota", "medcrevAnggota", "dataAnggota", "BPHAnggota"},
 }
 
 func ValidateAuth(tokenString string) (*Claims, error) {
@@ -85,35 +86,47 @@ func isRoleAllowed(User_role string, allowedRoles []string) bool {
 	return false
 }
 
+func getAccessToken(c *gin.Context) (string, error) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" {
+		if len(authHeader) <= 7 || authHeader[:7] != "Bearer " {
+			return "", fmt.Errorf("Authroization header must be bearer token")
+		}
+		return authHeader[7:], nil
+	}
+
+	accessToken, err := c.Cookie("AccessToken")
+	if err != nil {
+		return "", err
+	}
+
+	return accessToken, nil
+}
+
 func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		// Try to get token from Authorization header first (Bearer token)
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"errors": "Authroization header is required",
-			})
-			c.Abort()
-			return
-		}
-
-		if len(authHeader) <= 7 || authHeader[:7] != "Bearer " {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"errors": "Authorization header must be bearer token",
-			})
-			c.Abort()
-			return
-		}
-
-		tokenString := authHeader[7:]
-
-		// Validate token
-		claims, err := ValidateAuth(tokenString)
+		// get access token
+		accessToken, err := getAccessToken(c)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": err.Error(),
-			})
+			response.Error(
+				c,
+				http.StatusUnauthorized,
+				"token not found",
+				err,
+			)
+			c.Abort()
+			return
+		}
+		// Validate token
+		claims, err := ValidateAuth(accessToken)
+		if err != nil {
+			response.Error(
+				c,
+				http.StatusUnauthorized,
+				"Invalid token",
+				err,
+			)
 			c.Abort()
 			return
 		}
@@ -125,10 +138,12 @@ func AuthMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		// Check role if specified
 		if len(allowedRoles) > 0 {
 			if !isRoleAllowed(claims.Role, allowedRoles) {
-				c.JSON(http.StatusForbidden, gin.H{
-					"error":   "forbidden",
-					"message": "you are not allowed access this resource",
-				})
+				response.Error(
+					c,
+					http.StatusForbidden,
+					"you are not allowed access this resource",
+					nil,
+				)
 				c.Abort()
 				return
 			}

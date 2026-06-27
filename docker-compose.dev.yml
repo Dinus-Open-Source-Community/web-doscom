@@ -1,0 +1,105 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: doscom-db
+    restart: unless-stopped
+    #env_file:
+    #  - ./BackEnd/.env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - doscom-network
+
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: doscom-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000" # MinIO API
+      - "9001:9001" # MinIO Console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    networks:
+      - doscom-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Go Backend
+  backend:
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile.dev
+    container_name: doscom-backend
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - ./BackEnd/.env
+    environment:
+      DBURL: postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?sslmode=${DB_SSLMODE}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - minio
+    volumes:
+      - ./BackEnd:/app
+    networks:
+      - doscom-network
+    entrypoint: [ "/bin/sh", "/app/docker-entrypoint-dev.sh" ]
+
+  # Frontend (Vite/Next/React)
+  frontend:
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+    container_name: doscom-frontend
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    depends_on:
+      - backend
+    volumes:
+      - ./FrontEnd:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - doscom-network
+    command: npm run dev -- --host 0.0.0.0
+
+  # Adminer UI untuk PostgreSQL
+  adminer:
+    image: adminer
+    container_name: doscom-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+    networks:
+      - doscom-network
+
+networks:
+  doscom-network:
+    driver: bridge
+
+volumes:
+  db_data:
+  minio_data:

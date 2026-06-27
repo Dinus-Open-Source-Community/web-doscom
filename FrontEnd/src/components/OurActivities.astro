@@ -1,74 +1,99 @@
 ---
-import Button from './ui/Button.astro';
-import Card from './ui/Card.astro';
+import Button from './ui/Button.astro'
+import Card from './ui/Card.astro'
+
+interface WorkItem {
+	image_url: string
+	title: string
+	description: string
+	project_type: string
+	slug: string
+}
+
+interface Props {
+	items: WorkItem[]
+}
+
+const { items } = Astro.props
 ---
 
-<div class="bg-[var(--color-primary)] w-full h-full">
-	<div
-		class="w-full h-full py-8 md:py-12 flex flex-col md:flex-row md:px-12 lg:pl-20 xl:pl-32 gap-6 md:gap-0"
-	>
-		<div
-			class="flex flex-col px-4 w-full md:w-auto md:min-w-[320px] lg:min-w-[380px] justify-between space-y-6 py-3"
-		>
-			<div class="space-y-4 md:space-y-6">
-				<h1
-					class="font-jakarta font-semibold text-3xl md:text-4xl tracking-tight text-white"
-				>
-					Our Recent <br class="md:block hidden" /> Activities
-				</h1>
-				<ul
-					class="font-jakarta font-normal tracking-tight text-white text-lg md:text-xl leading-relaxed space-y-1"
-				>
-					<li>Daily Activity</li>
-					<li>Works</li>
-					<li>Events</li>
-					<li>Sharing</li>
-				</ul>
-			</div>
-			<div class="md:flex gap-2 hidden">
-				<Button variant="secondary" size="icon"
-					><img
-						src="/assets/icons/arrowLeftPrimary.svg"
-						alt="arrow left primary"
-						width="24"
-						height="24"
-					/>
-				</Button>
-				<Button variant="secondary" size="icon"
-					><img
-						src="/assets/icons/arrowRightPrimary.svg"
-						alt="arrow right primary"
-						width="24"
-						height="24"
-					/></Button
-				>
-			</div>
-		</div>
+<div class="h-full w-full bg-(--color-primary)">
+  <div
+    class="flex h-full w-full flex-col gap-6 py-8 md:flex-row md:gap-0 md:px-12 md:py-12 lg:pl-20 xl:pl-32"
+  >
+    <div
+      class="flex w-full flex-col justify-between space-y-6 px-4 py-3 md:w-auto md:min-w-[320px] lg:min-w-95"
+    >
+      <div class="space-y-4 md:space-y-6">
+        <h1
+          class="font-jakarta text-3xl font-semibold tracking-tight text-white md:text-4xl"
+        >
+          Our Recent <br class="hidden md:block" /> Activities
+        </h1>
+        <ul
+          class="font-jakarta space-y-1 text-lg leading-relaxed font-normal tracking-tight text-white md:text-xl"
+        >
+          <li>Daily Activity</li>
+          <li>Works</li>
+          <li>Events</li>
+          <li>Sharing</li>
+        </ul>
+      </div>
+      <div class="hidden gap-2 md:flex">
+        <Button id="activities-btn-left" variant="secondary" size="icon"
+          ><img
+            src="/assets/icons/arrowLeftPrimary.svg"
+            alt="arrow left primary"
+            width="24"
+            height="24"
+          />
+        </Button>
+        <Button id="activities-btn-right" variant="secondary" size="icon"
+          ><img
+            src="/assets/icons/arrowRightPrimary.svg"
+            alt="arrow right primary"
+            width="24"
+            height="24"
+          /></Button
+        >
+      </div>
+    </div>
 
-		<div
-			class="flex gap-4 md:gap-6 overflow-x-auto relative w-full py-3 overflow-visible no-scrollbar snap-x scroll-smooth"
-		>
-			<Card
-				image="/assets/image/realeaseParty.jpg"
-				variant="activities"
-				title="TealinuxOS"
-				desc="Release Party adalah acara peluncuran TeaLinuxOS, distro Linux racikan DOSCOM yang dikembangkan secara terbuka dengan filosofi “Nikmatnya Sebuah Racikan”."
-				category={['Workshop', 'Bootcamp']}
-			/>
-			<Card
-				image="/assets/image/du.jpg"
-				variant="activities"
-				title="Doscom University"
-				desc="Doscom University bukanlah universitas fisik, melainkan sebuah program atau acara pelatihan yang diselenggarakan oleh Doscom (Dinus Open Source Community). "
-				category={['Workshop', 'Bootcamp']}
-			/>
-			<Card
-				image="/assets/image/tealinux.png"
-				variant="activities"
-				title="Rice Source"
-				desc="An open-source repository for community projects and experiments"
-				category={['Workshop', 'Bootcamp']}
-			/>
-		</div>
-	</div>
+    <div
+      id="activities-carousel"
+      class="no-scrollbar relative flex w-full snap-x gap-4 overflow-visible overflow-x-auto scroll-smooth py-3 md:gap-6"
+    >
+      {items.map((item) => (
+        <Card
+          image={item.image_url}
+          variant="activities"
+          title={item.title}
+          desc={item.description}
+          category={[item.project_type]}
+        />
+      ))}
+    </div>
+  </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const carousel = document.getElementById('activities-carousel')
+    const btnLeft = document.getElementById('activities-btn-left')
+    const btnRight = document.getElementById('activities-btn-right')
+
+    if (btnLeft && btnRight && carousel) {
+      btnLeft.addEventListener('click', () => {
+        const cardWidth = carousel.firstElementChild?.clientWidth || 0
+        const gap = parseFloat(getComputedStyle(carousel).columnGap) || 0
+        carousel.scrollBy({ left: -(cardWidth + gap), behavior: 'smooth' })
+      })
+
+      btnRight.addEventListener('click', () => {
+        const cardWidth = carousel.firstElementChild?.clientWidth || 0
+        const gap = parseFloat(getComputedStyle(carousel).columnGap) || 0
+        carousel.scrollBy({ left: cardWidth + gap, behavior: 'smooth' })
+      })
+    }
+  })
+</script>

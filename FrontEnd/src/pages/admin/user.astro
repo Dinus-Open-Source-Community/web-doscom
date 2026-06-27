@@ -1,0 +1,141 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro'
+import ButtonAdmin from '../../components/ui/ButtonAdmin.astro'
+import Table from '../../components/ui/Table.astro'
+import Pagination from '../../components/ui/Pagination.astro'
+import { Download, Plus, Search, Filter } from '../../assets/icons'
+
+import AdminFormModal from '@components/modals/admin/AdminFormModal.astro'
+import ChangePasswordModal from '@components/modals/admin/ChangePasswordModal.astro'
+
+// Simulasi fetch data API
+const apiResponse = {
+  success: true,
+  message: 'Get super admin data',
+  data: [
+    {
+      id: 1,
+      username: 'admin',
+      email: 'admin@doscom.id',
+      role: 'SuperAdmin',
+      full_name: 'Super Admin',
+    },
+  ],
+}
+
+// Mapping data API ke format yang diterima Table.astro
+const tableHeaders = ['ID', 'Admin Name', 'Username', 'Role', 'Actions']
+const tableData = apiResponse.data.map(admin => ({
+  id: `SA-00${admin.id}`,
+  name: admin.full_name,
+  email: admin.email,
+  date: `@${admin.username}`,
+  status: admin.role,
+  avatar: '/assets/photos/default-avatar.webp',
+}))
+---
+
+<AdminLayout title="Super Admin Management">
+  <div class="flex w-full flex-col gap-8 bg-gray-50/30 p-8">
+    {/* Page Header */}
+    <div
+      class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 select-none">
+          User Management
+        </h1>
+        <p class="mt-1 text-xs text-gray-400 select-none">
+          Manage user accounts and permissions
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <ButtonAdmin
+          variant="admin-outline"
+          size="small"
+          class="font-bold select-none"
+        >
+          <span
+            class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+            set:html={Download}
+          />
+          Export
+        </ButtonAdmin>
+        <ButtonAdmin
+          id="btn-open-add-admin"
+          onclick="window.openAddAdminModal()"
+          variant="admin-primary"
+          size="small"
+          class="font-bold select-none"
+        >
+          <span
+            class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+            set:html={Plus}
+          />
+          Add Admin
+        </ButtonAdmin>
+      </div>
+    </div>
+
+    {/* Data Card Wrapper */}
+    <div
+      class="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+    >
+      {/* Toolbar: Filter & Search Bar */}
+      <div
+        class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+      >
+        <div class="relative w-full sm:max-w-xs">
+          <span
+            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400"
+          >
+            <span
+              class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+              set:html={Search}
+            />
+          </span>
+          <input
+            type="text"
+            placeholder="Search admin..."
+            class="w-full cursor-default rounded-xl border border-gray-200 bg-gray-50/50 py-2.5 pr-4 pl-11 text-sm transition-all outline-none placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-1 focus:ring-gray-900"
+          />
+        </div>
+
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <ButtonAdmin
+            id="btn-open-add-admin"
+            variant="admin-outline"
+            size="icon"
+            class="rounded-xl p-2.5 text-gray-500 hover:border-gray-300 hover:bg-gray-100/70 hover:text-gray-900"
+          >
+            <span
+              class="h-4 w-4 shrink-0 [&>svg]:h-full [&>svg]:w-full"
+              set:html={Filter}
+            />
+          </ButtonAdmin>
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <Table
+        headers={tableHeaders}
+        data={tableData}
+        editAction="openChangePasswordModal"
+      />
+
+      {/* Pagination */}
+      <Pagination
+        variant="datatable"
+        currentPage={1}
+        totalPages={1}
+        startEntry={1}
+        endEntry={1}
+        totalEntries={1}
+      />
+    </div>
+  </div>
+
+  <AdminFormModal mode="add" />
+  <AdminFormModal mode="edit" />
+  <ChangePasswordModal />
+</AdminLayout>

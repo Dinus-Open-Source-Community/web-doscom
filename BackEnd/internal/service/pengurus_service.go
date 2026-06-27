@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"time"
 	"web_doscom/internal/authorization"
 	pengurusAuthorization "web_doscom/internal/authorization/pengurus"
@@ -12,16 +14,19 @@ import (
 	"web_doscom/internal/utils"
 
 	"github.com/mitchellh/mapstructure"
+	"gorm.io/gorm"
 )
 
 type PengurusService struct {
+	DB                  *gorm.DB
 	PengurusModel       *entity.PengurusModel
 	PengurusSosmedModel *entity.PengurusSosmedModel
 	GalleryService      *GalleryService
 }
 
-func NewPengurusService(m *entity.PengurusModel, p *entity.PengurusSosmedModel, g *GalleryService) *PengurusService {
+func NewPengurusService(m *entity.PengurusModel, p *entity.PengurusSosmedModel, g *GalleryService, d *gorm.DB) *PengurusService {
 	return &PengurusService{
+		DB:                  d,
 		PengurusModel:       m,
 		PengurusSosmedModel: p,
 		GalleryService:      g,
@@ -29,6 +34,7 @@ func NewPengurusService(m *entity.PengurusModel, p *entity.PengurusSosmedModel, 
 }
 
 func (p *PengurusService) UpdatePengurusSosmed(ctx context.Context, pengurusID int, sosmedUrl []string) ([]dto.PengurusSosmedResponse, error) {
+
 	if len(sosmedUrl) == 0 {
 		// delete all sosmed
 		if err := p.PengurusSosmedModel.DeleteByPengurusID(ctx, pengurusID); err != nil {
@@ -67,6 +73,68 @@ func (p *PengurusService) UpdatePengurusSosmed(ctx context.Context, pengurusID i
 	return sosmedResponse, nil
 }
 
+func (p *PengurusService) uploadProfilePhoto(ctx context.Context, userID int, userRole string, fileUpload *dto.UploadFileRequest) (string, error) {
+	allow, err := pengurusAuthorization.CanEditPengurusField(userRole, "photo_url")
+	if !allow || err != nil {
+		return "", fmt.Errorf("sorry bro an error happened: %w", err)
+	}
+
+	now := time.Now()
+	gallery := &dto.GalleryInsert{
+		IDUsers:     userID,
+		GalleryName: "foto profil pengurus",
+		GalleryType: "pengurus",
+		Description: "foto identitas diri yang mewakili pengurus doscom",
+		EventDate: time.Date(
+			now.Year(),
+			now.Month(),
+			now.Day(), 0, 0, 0, 0, time.UTC,
+		),
+	}
+
+	_, fileURL, err := p.GalleryService.InsertGalleryAndFileUpload(ctx, gallery, fileUpload)
+	if err != nil {
+		return "", err
+	}
+
+	return fileURL, nil
+}
+
+func buildPenguruspayload(
+	dataPengurus *dto.RegisterPengurusRequest,
+	userRole string,
+	divisi string,
+	validPosition string,
+) (*entity.Pengurus, error) {
+	pengurusPayload := dto.PengurusPayload{
+		Email:            dataPengurus.Email,
+		Divisi:           divisi,
+		Name:             dataPengurus.Name,
+		Position:         validPosition,
+		StartPeriodeYear: dataPengurus.StartPeriodeYear,
+		EndPeriodeYear:   dataPengurus.EndPeriodeYear,
+		PhotoURL:         dataPengurus.PhotoURL,
+	}
+	fillableFields, err := authorization.FilterRoleFieldPermission(userRole, &pengurusPayload)
+	if err != nil {
+		return nil, err
+	}
+
+	finalData := &entity.Pengurus{}
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName: "json",
+		Result:  finalData,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := decoder.Decode(fillableFields); err != nil {
+		return nil, fmt.Errorf("failed to decode data %w", err)
+	}
+
+	return finalData, nil
+}
+
 func (p *PengurusService) CreatePengurus(
 	ctx context.Context,
 	currentUserID int,
@@ -75,11 +143,17 @@ func (p *PengurusService) CreatePengurus(
 	fileUpload *dto.UploadFileRequest,
 ) (*dto.PengurusResponse, error) {
 
+	userValidDivisi, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return nil, err
+	}
 	// auto assign position and divisi
 	divisi, validPosition, err := authorization.SetDivitionAndPositionByRole(dataPengurus.Position, dataPengurus.Divisi, userRole)
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("[service] division: %s and position: %s", divisi, validPosition)
+
 	// auto assign user_id
 	roleUser, ok := constants.RoleGroup[userRole]
 	if !ok {
@@ -99,55 +173,27 @@ func (p *PengurusService) CreatePengurus(
 	}
 
 	// filter field insert by role
-	data := dto.PengurusPayload{
-		Email:            dataPengurus.Email,
-		Divisi:           divisi,
-		Name:             dataPengurus.Name,
-		Position:         validPosition,
-		StartPeriodeYear: dataPengurus.StartPeriodeYear,
-		EndPeriodeYear:   dataPengurus.EndPeriodeYear,
-		PhotoURL:         dataPengurus.PhotoURL,
-	}
-
-	fillableFields, err := authorization.FilterRoleFieldPermission(userRole, &data)
+	finalData, err := buildPenguruspayload(dataPengurus, userRole, divisi, validPosition)
 	if err != nil {
 		return nil, err
 	}
 
-	var finalData *entity.Pengurus
-	if err := mapstructure.Decode(fillableFields, &finalData); err != nil {
-		return nil, fmt.Errorf("failed to decode data")
-	}
-
 	// upload photo
-	if _, canUploadPhoto := fillableFields["photo_url"]; canUploadPhoto {
-		now := time.Now()
-		gallery := &dto.GalleryInsert{
-			IDUsers:     finalData.IDUser,
-			GalleryName: "foto profil pengurus",
-			GalleryType: "pengurus",
-			Description: "foto identitas diri yang mewakili pengurus doscom",
-			EventDate: time.Date(
-				now.Year(),
-				now.Month(),
-				now.Day(), 0, 0, 0, 0, time.UTC,
-			),
-		}
-
-		_, fileURL, err := p.GalleryService.InsertGalleryAndFileUpload(
-			ctx,
-			gallery,
-			fileUpload,
-		)
-
+	if fileUpload != nil {
+		fileURL, err := p.uploadProfilePhoto(ctx, dataPengurus.UserID, userRole, fileUpload)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("terjadi error ketika upload gambar: %w", err)
 		}
 
 		finalData.PhotoURL = fileURL
 	}
 
 	// insert data pengurus
+	if userValidDivisi.Role == constants.RolePengurus {
+		finalData.Position = validPosition
+	}
+	finalData.IDUser = dataPengurus.UserID
+	// log.Printf("[service] userID: %d & position: %s", finalData.IDUser, finalData.Position)
 	if err := p.PengurusModel.InsertPengurus(finalData); err != nil {
 		return nil, err
 	}
@@ -155,31 +201,15 @@ func (p *PengurusService) CreatePengurus(
 	// insert data sosmed pengurus
 	var socialMediaResponse []dto.PengurusSosmedResponse
 	if len(dataPengurus.Sosmed) != 0 {
-
-		socialMediaInfo, err := utils.ExtractSocialMediaBatch(dataPengurus.Sosmed)
+		socialMediaResponse, err = p.BuildSosmedAndSave(ctx, finalData.ID, dataPengurus.Sosmed)
 		if err != nil {
-			return nil, fmt.Errorf("failed to extract social media info %w", err)
-		}
-
-		socialMediaInsert := make([]dto.CreatePengurusSosmedPayload, len(socialMediaInfo))
-		for i, info := range socialMediaInfo {
-			socialMediaInsert[i] = dto.CreatePengurusSosmedPayload{
-				PengurusID: finalData.ID,
-				Platform:   info.Platform,
-				Username:   info.Username,
-				Url:        info.URL,
-				IsPrimary:  i == 0, // true hanya untuk index 0
-			}
-		}
-
-		socialMediaResponse, err = p.PengurusSosmedModel.InsertPengurusSosmed(ctx, socialMediaInsert)
-		if err != nil {
-			return nil, fmt.Errorf("failed to insert social media data %w", err)
+			return nil, err
 		}
 	}
 
 	return &dto.PengurusResponse{
 		ID:               finalData.ID,
+		IDUser:           finalData.IDUser,
 		PhotoURL:         finalData.PhotoURL,
 		Email:            finalData.Email,
 		Divisi:           finalData.Divisi,
@@ -199,17 +229,21 @@ func (p *PengurusService) UpdateDataPengurus(
 	userRole string,
 	dataPengurus *dto.PengurusPatch,
 	fileUpload *dto.UploadFileRequest,
-) (*dto.PengurusPublicResponse, error) {
+	isSelfUpdate bool,
+) (*dto.PengurusResponse, error) {
 
 	var (
 		updatedPengurus *dto.PengurusResponse
 		error           error
 	)
 
-	userData, err := p.PengurusModel.GetPengurusById(ctx, idParams)
+	log.Printf("[service] service ter execute")
+	userData, err := p.PengurusModel.GetPengurusByUserID(ctx, idParams)
 	if err != nil {
+		log.Printf("[service] userID: %d", idParams)
 		return nil, err
 	}
+
 	dataUser := entity.Pengurus{
 		ID:               userData.ID,
 		IDUser:           userData.IDUser,
@@ -254,18 +288,19 @@ func (p *PengurusService) UpdateDataPengurus(
 			return nil, fmt.Errorf("koordinator tidak dapat memperbarui foto pengurus")
 		}
 		// Pastikan kita ambil data pengurus dulu untuk tahu UserID-nya yang asli
-		targetPengurus, err := p.PengurusModel.GetPengurusById(ctx, idParams)
+		targetPengurus, err := p.PengurusModel.GetPengurusByUserID(ctx, idParams)
 		if err != nil {
+			log.Printf("[service] error disini 3")
 			return nil, err
 		}
 
-		// Pastikan juga bungkusan fileUpload menggunakan UserID asli dari tabel users (angka 2)
+		// Pastikan juga bungkusan fileUpload menggunakan UserID asli dari tabel users
 		fileUpload.UserID = uint(targetPengurus.IDUser)
 
 		// update file upload and gallery
 		now := time.Now()
 		gallery := &dto.GalleryInsert{
-			IDUsers:     targetPengurus.IDUser, // Correctly link to the UserID, not Pengurus ID
+			IDUsers:     targetPengurus.IDUser,
 			GalleryName: "foto profil pengurus",
 			GalleryType: "pengurus",
 			Description: "foto identitas diri yang mewakili pengurus doscom",
@@ -287,10 +322,20 @@ func (p *PengurusService) UpdateDataPengurus(
 
 	}
 
+	updatedPengurus = new(dto.PengurusResponse)
 	// update data pengurus
-	updatedPengurus, error = p.PengurusModel.UpdatePengurusPartial(idParams, editableFields)
-	if error != nil {
-		return nil, error
+	if isSelfUpdate {
+		updatedPengurus, error = p.PengurusModel.UpdatePengurusPartialByUserID(idParams, editableFields)
+		if error != nil {
+			log.Printf("[service] error disini 3")
+			return nil, error
+		}
+	} else {
+		updatedPengurus, error = p.PengurusModel.UpdatePenguruspartial(idParams, editableFields)
+		if error != nil {
+			log.Printf("[service] error disini 2")
+			return nil, error
+		}
 	}
 
 	// update data sosmed
@@ -298,20 +343,25 @@ func (p *PengurusService) UpdateDataPengurus(
 	if len(dataPengurus.Sosmed) != 0 {
 		sosmedResponse, err = p.UpdatePengurusSosmed(ctx, updatedPengurus.ID, dataPengurus.Sosmed)
 		if err != nil {
+			log.Printf("[service] error disini 1")
 			return nil, err
 		}
 	}
 
-	return &dto.PengurusPublicResponse{
+	response := dto.PengurusResponse{
 		ID:               updatedPengurus.ID,
+		IDUser:           updatedPengurus.IDUser,
 		PhotoURL:         updatedPengurus.PhotoURL,
+		Email:            updatedPengurus.Email,
 		Divisi:           updatedPengurus.Divisi,
 		Name:             updatedPengurus.Name,
 		Position:         updatedPengurus.Position,
 		Sosmed:           sosmedResponse,
 		StartPeriodeYear: updatedPengurus.StartPeriodeYear,
 		EndPeriodeYear:   updatedPengurus.EndPeriodeYear,
-	}, nil
+	}
+
+	return &response, nil
 }
 
 func (p *PengurusService) GetPengurusBaseOnDivision(
@@ -359,37 +409,52 @@ func (p *PengurusService) GetAllPengurusByDivision(
 		return nil, fmt.Errorf("division must be provided")
 	}
 
-	pengurusResponse, err := p.PengurusModel.GetAllPengurusByDivisi(ctx, division)
+	pengurusResponse, err := p.PengurusModel.GetPengurusByDivisi(ctx, division)
 	if err != nil {
-		return nil, fmt.Errorf("terjadi error ketika ambil data %w", err)
+		return nil, fmt.Errorf("terjadi error ketika ambil data: %w", err)
 	}
 
-	dataPengurus := make([]dto.PengurusResponse, 0, len(pengurusResponse))
-	for _, data := range pengurusResponse {
-		dataPengurus = append(dataPengurus, dto.PengurusResponse{
-			ID:               data.ID,
-			PhotoURL:         data.PhotoURL,
-			Email:            data.Email,
-			Divisi:           data.Divisi,
-			Name:             data.Name,
-			Position:         data.Position,
-			StartPeriodeYear: data.StartPeriodeYear,
-			EndPeriodeYear:   data.EndPeriodeYear,
-		})
-	}
-
-	return dataPengurus, nil
+	return pengurusResponse, nil
 }
 
-func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole string, userID int) (dto.PengurusResponse, error) {
+func (p *PengurusService) GetPengurusByUserID(ctx context.Context, userRole string, userID int) (dto.PengurusResponse, error) {
 	validRole, err := authorization.GetRoleInfo(userRole)
 	if err != nil {
 		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
 
-	pengurusResponse, err := p.PengurusModel.GetPengurusById(ctx, id)
+	pengurusResponse, err := p.PengurusModel.GetPengurusByUserID(ctx, userID)
 	if err != nil {
-		return dto.PengurusResponse{}, fmt.Errorf("error while getting the data %w", err)
+		return dto.PengurusResponse{}, fmt.Errorf("error while getting the data: %w", err)
+	}
+
+	switch validRole.Role {
+	case constants.RoleKoordinator:
+		if validRole.Divisi != pengurusResponse.Divisi {
+			return dto.PengurusResponse{}, fmt.Errorf("you can not see other division bro: %w", err)
+		}
+	case constants.RolePengurus:
+		if userID != pengurusResponse.IDUser {
+			return dto.PengurusResponse{}, fmt.Errorf("you can't see other data bro")
+		}
+	case constants.RoleAdmin:
+		// do nothing
+	default:
+		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
+	}
+
+	return *pengurusResponse, nil
+}
+
+func (p *PengurusService) GetPengurusByID(ctx context.Context, userRole string, id int) (dto.PengurusResponse, error) {
+	validRole, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
+	}
+
+	pengurusResponse, err := p.PengurusModel.GetPengurusByID(ctx, id)
+	if err != nil {
+		return dto.PengurusResponse{}, fmt.Errorf("error while getting the data: %w", err)
 	}
 
 	switch validRole.Role {
@@ -398,9 +463,10 @@ func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole 
 			return dto.PengurusResponse{}, fmt.Errorf("you can not see other division bro %w", err)
 		}
 	case constants.RolePengurus:
-		if userID != pengurusResponse.ID {
+		if id != pengurusResponse.ID {
 			return dto.PengurusResponse{}, fmt.Errorf("you can't see other data bro")
 		}
+	case constants.RoleAdmin:
 	default:
 		return dto.PengurusResponse{}, fmt.Errorf("role not valid")
 	}
@@ -408,34 +474,101 @@ func (p *PengurusService) GetPengurusByID(ctx context.Context, id int, userRole 
 	return *pengurusResponse, nil
 }
 
-func (p *PengurusService) DeletePengurusById(ctx context.Context, idPengurus int, userRole string) error {
-	role, ok := constants.RoleGroup[userRole]
+func (p *PengurusService) DeletePengurusByID(ctx context.Context, idPengurus, currentUserID int, userRole string) error {
+	targetPengurus, err := p.PengurusModel.GetPengurusByIDWithoutSosmed(ctx, idPengurus)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("pengurus not found")
+		}
+		return err
+	}
+
+	return p.DeletePengurus(ctx, &targetPengurus, userRole)
+}
+
+func (p *PengurusService) DeleteMyPengurus(ctx context.Context, currentUserID int, userRole string) error {
+	targetPengurus, err := p.PengurusModel.GetPengurusByUserIDWithoutSosmed(ctx, currentUserID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("pengurus not found")
+		}
+		return err
+	}
+
+	return p.DeletePengurus(ctx, &targetPengurus, userRole)
+}
+
+func (p *PengurusService) DeletePengurus(
+	ctx context.Context,
+	targetPengurus *dto.PengurusResponse,
+	userRole string,
+) error {
+	validRole, ok := constants.RoleGroup[userRole]
 	if !ok {
 		return fmt.Errorf("role not valid")
 	}
 
-	targetPengurus, err := p.PengurusModel.GetPengurusById(ctx, idPengurus)
-	if err != nil {
-		return err
-	}
-
-	switch role.Role {
+	switch validRole.Role {
 	case constants.RoleAdmin:
-		if err := p.PengurusModel.DeletePengurus(ctx, idPengurus); err != nil {
-			return err
-		}
+		// lakukan trancation delete pengurus and pengurus sosmed
 	case constants.RoleKoordinator:
-		if role.Divisi != targetPengurus.Divisi {
-			return fmt.Errorf("you can not delete data from other division, %w", err)
-		}
-		if err := p.PengurusModel.DeletePengurus(ctx, idPengurus); err != nil {
-			return err
+		if validRole.Divisi != targetPengurus.Divisi {
+			return fmt.Errorf("you can not delete data from other division")
 		}
 	case constants.RolePengurus:
-		return fmt.Errorf("you can't delete your own data %w", err)
+		return fmt.Errorf("you can't delete your own data")
 	default:
 		return fmt.Errorf("role not valid")
 	}
 
+	// begin transaction
+	err := p.DB.Transaction(func(tx *gorm.DB) error {
+
+		modelPengurus := p.PengurusModel.WithTx(tx)
+		modelPengurusSosmed := p.PengurusSosmedModel.WithTx(tx)
+
+		// delete sosmed first
+		if err := modelPengurusSosmed.DeleteByPengurusID(ctx, targetPengurus.ID); err != nil {
+			return err
+		}
+
+		// delete data pengurus
+		if err := modelPengurus.DeletePengurus(ctx, targetPengurus.ID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to delete data %w", err)
+	}
+
 	return nil
+}
+
+func (p *PengurusService) BuildSosmedAndSave(ctx context.Context, pengurusID int, sosmedURL []string) ([]dto.PengurusSosmedResponse, error) {
+	socialMediaInfo, err := utils.ExtractSocialMediaBatch(sosmedURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract social media info: %w", err)
+	}
+
+	socialMediaInsert := make([]dto.CreatePengurusSosmedPayload, len(socialMediaInfo))
+	for i, info := range socialMediaInfo {
+		socialMediaInsert[i] = dto.CreatePengurusSosmedPayload{
+			PengurusID: pengurusID,
+			Platform:   info.Platform,
+			Username:   info.Username,
+			Url:        info.URL,
+			IsPrimary:  i == 0, // true hanya untuk index 0
+		}
+	}
+
+	// insert pengurus sosmed
+	socialMediaResponse, err := p.PengurusSosmedModel.InsertPengurusSosmed(ctx, socialMediaInsert)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert social media data: %w", err)
+	}
+
+	return socialMediaResponse, nil
 }

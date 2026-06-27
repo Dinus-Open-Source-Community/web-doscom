@@ -22,8 +22,9 @@ fi
 
 
 # Run migrations
-echo "Running database migrations..."
+echo "Running database migrasi..."
 cd /app
+./migrate down
 ./migrate up
 
 echo "Running Seeder..."
@@ -66,3 +67,4 @@ echo "Starting backend server..."
 
 # Start the application
 exec ./app
+# exec air -c .air.toml

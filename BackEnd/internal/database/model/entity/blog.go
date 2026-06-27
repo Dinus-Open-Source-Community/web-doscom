@@ -85,10 +85,10 @@ func (m *BlogModel) GetBlogById(id int) (*dto.BlogResponse, error) {
 			b.title,
 			b.slug,
 			b.content,
-			b.kategori,
+			b.kategori::text[] AS kategori,
 			b.thumbnail_url,
 			b.published_at,
-			COALESCE(gallery.images, '[]'::json) AS gallery
+			COALESCE(gallery.images, '[]'::json) AS blog_image
 		FROM blog b
 		LEFT JOIN LATERAL (
 			SELECT json_agg(
@@ -96,6 +96,7 @@ func (m *BlogModel) GetBlogById(id int) (*dto.BlogResponse, error) {
 					'id', g.id,
 					'file_url', g.file_url
 				)
+				ORDER BY bg.id
 			) AS images FROM blog_gallery bg JOIN gallery g ON g.id = bg.id_gallery
 			WHERE bg.id_blog = b.id
 		)gallery ON true

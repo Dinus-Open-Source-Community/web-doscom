@@ -24,33 +24,66 @@ const (
 	RoleKeySuperAdmin      = "SuperAdmin"
 )
 
+// var ValidPosition = map[string]string{
+// 	"ketum":        RoleAdmin,
+// 	"sdm":          RoleKoordinator,
+// 	"pm":           RoleKoordinator,
+// 	"pmAng":        RoleKoordinator,
+// 	"KoorPemro":    RoleKoordinator,
+// 	"KoorJaringan": RoleKoordinator,
+// 	"KoorMedcrev":  RoleKoordinator,
+// 	"KoorData":     RoleKoordinator,
+// 	"sekum":        RoleKoordinator,
+// 	"sekAng":       RoleKoordinator,
+// 	"bendum":       RolePengurus,
+// 	"humas":        RolePengurus,
+// 	"bendAng":      RolePengurus,
+// 	"PemroAng":     RolePengurus,
+// 	"JaringanAng":  RolePengurus,
+// 	"MedcrevAng":   RolePengurus,
+// 	"DataAng":      RolePengurus,
+// }
+
 var ValidPosition = map[string]string{
-	"ketum":        RoleAdmin,
-	"sdm":          RoleKoordinator,
-	"pm":           RoleKoordinator,
-	"pmAng":        RoleKoordinator,
-	"KoorPemro":    RoleKoordinator,
-	"KoorJaringan": RoleKoordinator,
-	"KoorMedcrev":  RoleKoordinator,
-	"KoorData":     RoleKoordinator,
-	"sekum":        RoleKoordinator,
-	"sekAng":       RoleKoordinator,
-	"pr":           RoleKoordinator,
-	"bendum":       RolePengurus,
-	"humas":        RolePengurus,
-	"bendAng":      RolePengurus,
-	"PemroAng":     RolePengurus,
-	"JaringanAng":  RolePengurus,
-	"MedcrevAng":   RolePengurus,
-	"DataAng":      RolePengurus,
+	"ketuaUmum":                             RoleAdmin,
+	"kepalaBidangSumberDayaUmum":            RoleKoordinator,
+	"projectManagerI":                       RoleKoordinator,
+	"projectManagerII":                      RoleKoordinator,
+	"koordinatorPemrograman":                RoleKoordinator,
+	"koordinatorJaringan":                   RoleKoordinator,
+	"koordinatorMediaCreative":              RoleKoordinator,
+	"koordinatorData":                       RoleKoordinator,
+	"sekretarisUmumI":                       RoleKoordinator,
+	"sekretarisUmumII":                      RoleKoordinator,
+	"kepalaBidangHubunganMasyarakat":        RoleKoordinator,
+	"koordinatorHubunganMasyarakatExternal": RoleKoordinator,
+	"bendaharaUmumI":                        RoleKoordinator,
+	"bendaharaUmumII":                       RoleKoordinator,
+	"hubunganMasyarakatExternal":            RolePengurus,
+	"pemrogramanAnggota":                    RolePengurus,
+	"jaringanAnggota":                       RolePengurus,
+	"mediaCreativeAnggota":                  RolePengurus,
+	"dataAnggota":                           RolePengurus,
 }
 
-var PositionGroup = map[string][]string{
-	"bph":      {"ketum", "sdm", "pr", "pm", "pmang", "sekum", "sekang", "bendum", "bendang"},
-	"pemro":    {"KoorPemro", "PemroAng"},
-	"jaringan": {"KoorJaringan", "JaringanAng"},
-	"medcrev":  {"KoorMedcrev", "MedcrevAng"},
-	"data":     {"KoorData", "DataAng"},
+var PositionGroup = map[string][]string{ // terdampak
+	"bph": {
+		"ketuaUmum",
+		"kepalaBidangSumberDayaUmum",
+		"projectManagerI",
+		"projectManagerII",
+		"sekretarisUmumI",
+		"sekretarisUmumII",
+		"kepalaBidangHubunganMasyarakat",
+		"koordinatorHubunganMasyarakatExternal",
+		"hubunganMasyarakatExternal",
+		"bendaharaUmumI",
+		"bendaharaUmumII",
+	},
+	"pemro":    {"koordinatorPemrograman", "pemrogramanAnggota"},
+	"jaringan": {"koordinatorJaringan", "jaringanAnggota"},
+	"medcrev":  {"koordinatorMediaCreative", "mediaCreativeAnggota"},
+	"data":     {"koordinatorData", "dataAnggota"},
 }
 
 type Divisioninfo struct {
@@ -80,7 +113,7 @@ var RoleLevel = map[string]int{
 
 var RoleFieldPermission = map[string][]string{
 	RoleAdmin:       {"name", "email", "divisi", "position", "start_periode_year", "end_periode_year", "photo_url"},
-	RoleKoordinator: {"name", "email", "divisi", "position", "start_periode_year", "end_periode_year"},
+	RoleKoordinator: {"name", "email", "divisi", "position", "start_periode_year", "end_periode_year", "photo_url"},
 	RolePengurus:    {"name", "email", "divisi", "start_periode_year", "end_periode_year", "photo_url"},
 }
 
@@ -88,8 +121,8 @@ var RoleFieldPermission = map[string][]string{
 var AutoAsignRole = map[string]string{
 	"KoorPemro":    "pemroAnggota",
 	"KoorJaringan": "jaringanAnggota",
-	"KoorData":     "medcrevAnggota",
-	"KoorMedcrev":  "dataAnggota",
+	"KoorData":     "dataAnggota",
+	"KoorMedcrev":  "medcrevAnggota",
 	"BPH":          "BPHAnggota",
 }
 
@@ -98,7 +131,6 @@ var AutoAsignRole = map[string]string{
 const (
 	StatusDraft     = "draft"
 	StatusPublished = "published"
-	StatusScheduled = "scheduled"
 	StatusUnpublish = "unpublished"
 	StatusRejected  = "rejected"
 	StatusPending   = "pending_review"

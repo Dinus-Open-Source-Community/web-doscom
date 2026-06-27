@@ -3,6 +3,9 @@ package pengurus
 import (
 	"context"
 	"fmt"
+	"slices"
+
+	"web_doscom/internal/authorization"
 	"web_doscom/internal/constants"
 	"web_doscom/internal/database/model/entity"
 )
@@ -42,4 +45,27 @@ func RolePositionAuthorization(
 	}
 
 	return actorRole, nil
+}
+
+func CanEditPengurusField(userRole string, field string) (bool, error) {
+	validRole, err := authorization.GetRoleInfo(userRole)
+	if err != nil {
+		return false, fmt.Errorf("invalid user role")
+	}
+
+	allowedFields, exists := constants.RoleFieldPermission[validRole.Role]
+	if !exists {
+		return false, fmt.Errorf("no permissions defined for this role")
+	}
+
+	// for _, allowfield := range allowedFields {
+	// 	if field == allowfield {
+	// 		return true, nil
+	// 	}
+	// }
+	if slices.Contains(allowedFields, field) {
+		return true, nil
+	}
+
+	return false, fmt.Errorf("field %s not allowed to edit or insert by u", field)
 }

@@ -3,10 +3,12 @@ package dto
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 type CreateRequestWork struct {
-	ExistingID   []*int    `form:"existingID_image"`
+	ExistingID   []*int    `form:"existingID_image[]"`
 	PengurusID   int       `form:"pengurus_id" binding:"required"`
 	Title        string    `form:"title" binding:"required"`
 	Tagline      string    `form:"tagline" binding:"required"`
@@ -26,7 +28,7 @@ type WorkResponseClient struct {
 	Description  string          `json:"description"`
 	Slug         string          `json:"slug"`
 	ProjectType  string          `json:"project_type"`
-	Technologies []string        `json:"technologies"`
+	Technologies pq.StringArray  `gorm:"type:text[]" json:"technologies"`
 	ProjectDate  time.Time       `json:"project_date"`
 	ImageURL     string          `json:"image_url"`
 	Gallery      json.RawMessage `json:"gallery"`
@@ -34,44 +36,48 @@ type WorkResponseClient struct {
 
 type WorkResponseInternal struct {
 	ID           int             `json:"id"`
+	PengurusID   int             `json:"pengurus_id"`
 	Title        string          `json:"title"`
 	Tagline      string          `json:"tagline"`
 	Description  string          `json:"description"`
 	Slug         string          `json:"slug"`
 	ProjectType  string          `json:"project_type"`
 	Status       string          `json:"status"`
-	Technologies []string        `json:"technologies"`
+	Technologies pq.StringArray  `gorm:"type:text[]" json:"technologies"`
 	ProjectDate  time.Time       `json:"project_date"`
 	ImageURL     string          `json:"image_url"`
 	Gallery      json.RawMessage `json:"gallery"`
 }
 type WorkPatch struct {
-	PengurusID   int       `json:"pengurus_id"`
-	Title        string    `json:"title"`
-	Tagline      string    `json:"tagline"`
-	Description  string    `json:"description"`
-	Slug         string    `json:"slug"`
-	ProjectType  string    `json:"project_type"`
-	ProjectDate  time.Time `json:"project_date"`
-	Status       string    `json:"status"`
-	Technologies []string  `json:"technologies"`
-	ExistingID   []*int    `json:"existingID_image"`
+	PengurusID   int       `form:"pengurus_id"`
+	Title        string    `form:"title"`
+	Tagline      string    `form:"tagline"`
+	Description  string    `form:"description"`
+	Slug         string    `form:"slug"`
+	ProjectType  string    `form:"project_type"`
+	ProjectDate  time.Time `form:"project_date"`
+	Status       string    `form:"status"`
+	Technologies []string  `form:"technologies[]"`
+	ExistingID   []*int    `form:"existingID_image[]"`
 }
 
 type WorkPayloadUpdate struct {
-	PengurusID   int       `json:"pengurus_id"`
-	Title        string    `json:"title"`
-	Tagline      string    `json:"tagline"`
-	Description  string    `json:"description"`
-	Slug         string    `json:"slug"`
-	ProjectType  string    `json:"project_type"`
-	ProjectDate  time.Time `json:"project_date"`
-	Status       string    `json:"status"`
-	Technologies []string  `json:"technologies"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	ImageURL     string    `json:"image_url"`
+	PengurusID   int            `json:"pengurus_id"`
+	Title        string         `json:"title"`
+	Tagline      string         `json:"tagline"`
+	Description  string         `json:"description"`
+	Slug         string         `json:"slug"`
+	ProjectType  string         `json:"project_type"`
+	ProjectDate  time.Time      `json:"project_date"`
+	Status       string         `json:"status"`
+	Technologies pq.StringArray `json:"technologies"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	ImageURL     string         `json:"image_url"`
 }
 
+type WorkUpdateStatusRequest struct {
+	Status string `json:"status"`
+}
 type WorkUpdateResponse struct {
 	ID           int                    `json:"id"`
 	PengurusID   int                    `json:"pengurus_id"`

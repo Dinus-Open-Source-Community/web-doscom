@@ -1,0 +1,1317 @@
+{
+  "auth": {
+    "POST /auth/login": {
+      "request": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "response": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "username": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "role": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "username",
+              "email",
+              "role"
+            ]
+          }
+        },
+        "required": [
+          "token",
+          "user"
+        ]
+      }
+    },
+    "POST /auth/register": {
+      "request": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "fullname": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "email",
+          "password",
+          "fullname"
+        ]
+      },
+      "response": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/definitions/UserResponse"
+          }
+        },
+        "required": [
+          "message",
+          "user"
+        ]
+      }
+    },
+    "POST /auth/refresh": {
+      "request": null,
+      "response": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "token"
+        ]
+      }
+    },
+    "POST /auth/logout": {
+      "request": null,
+      "response": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    }
+  },
+  "blog": {
+    "POST /admin/blogs": {
+      "request": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "kategori": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "id_work": {
+            "type": "integer"
+          },
+          "id_pengurus": {
+            "type": "integer"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "slug",
+          "content",
+          "kategori",
+          "status",
+          "id_work",
+          "id_pengurus"
+        ]
+      },
+      "response": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/definitions/BlogResponse"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+    },
+    "GET /blogs": {
+      "request": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "default": 1
+          },
+          "limit": {
+            "type": "integer",
+            "default": 10
+          },
+          "kategori": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/BlogThumbnail"
+            }
+          },
+          "totalPage": {
+            "type": "integer"
+          },
+          "currentPage": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "message",
+          "data",
+          "totalPage",
+          "currentPage"
+        ]
+      }
+    },
+    "GET /blogs/:id": {
+      "request": null,
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "blog": {
+            "$ref": "#/definitions/BlogResponse"
+          }
+        },
+        "required": [
+          "message",
+          "blog"
+        ]
+      }
+    },
+    "PUT /admin/blogs/:id": {
+      "request": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "kategori": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        }
+      },
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/definitions/BlogResponse"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+    },
+    "DELETE /admin/blogs/:id": {
+      "request": null,
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    }
+  },
+  "gallery": {
+    "POST /admin/gallery": {
+      "request": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "gallery_name": {
+            "type": "string"
+          },
+          "gallery_type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        },
+        "required": [
+          "gallery_name",
+          "gallery_type",
+          "description",
+          "event_date"
+        ]
+      },
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/definitions/GalleryResponse"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+    },
+    "GET /gallery": {
+      "request": null,
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/GalleryResponse"
+            }
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+    },
+    "DELETE /admin/gallery/:id": {
+      "request": null,
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    }
+  },
+  "pengurus": {
+    "POST /pengurus": {
+      "request": {
+        "type": "object",
+        "properties": {
+          "...": {
+            "type": "string"
+          }
+        }
+      },
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/definitions/PengurusResponse"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+    },
+    "GET /pengurus/division/:division": {
+      "request": null,
+      "response": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/PengurusPublicResponse"
+            }
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ]
+      }
+    },
+    "PUT /pengurus/me": {
+      "request": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "response": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "data": {
+              "$ref": "#/definitions/PengurusResponse"
+            }
+          },
+          "required": [
+            "message",
+            "data"
+          ]
+        }
+      },
+      "POST /admin/pengurus": {
+        "request": {
+          "type": "object",
+          "properties": {
+            "...": {
+              "type": "string"
+            }
+          }
+        },
+        "response": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "data": {
+              "$ref": "#/definitions/PengurusResponse"
+            }
+          },
+          "required": [
+            "message",
+            "data"
+          ]
+        }
+      },
+      "PUT /admin/pengurus/:id": {
+        "request": {
+          "type": "object",
+          "properties": {
+            "...": {
+              "type": "string"
+            }
+          }
+        },
+        "response": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "data": {
+              "$ref": "#/definitions/PengurusResponse"
+            }
+          },
+          "required": [
+            "message",
+            "data"
+          ]
+        }
+      },
+      "DELETE /admin/pengurus/delete/:id": {
+        "request": null,
+        "response": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "message"
+          ]
+        }
+      }
+    },
+    "upload": {
+      "DELETE /upload/file": {
+        "request": null,
+        "response": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "message"
+          ]
+        }
+      },
+      "GET /upload/files": {
+        "request": null,
+        "response": {
+          "type": "object",
+          "properties": {
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "user": {
+      "POST /user": {
+        "request": {
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "password": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string"
+            },
+            "fullname": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "username",
+            "email",
+            "password",
+            "fullname"
+          ]
+        },
+        "response": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "data": {
+              "$ref": "#/definitions/UserResponse"
+            }
+          },
+          "required": [
+            "message",
+            "data"
+          ]
+        }
+      },
+      "GET /user/me": {
+        "request": null,
+        "response": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "data": {
+              "$ref": "#/definitions/UserResponse"
+            }
+          },
+          "required": [
+            "message",
+            "data"
+          ]
+        }
+      },
+      "PUT /user/:id": {
+        "request": {
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "fullname": {
+              "type": "string"
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "data": {
+                "$ref": "#/definitions/UserResponse"
+              }
+            },
+            "required": [
+              "message",
+              "data"
+            ]
+          }
+        },
+        "DELETE /user/:id": {
+          "request": null,
+          "response": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "message"
+            ]
+          }
+        },
+        "POST /admin/user/super-admin": {
+          "request": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "password": {
+                "type": "string"
+              },
+              "fullname": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "username",
+              "email",
+              "password",
+              "fullname"
+            ]
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "data": {
+                "$ref": "#/definitions/UserResponse"
+              }
+            },
+            "required": [
+              "message",
+              "data"
+            ]
+          }
+        }
+      },
+      "work": {
+        "POST /admin/works": {
+          "request": {
+            "type": "object",
+            "properties": {
+              "pengurus_id": {
+                "type": "integer"
+              },
+              "title": {
+                "type": "string"
+              },
+              "tagline": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "project_type": {
+                "type": "string"
+              },
+              "technologies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "project_date": {
+                "type": "string",
+                "format": "date"
+              },
+              "status": {
+                "type": "string"
+              },
+              "division": {
+                "type": "string"
+              },
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "required": [
+              "pengurus_id",
+              "title",
+              "tagline",
+              "description",
+              "slug",
+              "project_type",
+              "technologies",
+              "project_date",
+              "status"
+            ]
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "data": {
+                "$ref": "#/definitions/WorkResponseClient"
+              }
+            },
+            "required": [
+              "message",
+              "data"
+            ]
+          }
+        },
+        "GET /works": {
+          "request": null,
+          "response": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/WorkResponseClient"
+                }
+              }
+            },
+            "required": [
+              "message",
+              "data"
+            ]
+          }
+        },
+        "GET /works/:projecttype": {
+          "request": null,
+          "response": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/WorkResponseClient"
+                }
+              }
+            },
+            "required": [
+              "message",
+              "data"
+            ]
+          }
+        },
+        "PUT /admin/works/:id": {
+          "request": {
+            "type": "object",
+            "properties": {
+              "pengurus_id": {
+                "type": "integer"
+              },
+              "title": {
+                "type": "string"
+              },
+              "tagline": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "project_type": {
+                "type": "string"
+              },
+              "project_date": {
+                "type": "string",
+                "format": "date"
+              },
+              "status": {
+                "type": "string"
+              },
+              "technologies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "existingID_image": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "data": {
+                "$ref": "#/definitions/WorkUpdateResponse"
+              }
+            },
+            "required": [
+              "message",
+              "data"
+            ]
+          }
+        },
+        "DELETE /admin/works/:id": {
+          "request": null,
+          "response": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "message"
+            ]
+          }
+        }
+      },
+      "definitions": {
+        "UserResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "username": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "role": {
+              "type": "string"
+            },
+            "full_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "username",
+            "email",
+            "role",
+            "full_name"
+          ]
+        },
+        "BlogResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "author_id": {
+              "type": "integer"
+            },
+            "title": {
+              "type": "string"
+            },
+            "slug": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "kategori": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "thumbnail_url": {
+              "type": "string"
+            },
+            "published_at": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "blog_image": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/BlogGalleryResponse"
+              }
+            }
+          },
+          "required": [
+            "id",
+            "author_id",
+            "title",
+            "slug",
+            "content",
+            "kategori",
+            "thumbnail_url"
+          ]
+        },
+        "BlogThumbnail": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "title": {
+              "type": "string"
+            },
+            "slug": {
+              "type": "string"
+            },
+            "kategori": {
+              "type": "string"
+            },
+            "thumbnail_url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "slug",
+            "kategori",
+            "thumbnail_url"
+          ]
+        },
+        "BlogGalleryResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "file_upload_id": {
+              "type": "integer"
+            },
+            "gallery_name": {
+              "type": "string"
+            },
+            "gallery_type": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "event_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "file_url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "file_upload_id",
+            "gallery_name",
+            "gallery_type",
+            "description",
+            "event_date",
+            "file_url"
+          ]
+        },
+        "GalleryResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "id_users": {
+              "type": "integer"
+            },
+            "file_upload_id": {
+              "type": "integer"
+            },
+            "gallery_name": {
+              "type": "string"
+            },
+            "gallery_type": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "event_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "file_url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "id_users",
+            "file_upload_id",
+            "gallery_name",
+            "gallery_type",
+            "description",
+            "event_date",
+            "file_url"
+          ]
+        },
+        "PengurusResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "full_name": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "role": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "full_name",
+            "email",
+            "role"
+          ]
+        },
+        "PengurusPublicResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "full_name": {
+              "type": "string"
+            },
+            "division": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "full_name",
+            "division"
+          ]
+        },
+        "WorkResponseClient": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "title": {
+              "type": "string"
+            },
+            "tagline": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "slug": {
+              "type": "string"
+            },
+            "project_type": {
+              "type": "string"
+            },
+            "technologies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "project_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "image_url": {
+              "type": "string"
+            },
+            "gallery": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "slug",
+            "project_type",
+            "technologies",
+            "project_date"
+          ]
+        },
+        "WorkUpdateResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "pengurus_id": {
+              "type": "integer"
+            },
+            "title": {
+              "type": "string"
+            },
+            "tagline": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "slug": {
+              "type": "string"
+            },
+            "project_type": {
+              "type": "string"
+            },
+            "technologies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "project_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "image_url": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "work_gallery": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/WorkGalleryResponse"
+              }
+            }
+          },
+          "required": [
+            "id",
+            "title",
+            "slug",
+            "project_type",
+            "technologies",
+            "project_date",
+            "status"
+          ]
+        },
+        "WorkGalleryResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "file_upload_id": {
+              "type": "integer"
+            },
+            "gallery_name": {
+              "type": "string"
+            },
+            "gallery_type": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "event_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "file_url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "file_upload_id",
+            "gallery_name",
+            "gallery_type",
+            "description",
+            "event_date",
+            "file_url"
+          ]
+        }
+      }
+    }
+  }
+}

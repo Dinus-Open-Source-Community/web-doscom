@@ -117,15 +117,11 @@ func (m *WorkGalleryModel) UpdateWorkGallery(galleryID []int, idWork int) ([]*dt
 	return responseData, nil
 }
 
-func (m *WorkGalleryModel) DeleteWorkGalleryByID(ctx context.Context, workID int) error {
+func (m *WorkGalleryModel) DeleteWorkGalleryByWorkID(ctx context.Context, workID int) error {
 	result := m.DB.WithContext(ctx).Where("id_work = ?", workID).Delete(&WorkGallery{})
 
 	if result.Error != nil {
 		return fmt.Errorf("failed to delete work gallery %w", result.Error)
-	}
-
-	if result.RowsAffected == 0 {
-		return fmt.Errorf("work gallery not found")
 	}
 
 	return nil

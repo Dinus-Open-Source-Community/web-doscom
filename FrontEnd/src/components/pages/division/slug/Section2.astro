@@ -1,97 +1,114 @@
 ---
-import Button from "../../../ui/Button.astro";
-import Card from "../../../ui/Card.astro";
+import Button from '../../../ui/Button.astro'
+import Card from '../../../ui/Card.astro'
 
 const cardData = [
   {
-    image: "/assets/image/realeaseParty.jpg",
-    title: "TealinuxOS",
-    desc: "Release Party adalah acara peluncuran TeaLinuxOS, distro Linux racikan DOSCOM yang dikembangkan secara terbuka dengan filosofi “Nikmatnya Sebuah Racikan”.",
-    category: ["Workshop", "Bootcamp"],
+    image: '/assets/image/realeaseParty.jpg',
+    title: 'TealinuxOS',
+    desc: 'Release Party adalah acara peluncuran TeaLinuxOS, distro Linux racikan DOSCOM yang dikembangkan secara terbuka dengan filosofi “Nikmatnya Sebuah Racikan”.',
+    category: ['Workshop', 'Bootcamp'],
   },
   {
-    image: "/assets/image/du.jpg",
-    title: "Doscom University",
-    desc: "Doscom University bukanlah universitas fisik, melainkan sebuah program atau acara pelatihan yang diselenggarakan oleh Doscom (Dinus Open Source Community). ",
-    category: ["Workshop", "Bootcamp"],
+    image: '/assets/image/du.jpg',
+    title: 'Doscom University',
+    desc: 'Doscom University bukanlah universitas fisik, melainkan sebuah program atau acara pelatihan yang diselenggarakan oleh Doscom (Dinus Open Source Community). ',
+    category: ['Workshop', 'Bootcamp'],
   },
   {
-    image: "/assets/image/tealinux.png",
-    title: "Rice Source",
-    desc: "An open-source repository for community projects and experiments",
-    category: ["Workshop", "Bootcamp"],
+    image: '/assets/image/tealinux.png',
+    title: 'Rice Source',
+    desc: 'An open-source repository for community projects and experiments',
+    category: ['Workshop', 'Bootcamp'],
   },
-];
+]
 ---
 
-<section class="relative bg-[var(--color-primary)] w-full py-16 md:py-24 z-20 font-jakarta">
-  <div class="w-full mx-auto px-4 md:px-30">
-    
-    <div class="flex flex-row justify-between items-end w-full gap-6 mb-10">
-      
-      <div class="w-full max-w-[550px]">
-        <h2 class="font-semibold text-4xl md:text-5xl pb-4 text-white">
+<section
+  class="font-jakarta relative z-20 w-full bg-(--color-primary) py-16 md:py-24"
+>
+  <div class="mx-auto w-full px-4 md:px-30">
+    <div class="mb-10 flex w-full flex-row items-end justify-between gap-6">
+      <div class="w-full max-w-137.5">
+        <h2 class="pb-4 text-4xl font-semibold text-white md:text-5xl">
           Programs Division
         </h2>
-        <p class="font-normal text-[var(--color-secondary)] text-lg leading-relaxed">
-          A list of planned activities that will be implemented to achieve organizational goals in a structured and sustainable manner.
+        <p class="text-lg leading-relaxed font-normal text-(--color-secondary)">
+          A list of planned activities that will be implemented to achieve
+          organizational goals in a structured and sustainable manner.
         </p>
       </div>
 
-      <div class="hidden md:flex gap-4 shrink-0 pb-1">
-        <div id="btn-left" class="cursor-pointer transition-transform hover:scale-105">
+      <div class="hidden shrink-0 gap-4 pb-1 md:flex">
+        <div
+          id="btn-left"
+          class="cursor-pointer transition-transform hover:scale-105"
+        >
           <Button variant="secondary" size="icon">
-            <img src="/assets/icons/arrowLeftPrimary.svg" alt="Previous" width="32" height="32" />
+            <img
+              src="/assets/icons/arrowLeftPrimary.svg"
+              alt="Previous"
+              width="32"
+              height="32"
+            />
           </Button>
         </div>
-        
-        <div id="btn-right" class="cursor-pointer transition-transform hover:scale-105">
+
+        <div
+          id="btn-right"
+          class="cursor-pointer transition-transform hover:scale-105"
+        >
           <Button variant="secondary" size="icon">
-            <img src="/assets/icons/arrowRightPrimary.svg" alt="Next" width="32" height="32" />
+            <img
+              src="/assets/icons/arrowRightPrimary.svg"
+              alt="Next"
+              width="32"
+              height="32"
+            />
           </Button>
         </div>
       </div>
-      
     </div>
 
-    <div 
-      id="program-carousel" 
-      class="flex gap-6 md:gap-8 overflow-x-auto no-scrollbar snap-x scroll-smooth pb-8 pt-2"
+    <div
+      id="program-carousel"
+      class="no-scrollbar flex snap-x gap-6 overflow-x-auto scroll-smooth pt-2 pb-8 md:gap-8"
     >
-      {cardData.map((card) => (
-        <div class="shrink-0">
-          <Card
-            image={card.image}
-            variant="activities"
-            title={card.title}
-            desc={card.desc}
-            category={card.category}
-          />
-        </div>
-      ))}
+      {
+        cardData.map(card => (
+          <div class="shrink-0">
+            <Card
+              image={card.image}
+              variant="activities"
+              title={card.title}
+              desc={card.desc}
+              category={card.category}
+            />
+          </div>
+        ))
+      }
     </div>
-
   </div>
 </section>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const carousel = document.getElementById('program-carousel');
-    const btnLeft = document.getElementById('btn-left');
-    const btnRight = document.getElementById('btn-right');
+    const carousel = document.getElementById('program-carousel')
+    const btnLeft = document.getElementById('btn-left')
+    const btnRight = document.getElementById('btn-right')
 
     if (btnLeft && btnRight && carousel) {
       btnLeft.addEventListener('click', () => {
-        const cardWidth = carousel?.firstElementChild?.clientWidth;
-        const gap = 32; // gap-8 = 32px
-        carousel.scrollBy({ left: -(cardWidth ?? 0 + gap), behavior: 'smooth' });
-      });
+        const cardWidth = carousel?.firstElementChild?.clientWidth
+        const gap = 32 // gap-8 = 32px
+        carousel.scrollBy({ left: -(cardWidth ?? 0 + gap), behavior: 'smooth' })
+      })
 
       btnRight.addEventListener('click', () => {
-        const cardWidth = carousel?.firstElementChild?.clientWidth;
-        const gap = 32; 
-        carousel.scrollBy({ left: (cardWidth ?? 0 + gap), behavior: 'smooth' });
-      });
+        const cardWidth = carousel?.firstElementChild?.clientWidth
+        const gap = 32
+        carousel.scrollBy({ left: cardWidth ?? 0 + gap, behavior: 'smooth' })
+      })
     }
-  });
+  })
 </script>

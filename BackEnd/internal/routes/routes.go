@@ -57,6 +57,7 @@ func Routes(g *gin.Engine, app *config.Application) http.Handler {
 			&app.Model.Pengurus,
 			&app.Model.PengurusSosmed,
 			galleryService,
+			app.DB,
 		)
 		pengurusHandler := handler.NewPengurusHandler(pengurusService, storageService)
 
@@ -68,12 +69,19 @@ func Routes(g *gin.Engine, app *config.Application) http.Handler {
 		)
 		blogHandler := handler.NewBlogHandler(blogService)
 
+		historyService := service.NewHistoryService(
+			&app.Model.HistoryTimeline,
+			&app.Model.HistoryPhotos,
+		)
+		historyHandler := handler.NewHistoryHandler(historyService)
+
 		routes.AuthRoutes(v1, authHandler)
 		routes.UserControllerRoute(v1, userHandler)
 		routes.RegisterWorkRoutes(v1, workHandler)
 		routes.GalleryRoute(v1, galleryHandler)
 		routes.RegisterPengurusRoutes(v1, pengurusHandler)
 		routes.RegisterBlogRoutes(v1, blogHandler)
+		routes.RegisterHistoryRoutes(v1, historyHandler)
 
 		// swagger
 		g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
