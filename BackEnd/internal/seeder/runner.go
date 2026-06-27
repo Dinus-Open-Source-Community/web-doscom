@@ -26,7 +26,7 @@ func RunAllSeeders(db *gorm.DB, minioClient *config.MinioClient) {
 			RunSeedWorks(tx, minioClient)
 		}},
 		{"blog", func(tx *gorm.DB) {
-			RunSeedBlogs(tx, minioClient)
+			RunSeedBlogs(tx)
 		}},
 		{"history", func(tx *gorm.DB) {
 			RunSeedHistory(tx, minioClient)

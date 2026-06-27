@@ -3,6 +3,34 @@ import HeaderDivision from '../components/pages/division/HeaderDivision.astro'
 import PublicLayout from '../layouts/PublicLayout.astro'
 import TimelineHistory from '../components/pages/story/TimelineHistory.astro'
 import DataHistory from '../components/pages/story/DataHistory.astro'
+import { historyService } from '../services/history.service'
+import type { HistoryItem } from '../lib/types'
+
+let allHistory: HistoryItem[] = []
+let years: string[] = []
+
+try {
+  const res = await historyService.list({ limit: 999 })
+  const items = res.history ?? []
+  allHistory = await Promise.all(
+    items.map(async (item) => {
+      try {
+        const detail = await historyService.getById(item.id)
+        return { ...item, photos: detail.photos ?? [] }
+      } catch {
+        return item
+      }
+    })
+  )
+  years = [...new Set(allHistory.map((h) => h.year))].sort((a, b) => parseInt(b) - parseInt(a))
+} catch (e) {
+  // defaults remain
+}
+
+const defaultYear = years.length > 0 ? years[0] : ''
+const defaultItems = allHistory.filter((h) => h.year === defaultYear)
+const allPhotos = defaultItems.flatMap((h) => h.photos ?? []).map((p) => ({ url: p.image_url })).filter((p) => p.url)
+const defaultDescription = defaultItems.length > 0 ? defaultItems[0].description : ''
 ---
 
 <PublicLayout title="Story">
@@ -12,7 +40,16 @@ import DataHistory from '../components/pages/story/DataHistory.astro'
       description="tim yang bertanggung jawab untuk menghasilkan konten-konten kreatif dan menarik secara visual maupun audio untuk berbagai platform, seperti media sosial, website, dan media lainnya"
       backgroundImage="/assets/photos/header-division.jpg"
     />
-    <TimelineHistory />
-    <DataHistory />
+    <TimelineHistory years={years} activeYear={defaultYear} />
+
+    <script id="story-data" type="application/json" set:html={JSON.stringify(allHistory)} />
+
+    <DataHistory
+      year={defaultYear}
+      description={defaultDescription}
+      items={defaultItems}
+      allHistory={JSON.stringify(allHistory)}
+      allYears={JSON.stringify(years)}
+    />
   </section>
 </PublicLayout>

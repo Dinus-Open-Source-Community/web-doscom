@@ -19,7 +19,16 @@ if (Astro.params.id) {
 }
 
 if (work?.gallery) {
-  galleryImages = work.gallery.slice(0, 5);
+  galleryImages = work.gallery
+    .map((img) => {
+      if (typeof img === "string") return img;
+      if (img && typeof img === "object") {
+        return (img as Record<string, string>).file_url ?? (img as Record<string, string>).thumbnail_url ?? (img as Record<string, string>).url ?? "";
+      }
+      return "";
+    })
+    .filter(Boolean)
+    .slice(0, 5);
 }
 
 try {
@@ -63,5 +72,4 @@ export async function getStaticPaths() {
       )
     }
   </main>
-  <RelatedWorks />
 </PublicLayout>

@@ -8,20 +8,16 @@ import type { WorkPublic } from "@lib/types";
 
 const type = Astro.url.searchParams.get('type') ?? ''
 const search = Astro.url.searchParams.get('search') ?? ''
-const page = Number(Astro.url.searchParams.get('page')) || 1
-const limit = 9
 
 let works: WorkPublic[] = []
-let totalPages = 1
 let types: string[] = []
 try {
   types = await workService.getTypes()
-  const query: Record<string, string | number> = { page, limit }
+  const query: Record<string, string | number> = { limit: 999 }
   if (type) query.projecttype = type
   if (search) query.search = search
   const worksResponse = await workService.list(query)
   works = worksResponse["work data"] ?? worksResponse.worksData ?? []
-  totalPages = worksResponse.totalPages ?? worksResponse.totalPage ?? 1
 } catch (e) {
   // defaults remain
 }
@@ -34,6 +30,6 @@ try {
               berbagai platform, seperti media sosial, website, dan media lainnya"
     backgroundImage="/assets/photos/header-division.jpg"
   />
-  <Section2 {works} {types} activeType={type} currentPage={page} {totalPages} {search} />
+  <Section2 {works} {types} activeType={type} {search} />
   <Section3 />
 </PublicLayout>

@@ -1,7 +1,7 @@
 export interface HistoryPhoto {
   id: number
   id_history: number
-  imager_url: string
+  image_url: string
 }
 
 export interface HistoryItem {

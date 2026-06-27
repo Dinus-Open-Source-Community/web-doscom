@@ -14,6 +14,7 @@ const navItems = [
   { name: 'Works', href: ROUTES.works },
   { name: 'Blog', href: ROUTES.blog },
   { name: 'Contact', href: ROUTES.contact },
+  { name: 'Story', href: ROUTES.story },
 ]
 
 export default function Navbar({ logoHtml, currentPath }: Props) {
