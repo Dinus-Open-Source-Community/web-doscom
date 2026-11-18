@@ -145,7 +145,7 @@ a {
 }
 
 .section-label {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -930,7 +930,7 @@ body.menu-open #mobileDrawer {
 
 .about-stat-title {
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 1rem;
   margin-bottom: 0.5rem;
 }
 
@@ -941,7 +941,7 @@ body.menu-open #mobileDrawer {
 }
 
 .about-stat-desc {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--color-muted-foreground);
   margin-bottom: 1rem;
   line-height: 1.625;
@@ -949,7 +949,7 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .about-stat-desc {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 }
 
@@ -977,7 +977,7 @@ body.menu-open #mobileDrawer {
 }
 
 .avatar-caption {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--color-muted-foreground);
 }
 
@@ -999,7 +999,7 @@ body.menu-open #mobileDrawer {
 }
 
 .satisfaction-label {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 400;
   color: var(--color-muted-foreground);
   margin-bottom: 0.25rem;
@@ -1007,7 +1007,7 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .satisfaction-label {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 }
 
@@ -1106,7 +1106,7 @@ body.menu-open #mobileDrawer {
 }
 
 .portfolio-heading {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 400;
   letter-spacing: -0.025em;
   max-width: 28rem;
@@ -1115,7 +1115,7 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .portfolio-heading {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
   }
 }
 
@@ -1183,7 +1183,7 @@ body.menu-open #mobileDrawer {
 .bento-info {
   margin-top: 1rem;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1191,12 +1191,12 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .bento-info {
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 }
 
 .bento-tag {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--color-muted-foreground);
   font-weight: 300;
 }
@@ -1307,7 +1307,7 @@ body.menu-open #mobileDrawer {
 }
 
 .services-heading {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 400;
   letter-spacing: -0.025em;
   line-height: 1.25;
@@ -1317,7 +1317,7 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .services-heading {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
   }
 }
 
@@ -1364,7 +1364,7 @@ body.menu-open #mobileDrawer {
 }
 
 .big-number-label {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--color-muted-foreground);
   max-width: 120px;
   line-height: 1.25;
@@ -1373,7 +1373,7 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .big-number-label {
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 }
 
@@ -1406,7 +1406,7 @@ body.menu-open #mobileDrawer {
 }
 
 .services-subheading {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 400;
   margin-bottom: 1.5rem;
   max-width: 20rem;
@@ -1416,7 +1416,7 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .services-subheading {
-    font-size: 1.875rem;
+    font-size: 2rem;
     margin-bottom: 2rem;
   }
 }
@@ -1481,12 +1481,12 @@ body.menu-open #mobileDrawer {
 
 .service-card-title {
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 1rem;
 }
 
 @media (min-width: 768px) {
   .service-card-title {
-    font-size: 1rem;
+    font-size: 1.125rem;
   }
 }
 
@@ -1503,7 +1503,7 @@ body.menu-open #mobileDrawer {
 }
 
 .service-card-desc {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--color-muted-foreground);
   line-height: 1.625;
   max-width: 200px;
@@ -1605,7 +1605,7 @@ body.menu-open #mobileDrawer {
 }
 
 .showcase-heading {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 400;
   letter-spacing: -0.025em;
   text-align: center;
@@ -1616,7 +1616,7 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .showcase-heading {
-    font-size: 1.875rem;
+    font-size: 2rem;
     margin-bottom: 4rem;
   }
 }
@@ -1690,19 +1690,19 @@ body.menu-open #mobileDrawer {
 }
 
 .showcase-overlay-title {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
 }
 
 @media (min-width: 768px) {
   .showcase-overlay-title {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
   }
 }
 
 .showcase-overlay-desc {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.7);
   margin-bottom: 1.5rem;
   max-width: 200px;
@@ -1796,7 +1796,7 @@ body.menu-open #mobileDrawer {
 }
 
 .why-us-heading {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 400;
   letter-spacing: -0.025em;
   max-width: 42rem;
@@ -1805,7 +1805,7 @@ body.menu-open #mobileDrawer {
 
 @media (min-width: 768px) {
   .why-us-heading {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
   }
 }
 
@@ -1970,7 +1970,7 @@ body.menu-open #mobileDrawer {
 }
 
 .why-card-desc {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--color-muted-foreground);
   line-height: 1.625;
 }
@@ -2000,7 +2000,7 @@ body.menu-open #mobileDrawer {
 }
 
 .why-mini-label {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--color-muted-foreground);
   max-width: 100px;
   text-align: right;
@@ -2017,7 +2017,7 @@ body.menu-open #mobileDrawer {
 }
 
 .why-mini-avatars-caption {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 400;
   max-width: 120px;
   line-height: 1.25;
@@ -2132,30 +2132,31 @@ body.menu-open #mobileDrawer {
    15. Footer
    -------------------------------------------------------------------------- */
 .site-footer {
-  background-color: var(--color-background);
-  border-top: 1px solid var(--color-border);
-  padding-top: 4rem;
-  padding-bottom: 2rem;
+  background-color: var(--color-neutral-200);
+  border-top: 1px solid var(--color-neutral-300);
+  padding-top: 2.5rem;
+  padding-bottom: 1.5rem;
 }
 
 @media (min-width: 768px) {
   .site-footer {
-    padding-top: 6rem;
+    padding-top: 3rem;
   }
 }
 
 .footer-main-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
-  margin-bottom: 4rem;
+  gap: 2rem;
+  margin-bottom: 2rem;
 }
 
 @media (min-width: 768px) {
   .footer-main-grid {
     grid-template-columns: repeat(12, 1fr);
-    gap: 4rem;
-    margin-bottom: 6rem;
+    align-items: start;
+    gap: 2rem 3rem;
+    margin-bottom: 3rem;
   }
 }
 
@@ -2165,13 +2166,17 @@ body.menu-open #mobileDrawer {
 
 .footer-social-links {
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .footer-social-links a {
   display: inline-flex;
-  color: var(--color-muted-foreground);
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  font-size: 0.875rem;
+  color: var(--color-neutral-600);
   transition: color var(--transition-fast);
 }
 
@@ -2179,9 +2184,28 @@ body.menu-open #mobileDrawer {
   color: var(--color-foreground);
 }
 
+.footer-social-links svg,
+.footer-email svg {
+  color: var(--color-primary);
+}
+
+.footer-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-neutral-600);
+  transition: color var(--transition-fast);
+}
+
+.footer-email:hover {
+  color: var(--color-foreground);
+}
+
 @media (min-width: 768px) {
   .footer-brand-col {
-    grid-column: span 5;
+    grid-column: span 4;
   }
 }
 
@@ -2227,31 +2251,17 @@ body.menu-open #mobileDrawer {
 @media (min-width: 768px) {
   .footer-tagline {
     font-size: 0.875rem;
-    margin-bottom: 2rem;
-  }
-}
-
-.footer-links-col {
-  grid-column: span 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-@media (min-width: 768px) {
-  .footer-links-col {
-    grid-column: span 7;
+    margin-bottom: 1.5rem;
   }
 }
 
 .footer-nav-list {
   width: 100%;
-  max-width: 24rem;
 }
 
 @media (min-width: 768px) {
   .footer-nav-list {
-    margin-left: auto;
+    grid-column: span 3;
   }
 }
 
@@ -2259,8 +2269,8 @@ body.menu-open #mobileDrawer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--color-border);
-  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-neutral-300);
+  padding: 0.625rem 0;
   color: var(--color-neutral-600);
   transition: color var(--transition-fast);
 }
@@ -2275,15 +2285,9 @@ body.menu-open #mobileDrawer {
   letter-spacing: -0.025em;
 }
 
-@media (min-width: 768px) {
-  .footer-nav-item span {
-    font-size: 1.125rem;
-  }
-}
-
 .footer-nav-item svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1rem;
+  height: 1rem;
   opacity: 0;
   transform: translateX(-0.5rem);
   transition: all var(--transition-fast);
@@ -2295,25 +2299,13 @@ body.menu-open #mobileDrawer {
 }
 
 .footer-contacts-strip {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--color-border);
   font-size: 0.75rem;
-  margin-bottom: 3rem;
-}
-
-@media (min-width: 640px) {
-  .footer-contacts-strip {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 @media (min-width: 768px) {
   .footer-contacts-strip {
-    font-size: 0.875rem;
-    margin-bottom: 4rem;
+    grid-column: span 5;
+    font-size: 0.8125rem;
   }
 }
 
@@ -2329,13 +2321,10 @@ body.menu-open #mobileDrawer {
   }
 }
 
-.contact-strip-desc {
-  color: var(--color-muted-foreground);
-  transition: color var(--transition-fast);
-}
-
-.contact-strip-desc:hover {
-  color: var(--color-foreground);
+.footer-address {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+  color: var(--color-neutral-600);
 }
 
 .footer-map {
@@ -2350,9 +2339,10 @@ body.menu-open #mobileDrawer {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  border-top: 1px solid var(--color-neutral-300);
+  padding-top: 1rem;
   font-size: 0.75rem;
-  color: var(--color-muted-foreground);
-  font-weight: 300;
+  color: var(--color-neutral-600);
 }
 
 @media (min-width: 768px) {
@@ -2372,11 +2362,11 @@ body.menu-open #mobileDrawer {
   }
 }
 
-.footer-legal-links span {
+.footer-bottom-bar a {
   transition: color var(--transition-fast);
 }
 
-.footer-legal-links a:hover {
+.footer-bottom-bar a:hover {
   color: var(--color-foreground);
 }
 
@@ -2698,7 +2688,7 @@ body.modal-open {
 }
 
 .pengurus-heading {
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 400;
   letter-spacing: -0.025em;
 }
@@ -2726,12 +2716,12 @@ body.modal-open {
 }
 
 .pengurus-person h3 {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 500;
 }
 
 .pengurus-person p {
   margin-top: 0.25rem;
   color: var(--color-muted-foreground);
-  font-size: 0.875rem;
+  font-size: 1rem;
 }

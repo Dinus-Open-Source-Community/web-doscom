@@ -177,7 +177,7 @@ export default function Home() {
       <WhyUsSection onOpenContact={openContactModal} />
       <PengurusSection />
       <VideoReelSection onOpenLightbox={setLightbox} />
-      <SiteFooter onOpenContact={openContactModal} />
+      <SiteFooter />
       <LightboxModal item={lightbox} onClose={() => setLightbox(null)} />
       <ContactModal
         open={contactOpen}

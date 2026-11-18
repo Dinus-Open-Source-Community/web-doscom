@@ -1,0 +1,67 @@
+name: Merge dev branches into staging
+
+on:
+  push:
+    branches:
+      - "dev-*"
+
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge source branch into staging
+        env:
+          SOURCE_BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$SOURCE_BRANCH" =~ ^dev-[A-Za-z0-9._-]+$ ]]; then
+            echo "::error::Unexpected source branch: $SOURCE_BRANCH"
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin "$SOURCE_BRANCH"
+            source_ref="refs/remotes/origin/$SOURCE_BRANCH"
+
+            if git ls-remote --exit-code --heads origin staging >/dev/null; then
+              git fetch origin staging
+              git checkout -B staging refs/remotes/origin/staging
+            else
+              git checkout -B staging refs/remotes/origin/main
+            fi
+
+            if git merge-base --is-ancestor "$source_ref" staging; then
+              echo "$SOURCE_BRANCH is already included in staging."
+              exit 0
+            fi
+
+            if ! git merge --no-ff --no-edit "$source_ref"; then
+              git merge --abort
+              echo "::error::Merge conflict. Merge origin/staging into $SOURCE_BRANCH, resolve conflicts there, then push $SOURCE_BRANCH again."
+              exit 1
+            fi
+
+            if git push origin HEAD:refs/heads/staging; then
+              echo "Merged $SOURCE_BRANCH into staging."
+              exit 0
+            fi
+
+            echo "Staging changed during push; retrying ($attempt/5)."
+            sleep "$attempt"
+          done
+
+          echo "::error::Could not update staging after 5 attempts. Rerun this workflow."
+          exit 1

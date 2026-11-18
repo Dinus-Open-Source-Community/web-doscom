@@ -13,7 +13,8 @@ export type IconName =
   | "check"
   | "linkedin"
   | "instagram"
-  | "github";
+  | "github"
+  | "mail";
 
 const iconPaths: Record<IconName, ReactNode> = {
   "arrow-right-up": <path d="M7 17 17 7M9 7h8v8" />,
@@ -64,6 +65,12 @@ const iconPaths: Record<IconName, ReactNode> = {
   github: (
     <>
       <path d="M9 19c-4.3 1.4-4.3-2.2-6-2.5M15 21v-3.5a3 3 0 0 0-.8-2.3c2.7-.3 5.5-1.3 5.5-6A4.7 4.7 0 0 0 18.5 6 4.3 4.3 0 0 0 18.4 3S17.4 2.7 15 4.5a12 12 0 0 0-6 0C6.6 2.7 5.6 3 5.6 3A4.3 4.3 0 0 0 5.5 6a4.7 4.7 0 0 0-1.2 3.2c0 4.7 2.8 5.7 5.5 6A3 3 0 0 0 9 17.5V21" />
+    </>
+  ),
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
     </>
   ),
 };
