@@ -1,12 +1,8 @@
 "use client";
 
-import { Counter, Icon } from "../ui";
+import { Counter } from "../ui";
 
-type WhyUsSectionProps = {
-  onOpenContact: () => void;
-};
-
-export function WhyUsSection({ onOpenContact }: WhyUsSectionProps) {
+export function WhyUsSection() {
   return (
     <section id="why-us" className="container why-us-section">
       <div className="why-us-top-row">
@@ -29,13 +25,10 @@ export function WhyUsSection({ onOpenContact }: WhyUsSectionProps) {
           </div>
         </div>
         <div className="why-us-cards-col">
-          <button type="button" className="why-card" onClick={onOpenContact}>
+          <article className="why-card">
             <div className="why-card-top">
               <div className="why-card-thumbnail bg-dark">
                 <img src="/images/why-thumb-1.jpg" alt="skincare bottles" />
-              </div>
-              <div className="why-card-arrow-btn">
-                <Icon name="arrow-right-up" size={16} />
               </div>
             </div>
             <div>
@@ -45,15 +38,12 @@ export function WhyUsSection({ onOpenContact }: WhyUsSectionProps) {
                 command attention.
               </p>
             </div>
-          </button>
+          </article>
 
-          <button type="button" className="why-card" onClick={onOpenContact}>
+          <article className="why-card">
             <div className="why-card-top">
               <div className="why-card-thumbnail bg-light">
                 <img src="/images/why-thumb-2.jpg" alt="red paint splash" />
-              </div>
-              <div className="why-card-arrow-btn">
-                <Icon name="arrow-right-up" size={16} />
               </div>
             </div>
             <div>
@@ -63,7 +53,7 @@ export function WhyUsSection({ onOpenContact }: WhyUsSectionProps) {
                 function beautifully.
               </p>
             </div>
-          </button>
+          </article>
 
           <div className="why-mini-card why-mini-satisfaction">
             <div className="counter-value">

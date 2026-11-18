@@ -4,11 +4,10 @@ import { navigationItems } from "../../data/navigation";
 import { Icon } from "../ui";
 
 type HeroSectionProps = {
-  onOpenContact: () => void;
   onOpenMenu: () => void;
 };
 
-export function HeroSection({ onOpenContact, onOpenMenu }: HeroSectionProps) {
+export function HeroSection({ onOpenMenu }: HeroSectionProps) {
   return (
     <section id="home" className="hero-section">
       <div className="hero-bg">
@@ -33,13 +32,12 @@ export function HeroSection({ onOpenContact, onOpenMenu }: HeroSectionProps) {
         </nav>
 
         <div className="hero-actions">
-          <button
-            type="button"
-            onClick={onOpenContact}
+          <a
+            href="mailto:doscom.go@gmail.com?subject=Gabung%20DOSCOM"
             className="hero-btn-start"
           >
             Gabung Sekarang
-          </button>
+          </a>
           <button
             type="button"
             onClick={onOpenMenu}
