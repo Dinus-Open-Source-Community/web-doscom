@@ -5,10 +5,9 @@ import { Icon } from "../ui";
 
 type MobileDrawerProps = {
   onClose: () => void;
-  onOpenContact: () => void;
 };
 
-export function MobileDrawer({ onClose, onOpenContact }: MobileDrawerProps) {
+export function MobileDrawer({ onClose }: MobileDrawerProps) {
   return (
     <div id="mobileMenu">
       <button
@@ -50,13 +49,13 @@ export function MobileDrawer({ onClose, onOpenContact }: MobileDrawerProps) {
 
         <div className="drawer-footer">
           <p>Siap bergabung dan berkarya bersama DOSCOM?</p>
-          <button
-            type="button"
-            onClick={onOpenContact}
+          <a
+            href="mailto:doscom.go@gmail.com?subject=Gabung%20DOSCOM"
+            onClick={onClose}
             className="btn btn-pill-white"
           >
             Gabung Sekarang
-          </button>
+          </a>
         </div>
       </div>
     </div>

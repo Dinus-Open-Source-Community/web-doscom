@@ -2,11 +2,7 @@
 
 import { Counter, Icon } from "../ui";
 
-type ServicesSectionProps = {
-  onOpenContact: () => void;
-};
-
-export function ServicesSection({ onOpenContact }: ServicesSectionProps) {
+export function ServicesSection() {
   return (
     <section id="services" className="container services-section">
       <div className="services-top-row">
@@ -37,19 +33,17 @@ export function ServicesSection({ onOpenContact }: ServicesSectionProps) {
           <h3 className="services-subheading">
             We build brands that break the mold
           </h3>
-          <button
-            type="button"
-            onClick={onOpenContact}
+          <a
+            href="mailto:doscom.go@gmail.com?subject=Informasi%20Program%20DOSCOM"
             className="btn btn-primary"
           >
             View Services
-          </button>
+          </a>
         </div>
         <div className="services-cards-col">
-          <button
-            type="button"
-            className="service-card"
-            onClick={onOpenContact}
+          <a
+            href="mailto:doscom.go@gmail.com?subject=Informasi%20Program%20DOSCOM"
+            className="service-card service-card-link"
           >
             <div>
               <div className="service-card-header">
@@ -65,12 +59,11 @@ export function ServicesSection({ onOpenContact }: ServicesSectionProps) {
               </p>
             </div>
             <div className="service-card-cta">Learn more &rarr;</div>
-          </button>
+          </a>
 
-          <button
-            type="button"
-            className="service-card"
-            onClick={onOpenContact}
+          <a
+            href="mailto:doscom.go@gmail.com?subject=Informasi%20Program%20DOSCOM"
+            className="service-card service-card-link"
           >
             <div>
               <div className="service-card-header">
@@ -86,7 +79,7 @@ export function ServicesSection({ onOpenContact }: ServicesSectionProps) {
               </p>
             </div>
             <div className="service-card-cta">Learn more &rarr;</div>
-          </button>
+          </a>
 
           <div className="service-card-inverted">
             <div className="inverted-label">Customer satisfaction rate</div>

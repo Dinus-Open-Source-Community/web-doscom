@@ -5,17 +5,11 @@ import { Icon } from "../ui";
 
 type StickyNavProps = {
   visible: boolean;
-  onOpenContact: () => void;
   onScrollTo: (id: string) => void;
   onOpenMenu: () => void;
 };
 
-export function StickyNav({
-  visible,
-  onOpenContact,
-  onScrollTo,
-  onOpenMenu,
-}: StickyNavProps) {
+export function StickyNav({ visible, onScrollTo, onOpenMenu }: StickyNavProps) {
   return (
     <nav
       id="stickyNav"
@@ -40,14 +34,13 @@ export function StickyNav({
         </div>
 
         <div className="sticky-nav-actions">
-          <button
-            type="button"
-            onClick={onOpenContact}
+          <a
+            href="mailto:doscom.go@gmail.com?subject=Gabung%20DOSCOM"
             className="btn btn-primary btn-talk"
           >
             <span>Gabung Sekarang</span>
             <Icon name="arrow-right-up" size={12} />
-          </button>
+          </a>
           <button
             type="button"
             onClick={() => onScrollTo("home")}

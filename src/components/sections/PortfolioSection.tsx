@@ -17,7 +17,7 @@ export function PortfolioSection({
       <div className="container">
         <div className="portfolio-header-grid">
           <div className="portfolio-label-col">
-            <div className="section-label">Devisi</div>
+            <div className="section-label">Divisi</div>
           </div>
           <div className="portfolio-title-col">
             <h2 className="portfolio-heading">

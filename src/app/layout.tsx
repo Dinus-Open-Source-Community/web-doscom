@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={jakartaSans.variable}>
+    <html lang="id" className={jakartaSans.variable}>
       <body>{children}</body>
     </html>
   );

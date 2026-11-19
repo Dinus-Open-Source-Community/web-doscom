@@ -5,7 +5,7 @@ import "lenis/dist/lenis.css";
 import { useEffect, useRef, useState } from "react";
 import "../styles/landing.css";
 import { MobileDrawer, SiteFooter, StickyNav } from "../components/layout";
-import { ContactModal, LightboxModal } from "../components/modals";
+import { LightboxModal } from "../components/modals";
 import {
   AboutSection,
   HeroSection,
@@ -21,12 +21,8 @@ import type { LightboxItem } from "../types/lightbox";
 export default function Home() {
   const [stickyVisible, setStickyVisible] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [contactOpen, setContactOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxItem | null>(null);
 
-  const formRef = useRef<HTMLFormElement>(null);
-  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
@@ -79,7 +75,7 @@ export default function Home() {
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
-    const overlayOpen = contactOpen || lightbox !== null;
+    const overlayOpen = lightbox !== null;
 
     body.classList.toggle("menu-open", mobileOpen);
     html.classList.toggle("menu-open", mobileOpen);
@@ -99,26 +95,17 @@ export default function Home() {
       body.classList.remove("menu-open", "modal-open");
       html.classList.remove("menu-open", "modal-open");
     };
-  }, [mobileOpen, contactOpen, lightbox]);
+  }, [mobileOpen, lightbox]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setMobileOpen(false);
-      setContactOpen(false);
-      setSubmitted(false);
       setLightbox(null);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
-
-  useEffect(
-    () => () => {
-      if (resetTimer.current) clearTimeout(resetTimer.current);
-    },
-    [],
-  );
 
   const scrollToSection = (id: string) => {
     const target = document.getElementById(id);
@@ -130,62 +117,27 @@ export default function Home() {
     }
   };
 
-  const openContactModal = () => {
-    setMobileOpen(false);
-    setContactOpen(true);
-  };
-
-  const closeContactModal = () => {
-    setContactOpen(false);
-    setSubmitted(false);
-  };
-
-  const handleContactSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSubmitted(true);
-    if (resetTimer.current) clearTimeout(resetTimer.current);
-    resetTimer.current = setTimeout(() => {
-      setContactOpen(false);
-      setSubmitted(false);
-      formRef.current?.reset();
-    }, 2500);
-  };
-
   return (
     <>
       <StickyNav
         visible={stickyVisible}
-        onOpenContact={openContactModal}
         onScrollTo={scrollToSection}
         onOpenMenu={() => setMobileOpen(true)}
       />
-      <MobileDrawer
-        onClose={() => setMobileOpen(false)}
-        onOpenContact={openContactModal}
-      />
-      <HeroSection
-        onOpenContact={openContactModal}
-        onOpenMenu={() => setMobileOpen(true)}
-      />
+      <MobileDrawer onClose={() => setMobileOpen(false)} />
+      <HeroSection onOpenMenu={() => setMobileOpen(true)} />
       <AboutSection />
       <PortfolioSection
         onScrollTo={scrollToSection}
         onOpenLightbox={setLightbox}
       />
-      <ServicesSection onOpenContact={openContactModal} />
+      <ServicesSection />
       <ShowcaseSection onOpenLightbox={setLightbox} />
-      <WhyUsSection onOpenContact={openContactModal} />
+      <WhyUsSection />
       <PengurusSection />
       <VideoReelSection onOpenLightbox={setLightbox} />
       <SiteFooter />
       <LightboxModal item={lightbox} onClose={() => setLightbox(null)} />
-      <ContactModal
-        open={contactOpen}
-        submitted={submitted}
-        formRef={formRef}
-        onSubmit={handleContactSubmit}
-        onClose={closeContactModal}
-      />
     </>
   );
 }
