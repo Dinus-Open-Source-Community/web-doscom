@@ -13,7 +13,6 @@ import {
   PortfolioSection,
   ServicesSection,
   ShowcaseSection,
-  VideoReelSection,
   WhyUsSection,
 } from "../components/sections";
 import type { LightboxItem } from "../types/lightbox";
@@ -135,7 +134,6 @@ export default function Home() {
       <ShowcaseSection onOpenLightbox={setLightbox} />
       <WhyUsSection />
       <PengurusSection />
-      <VideoReelSection onOpenLightbox={setLightbox} />
       <SiteFooter />
       <LightboxModal item={lightbox} onClose={() => setLightbox(null)} />
     </>
