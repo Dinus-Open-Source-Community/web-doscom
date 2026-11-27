@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "../ui";
 
 export interface DivisionItem {
   id: string;
@@ -123,13 +122,13 @@ export function AllDivisionsModal({
 
       const tCircle = setTimeout(() => {
         setCircleActive(true);
-      }, 30);
+      }, 40);
       const tContent = setTimeout(() => {
         setContentActive(true);
       }, 450);
       const tDone = setTimeout(() => {
         setExpandedDone(true);
-      }, 1450);
+      }, 1350);
 
       return () => {
         clearTimeout(tCircle);
@@ -148,13 +147,13 @@ export function AllDivisionsModal({
 
     const tCircle = setTimeout(() => {
       setCircleActive(false);
-    }, 280);
+    }, 200);
 
     const tUnmount = setTimeout(() => {
       setMounted(false);
       window.dispatchEvent(new CustomEvent("lenis:start"));
       onClose();
-    }, 1500);
+    }, 1450);
 
     return () => {
       clearTimeout(tCircle);
@@ -221,7 +220,21 @@ export function AllDivisionsModal({
             aria-label="Tutup Tampilan Divisi"
           >
             <span>Tutup</span>
-            <span className="all-divisi-close-circle">&times;</span>
+            <span className="all-divisi-close-circle" aria-hidden="true">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </span>
           </button>
         </header>
 
@@ -294,17 +307,8 @@ export function AllDivisionsModal({
           ))}
         </div>
 
-        {/* Bottom Bar */}
-        <div className="all-divisi-footer">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="btn btn-primary"
-          >
-            <span>Kembali ke Beranda</span>
-            <Icon name="arrow-right" size={16} />
-          </button>
-        </div>
+        {/* Bottom Bar / Line Divider */}
+        <div className="all-divisi-footer" />
       </div>
     </div>
   );

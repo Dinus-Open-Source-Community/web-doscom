@@ -177,7 +177,7 @@ export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
               }}
             >
               <span className="trigger-pulse-dot" />
-              <span className="trigger-text">Lihat Semua Divisi (8)</span>
+              <span className="trigger-text">Lihat Semua Divisi</span>
               <Icon name="arrow-right" size={16} className="trigger-arrow" />
             </button>
           </div>
