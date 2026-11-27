@@ -208,7 +208,6 @@ export function PengurusSection() {
 
   const selectedIndex = Math.max(pengurusPeriods.indexOf(period), 0);
   const members = pengurus.filter((person) => person.period === period);
-  const remainingCount = Math.max(members.length - 8, 0);
   const visibleMembers = expanded ? members : members.slice(0, 8);
 
   useEffect(() => {
@@ -366,7 +365,7 @@ export function PengurusSection() {
             <span>
               {expanded
                 ? "Tampilkan Lebih Sedikit"
-                : `Lihat Semua Pengurus (${remainingCount})`}
+                : `Lihat Semua Pengurus`}
             </span>
             <svg
               className={`pengurus-more-chevron ${expanded ? "is-expanded" : ""}`}

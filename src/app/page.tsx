@@ -62,9 +62,16 @@ export default function Home() {
     };
     document.addEventListener("click", onAnchorClick);
 
+    const onLenisStop = () => lenis.stop();
+    const onLenisStart = () => lenis.start();
+    window.addEventListener("lenis:stop", onLenisStop);
+    window.addEventListener("lenis:start", onLenisStart);
+
     return () => {
       cancelAnimationFrame(rafId);
       document.removeEventListener("click", onAnchorClick);
+      window.removeEventListener("lenis:stop", onLenisStop);
+      window.removeEventListener("lenis:start", onLenisStart);
       lenis.off("scroll", onScroll);
       lenis.destroy();
       lenisRef.current = null;
