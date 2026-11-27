@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LightboxItem } from "../../types/lightbox";
+import { AllDivisionsModal } from "../modals";
 import { Icon } from "../ui";
 
 type PortfolioSectionProps = {
@@ -63,6 +64,11 @@ const DIVISI_ITEMS: DivisiCardData[] = [
 
 export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
   const [headerVisible, setHeaderVisible] = useState(false);
+  const [allDivisionsOpen, setAllDivisionsOpen] = useState(false);
+  const [modalOrigin, setModalOrigin] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [visiblePhotos, setVisiblePhotos] = useState<Record<string, boolean>>(
     {},
   );
@@ -143,16 +149,38 @@ export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
   return (
     <section id="portfolio" className="portfolio-section">
       <div className="container">
-        {/* Section Header */}
-        <div ref={headerRef} className="portfolio-header-stack">
-          <div className="section-label">Divisi</div>
-          <h2
-            className={`portfolio-heading divisi-header-heading ${
-              headerVisible ? "is-in-view" : ""
-            }`}
-          >
-            Empat pilar eksplorasi teknologi dan inovasi terbuka
-          </h2>
+        {/* Section Header with Aligned Trigger Button */}
+        <div ref={headerRef} className="portfolio-header-row">
+          <div className="portfolio-header-left">
+            <div className="section-label">Divisi</div>
+            <h2
+              className={`portfolio-heading divisi-header-heading ${
+                headerVisible ? "is-in-view" : ""
+              }`}
+            >
+              Empat pilar eksplorasi teknologi dan inovasi terbuka
+            </h2>
+          </div>
+          <div className="portfolio-header-action">
+            <button
+              type="button"
+              className="divisi-all-trigger-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const rect = e.currentTarget.getBoundingClientRect();
+                setModalOrigin({
+                  x: Math.round(rect.left + rect.width / 2),
+                  y: Math.round(rect.top + rect.height / 2),
+                });
+                setAllDivisionsOpen(true);
+              }}
+            >
+              <span className="trigger-pulse-dot" />
+              <span className="trigger-text">Lihat Semua Divisi (8)</span>
+              <Icon name="arrow-right" size={16} className="trigger-arrow" />
+            </button>
+          </div>
         </div>
 
         {/* Staggered Waterfall Grid */}
@@ -221,6 +249,12 @@ export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
           })}
         </div>
       </div>
+
+      <AllDivisionsModal
+        isOpen={allDivisionsOpen}
+        origin={modalOrigin}
+        onClose={() => setAllDivisionsOpen(false)}
+      />
     </section>
   );
 }
