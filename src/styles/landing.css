@@ -1239,6 +1239,254 @@ body.menu-open #mobileDrawer {
 }
 
 /* --------------------------------------------------------------------------
+   9b. Staggered Waterfall Divisi Section (Method Layout & Transitions)
+   -------------------------------------------------------------------------- */
+.divisi-waterfall-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+.divisi-card-wrapper {
+  width: 84%;
+  transition: opacity 0.8s ease;
+}
+
+/* Mobile Zigzag: odd cards to the left, even cards to the right */
+.divisi-stagger-0,
+.divisi-stagger-2 {
+  align-self: flex-start;
+}
+
+.divisi-stagger-1,
+.divisi-stagger-3 {
+  align-self: flex-end;
+}
+
+/* Tablet (2x2 grid, reset stagger offsets) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .divisi-waterfall-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem 2rem;
+  }
+
+  .divisi-card-wrapper {
+    width: 100%;
+    align-self: auto;
+    margin-top: 0 !important;
+  }
+}
+
+/* Desktop (4-column Staggered Waterfall) */
+@media (min-width: 1024px) {
+  .divisi-waterfall-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem;
+    align-items: start;
+    margin-bottom: 5rem;
+  }
+
+  .divisi-card-wrapper {
+    width: 100%;
+    align-self: auto;
+  }
+
+  .divisi-stagger-0 {
+    margin-top: 0;
+  }
+
+  .divisi-stagger-1 {
+    margin-top: 80px;
+  }
+
+  .divisi-stagger-2 {
+    margin-top: 160px;
+  }
+
+  .divisi-stagger-3 {
+    margin-top: 240px;
+  }
+}
+
+/* Card Container */
+.divisi-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  outline: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Image Shutter Reveal (Aspect Ratio 4/5) */
+.divisi-img-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 0.875rem;
+  background-color: var(--color-neutral-900);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+}
+
+.divisi-shutter-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  clip-path: inset(100% 0 0 0);
+  transform: scale(1.25);
+  transition:
+    clip-path 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: clip-path, transform;
+}
+
+.is-in-view .divisi-shutter-inner {
+  clip-path: inset(0% 0 0 0);
+  transform: scale(1);
+}
+
+.divisi-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition:
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.4s ease;
+  filter: brightness(0.92) contrast(1.03);
+}
+
+.divisi-card:hover .divisi-img {
+  transform: scale(1.06);
+  filter: brightness(1) contrast(1.06);
+}
+
+/* Number & Hover Badges */
+.divisi-num-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 0.3rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.divisi-hover-badge {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.divisi-card:hover .divisi-hover-badge {
+  opacity: 1;
+}
+
+/* Text Blur Rise Reveal */
+.divisi-content {
+  margin-top: 1.25rem;
+  opacity: 0;
+  transform: translateY(48px);
+  filter: blur(12px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.8s ease;
+  transition-delay: 0.2s;
+  will-change: opacity, transform, filter;
+}
+
+.is-in-view .divisi-content {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0px);
+}
+
+.divisi-meta {
+  margin-bottom: 0.35rem;
+}
+
+.divisi-kicker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.divisi-card-title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  color: var(--color-foreground);
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+@media (min-width: 1024px) {
+  .divisi-card-title {
+    font-size: 1.625rem;
+  }
+}
+
+.divisi-card-desc {
+  font-size: 0.875rem;
+  color: var(--color-neutral-600);
+  line-height: 1.6;
+  font-weight: 400;
+  margin-bottom: 1rem;
+}
+
+.divisi-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-neutral-800);
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.divisi-link-icon {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.divisi-card:hover .divisi-card-footer {
+  color: var(--color-accent);
+}
+
+.divisi-card:hover .divisi-link-icon {
+  transform: translate(3px, -3px);
+}
+
+/* --------------------------------------------------------------------------
    10. Expertise & Services Section
    -------------------------------------------------------------------------- */
 .services-section {
