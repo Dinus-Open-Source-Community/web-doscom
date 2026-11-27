@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LightboxItem } from "../../types/lightbox";
-import { Icon, ScrambleText } from "../ui";
+import { Icon } from "../ui";
 
 type PortfolioSectionProps = {
-  onScrollTo: (id: string) => void;
+  onScrollTo?: (id: string) => void;
   onOpenLightbox: (item: LightboxItem) => void;
 };
 
@@ -61,15 +61,14 @@ const DIVISI_ITEMS: DivisiCardData[] = [
   },
 ];
 
-export function PortfolioSection({
-  onScrollTo,
-  onOpenLightbox,
-}: PortfolioSectionProps) {
+export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
+  const [headerVisible, setHeaderVisible] = useState(false);
   const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
+  const headerRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    const cardObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
@@ -81,39 +80,50 @@ export function PortfolioSection({
         });
       },
       {
-        threshold: 0.15,
-        rootMargin: "0px 0px -50px 0px",
+        threshold: 0.25,
+        rootMargin: "0px 0px -30% 0px",
       },
     );
 
     cardRefs.current.forEach((el) => {
-      if (el) observer.observe(el);
+      if (el) cardObserver.observe(el);
     });
 
-    return () => observer.disconnect();
+    const headerObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHeaderVisible(true);
+        }
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -40px 0px",
+      },
+    );
+
+    if (headerRef.current) {
+      headerObserver.observe(headerRef.current);
+    }
+
+    return () => {
+      cardObserver.disconnect();
+      headerObserver.disconnect();
+    };
   }, []);
 
   return (
     <section id="portfolio" className="portfolio-section">
       <div className="container">
         {/* Section Header */}
-        <div className="portfolio-header-grid">
-          <div className="portfolio-label-col">
-            <div className="section-label">03 / 08 &middot; Divisi</div>
-          </div>
-          <div className="portfolio-title-col">
-            <h2 className="portfolio-heading">
-              Empat pilar eksplorasi teknologi dan inovasi terbuka
-            </h2>
-            <button
-              type="button"
-              onClick={() => onScrollTo("services")}
-              className="btn btn-primary"
-            >
-              <span>Program Kerja</span>
-              <Icon name="arrow-right" size={16} />
-            </button>
-          </div>
+        <div ref={headerRef} className="portfolio-header-stack">
+          <div className="section-label">Divisi</div>
+          <h2
+            className={`portfolio-heading divisi-header-heading ${
+              headerVisible ? "is-in-view" : ""
+            }`}
+          >
+            Empat pilar eksplorasi teknologi dan inovasi terbuka
+          </h2>
         </div>
 
         {/* Staggered Waterfall Grid */}
@@ -131,9 +141,6 @@ export function PortfolioSection({
                 className={`divisi-card-wrapper divisi-stagger-${index} ${
                   isVisible ? "is-in-view" : ""
                 }`}
-                style={{
-                  transitionDelay: `${index * 120}ms`,
-                }}
               >
                 <button
                   type="button"
@@ -155,10 +162,6 @@ export function PortfolioSection({
                         loading="lazy"
                       />
                     </div>
-                    <div className="divisi-hover-badge">
-                      <span className="badge-view">Lihat Detail</span>
-                    </div>
-                    <div className="divisi-num-badge">{item.number}</div>
                   </div>
 
                   {/* Card Content with Text Blur Rise */}
@@ -167,9 +170,7 @@ export function PortfolioSection({
                       <span className="divisi-kicker">{item.kicker}</span>
                     </div>
 
-                    <h3 className="divisi-card-title">
-                      <ScrambleText text={item.title} trigger={isVisible} />
-                    </h3>
+                    <h3 className="divisi-card-title">{item.title}</h3>
 
                     <p className="divisi-card-desc">{item.description}</p>
 

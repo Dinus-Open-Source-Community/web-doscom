@@ -1073,6 +1073,37 @@ body.menu-open #mobileDrawer {
   }
 }
 
+.portfolio-header-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .portfolio-header-stack {
+    margin-bottom: 4rem;
+  }
+}
+
+.divisi-header-heading {
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(6px);
+  transition:
+    opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform, filter;
+}
+
+.divisi-header-heading.is-in-view {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0px);
+}
+
 .portfolio-label-col {
   grid-column: span 1;
 }
@@ -1244,7 +1275,7 @@ body.menu-open #mobileDrawer {
 .divisi-waterfall-grid {
   display: flex;
   flex-direction: column;
-  gap: 3.5rem;
+  gap: 6rem;
 }
 
 .divisi-card-wrapper {
@@ -1268,7 +1299,7 @@ body.menu-open #mobileDrawer {
   .divisi-waterfall-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 3rem 2rem;
+    gap: 4.5rem 2.5rem;
   }
 
   .divisi-card-wrapper {
@@ -1283,9 +1314,9 @@ body.menu-open #mobileDrawer {
   .divisi-waterfall-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 2rem;
+    gap: 2.75rem;
     align-items: start;
-    margin-bottom: 5rem;
+    margin-bottom: 9rem;
   }
 
   .divisi-card-wrapper {
@@ -1298,15 +1329,15 @@ body.menu-open #mobileDrawer {
   }
 
   .divisi-stagger-1 {
-    margin-top: 80px;
+    margin-top: 130px;
   }
 
   .divisi-stagger-2 {
-    margin-top: 160px;
+    margin-top: 260px;
   }
 
   .divisi-stagger-3 {
-    margin-top: 240px;
+    margin-top: 390px;
   }
 }
 
@@ -1330,8 +1361,7 @@ body.menu-open #mobileDrawer {
   aspect-ratio: 4 / 5;
   overflow: hidden;
   border-radius: 0.875rem;
-  background-color: var(--color-neutral-900);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+  background-color: transparent;
 }
 
 .divisi-shutter-inner {
@@ -1339,16 +1369,16 @@ body.menu-open #mobileDrawer {
   height: 100%;
   position: relative;
   clip-path: inset(100% 0 0 0);
-  transform: scale(1.25);
+  transform: translateY(20%) scale(1.08);
   transition:
-    clip-path 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+    clip-path 1.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.8s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: clip-path, transform;
 }
 
 .is-in-view .divisi-shutter-inner {
   clip-path: inset(0% 0 0 0);
-  transform: scale(1);
+  transform: translateY(0) scale(1);
 }
 
 .divisi-img {
@@ -1359,7 +1389,7 @@ body.menu-open #mobileDrawer {
   transition:
     transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
     filter 0.4s ease;
-  filter: brightness(0.92) contrast(1.03);
+  filter: brightness(0.94) contrast(1.03);
 }
 
 .divisi-card:hover .divisi-img {
@@ -1367,62 +1397,16 @@ body.menu-open #mobileDrawer {
   filter: brightness(1) contrast(1.06);
 }
 
-/* Number & Hover Badges */
-.divisi-num-badge {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(10, 10, 10, 0.55);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 0.3rem 0.65rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  z-index: 2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.divisi-hover-badge {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
-  z-index: 3;
-}
-
-.divisi-card:hover .divisi-hover-badge {
-  opacity: 1;
-}
-
-/* Text Blur Rise Reveal */
+/* Content Container */
 .divisi-content {
   margin-top: 1.25rem;
   opacity: 0;
-  transform: translateY(48px);
-  filter: blur(12px);
-  transition:
-    opacity 0.8s ease,
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    filter 0.8s ease;
-  transition-delay: 0.2s;
-  will-change: opacity, transform, filter;
+  transition: opacity 0.8s ease;
+  transition-delay: 0.25s;
 }
 
 .is-in-view .divisi-content {
   opacity: 1;
-  transform: translateY(0);
-  filter: blur(0px);
 }
 
 .divisi-meta {
@@ -1433,12 +1417,13 @@ body.menu-open #mobileDrawer {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.6875rem;
   letter-spacing: 0.06em;
-  color: var(--color-accent);
+  color: var(--color-primary);
   font-weight: 600;
   text-transform: uppercase;
   display: inline-block;
 }
 
+/* Only Division Title has the slow Blur Rise */
 .divisi-card-title {
   font-size: 1.5rem;
   font-weight: 500;
@@ -1446,6 +1431,21 @@ body.menu-open #mobileDrawer {
   color: var(--color-foreground);
   margin-bottom: 0.5rem;
   line-height: 1.2;
+  opacity: 0;
+  transform: translateY(36px);
+  filter: blur(14px);
+  transition:
+    opacity 1.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.8s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: 0.45s;
+  will-change: opacity, transform, filter;
+}
+
+.is-in-view .divisi-card-title {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0px);
 }
 
 @media (min-width: 1024px) {
@@ -1479,7 +1479,7 @@ body.menu-open #mobileDrawer {
 }
 
 .divisi-card:hover .divisi-card-footer {
-  color: var(--color-accent);
+  color: var(--color-primary);
 }
 
 .divisi-card:hover .divisi-link-icon {
