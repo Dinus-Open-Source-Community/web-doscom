@@ -9,9 +9,13 @@ export function Counter({ target }: { target: number }) {
     const el = ref.current;
     if (!el) return;
 
+    let animated = false;
+    let frameId: number | undefined;
+
     const observer = new IntersectionObserver(
       ([entry], obs) => {
-        if (!entry.isIntersecting) return;
+        if (animated || !entry.isIntersecting) return;
+        animated = true;
         obs.unobserve(el);
 
         const start = performance.now();
@@ -20,18 +24,21 @@ export function Counter({ target }: { target: number }) {
           const eased = progress === 1 ? 1 : 1 - 2 ** (-10 * progress);
           el.textContent = String(Math.floor(eased * target));
           if (progress < 1) {
-            requestAnimationFrame(step);
+            frameId = requestAnimationFrame(step);
           } else {
             el.textContent = String(target);
           }
         };
-        requestAnimationFrame(step);
+        frameId = requestAnimationFrame(step);
       },
       { threshold: 0.2 },
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (frameId !== undefined) cancelAnimationFrame(frameId);
+    };
   }, [target]);
 
   return <span ref={ref}>{target}</span>;

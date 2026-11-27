@@ -1,73 +1,74 @@
 "use client";
 
-import { Counter, Icon, ProgressBar } from "../ui";
+import Image from "next/image";
+import { Counter } from "../ui";
+
+const stats = [
+  { target: 4, suffix: "", label: "Divisi inti" },
+  { target: 11, suffix: "", label: "Bidang keahlian" },
+  { target: 100, suffix: "%", label: "Open source" },
+] as const;
 
 export function AboutSection() {
   return (
-    <section id="about" className="container about-section">
-      <div className="about-label-desktop">
-        <div className="section-label sticky-label">Tentang Kami</div>
-      </div>
-      <div className="about-img-col">
-        <div className="section-label about-label-mobile">Tentang Kami</div>
-        <div className="about-img-card">
-          <img src="/images/about.jpg" alt="cinematic lighting" />
-        </div>
-      </div>
-      <div className="about-content-col">
-        <h2 className="about-heading">
-          The role of user experience in modern design architectures.
-        </h2>
-        <div className="about-stats-grid">
-          <div>
-            <div className="counter-value">
-              <Counter target={4} />K
+    <section id="about" className="about-section">
+      <div className="container about-inner">
+        <div className="about-grid">
+          <figure className="about-media">
+            <div className="about-image-frame">
+              <Image
+                src="/images/about-community.webp"
+                alt="Anggota DOSCOM berfoto bersama dalam kegiatan komunitas open source"
+                fill
+                sizes="(max-width: 1023px) 90vw, 40vw"
+                className="about-image"
+              />
             </div>
-            <h3 className="about-stat-title">Happy customers</h3>
-            <p className="about-stat-desc">
-              We believe that the key to our success lies in understanding the
-              core needs of our clients.
+            <figcaption className="about-caption">
+              Foto kegiatan komunitas DOSCOM.
+            </figcaption>
+          </figure>
+
+          <div className="about-content">
+            <p className="about-eyebrow">
+              <span className="about-eyebrow-bar" aria-hidden="true" />
+              Tentang Kami
             </p>
-            <div className="avatar-group">
-              <div className="avatar-stack">
-                <img src="/images/avatar-1.jpg" alt="avatar" />
-                <img src="/images/avatar-2.jpg" alt="avatar" />
-                <img src="/images/avatar-3.jpg" alt="avatar" />
-              </div>
-              <span className="avatar-caption">Sustainable creativity.</span>
-            </div>
-          </div>
-          <div className="satisfaction-card">
-            <Icon name="like" className="satisfaction-icon" size={24} />
-            <div>
-              <div className="satisfaction-label">Satisfaction rate</div>
-              <div className="counter-value">
-                <Counter target={95} />%
-              </div>
+            <h2 className="about-heading">
+              Komunitas Open Source untuk{" "}
+              <span>Belajar, Berbagi, dan Berkarya.</span>
+            </h2>
+            <p className="about-description">
+              DOSCOM adalah komunitas open source di Universitas Dian Nuswantoro
+              yang berfokus pada pengembangan, edukasi, dan kolaborasi dalam
+              dunia teknologi terbuka. Kami percaya bahwa semangat open source
+              bukan hanya tentang kode, tetapi juga tentang berbagi pengetahuan,
+              membangun bersama, dan tumbuh sebagai satu komunitas.
+            </p>
+
+            <div className="about-stats">
+              {stats.map((stat) => (
+                <article className="about-stat" key={stat.label}>
+                  <p className="about-stat-value">
+                    <Counter target={stat.target} />
+                    {stat.suffix ? (
+                      <span className="about-stat-suffix">{stat.suffix}</span>
+                    ) : null}
+                  </p>
+                  <h3 className="about-stat-label">{stat.label}</h3>
+                </article>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="progress-list">
-          <div>
-            <div className="progress-header">
-              <span>Strategy</span>
-              <span>75%</span>
-            </div>
-            <div className="progress-track">
-              <ProgressBar value="75%" />
-            </div>
-          </div>
-          <div>
-            <div className="progress-header">
-              <span>Design</span>
-              <span>85%</span>
-            </div>
-            <div className="progress-track">
-              <ProgressBar value="85%" />
-            </div>
-          </div>
-        </div>
+        <blockquote className="about-vision">
+          <p className="about-vision-label">Visi DOSCOM</p>
+          <p className="about-vision-quote">
+            “Memasyarakatkan Open Source dan Meng-Open Source-kan Masyarakat.”
+          </p>
+          <footer>Dinus Open Source Community</footer>
+        </blockquote>
       </div>
     </section>
   );

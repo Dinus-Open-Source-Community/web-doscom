@@ -11,6 +11,7 @@ import {
   HeroSection,
   PengurusSection,
   PortfolioSection,
+  ProjectSection,
   ServicesSection,
   ShowcaseSection,
   VideoReelSection,
@@ -18,10 +19,42 @@ import {
 } from "../components/sections";
 import type { LightboxItem } from "../types/lightbox";
 
+const STICKY_NAV_SCROLL_THRESHOLD = 350;
+
+function getAnchorOffset(target: HTMLElement) {
+  const stickyNav = document.getElementById("stickyNav");
+  const navHeight = stickyNav?.offsetHeight ?? 0;
+  const targetTop = target.getBoundingClientRect().top + window.scrollY;
+
+  if (navHeight > 0 && targetTop > STICKY_NAV_SCROLL_THRESHOLD + navHeight) {
+    return -(navHeight + 16);
+  }
+
+  return -20;
+}
+
+function scrollToAnchor(lenis: Lenis, target: HTMLElement) {
+  const scroll = () => {
+    lenis.start();
+    lenis.resize();
+    lenis.scrollTo(target, {
+      offset: getAnchorOffset(target),
+      duration: 1.2,
+    });
+  };
+
+  if (document.documentElement.classList.contains("menu-open")) {
+    requestAnimationFrame(() => requestAnimationFrame(scroll));
+  } else {
+    scroll();
+  }
+}
+
 export default function Home() {
   const [stickyVisible, setStickyVisible] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxItem | null>(null);
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
 
   const lenisRef = useRef<Lenis | null>(null);
 
@@ -58,8 +91,7 @@ export default function Home() {
       if (!target) return;
 
       event.preventDefault();
-      lenis.start();
-      lenis.scrollTo(target as HTMLElement, { offset: -20, duration: 1.2 });
+      scrollToAnchor(lenis, target as HTMLElement);
     };
     document.addEventListener("click", onAnchorClick);
 
@@ -75,16 +107,19 @@ export default function Home() {
   useEffect(() => {
     const html = document.documentElement;
     const body = document.body;
-    const overlayOpen = lightbox !== null;
+    const lightboxOpen = lightbox !== null;
+    const scrollLocked = mobileOpen || lightboxOpen || projectModalOpen;
 
     body.classList.toggle("menu-open", mobileOpen);
     html.classList.toggle("menu-open", mobileOpen);
-    body.classList.toggle("modal-open", overlayOpen);
-    html.classList.toggle("modal-open", overlayOpen);
+    // ProjectModal mengelola scroll lock-nya sendiri lewat class
+    // project-modal-open, jadi jangan pakai modal-open milik lightbox.
+    body.classList.toggle("modal-open", lightboxOpen);
+    html.classList.toggle("modal-open", lightboxOpen);
 
     const lenis = lenisRef.current;
     if (lenis) {
-      if (mobileOpen || overlayOpen) {
+      if (scrollLocked) {
         lenis.stop();
       } else {
         lenis.start();
@@ -95,7 +130,7 @@ export default function Home() {
       body.classList.remove("menu-open", "modal-open");
       html.classList.remove("menu-open", "modal-open");
     };
-  }, [mobileOpen, lightbox]);
+  }, [mobileOpen, lightbox, projectModalOpen]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -111,7 +146,7 @@ export default function Home() {
     const target = document.getElementById(id);
     if (!target) return;
     if (lenisRef.current) {
-      lenisRef.current.scrollTo(target, { offset: -20, duration: 1.2 });
+      scrollToAnchor(lenisRef.current, target);
     } else {
       target.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -132,6 +167,7 @@ export default function Home() {
         onOpenLightbox={setLightbox}
       />
       <ServicesSection />
+      <ProjectSection onModalOpenChange={setProjectModalOpen} />
       <ShowcaseSection onOpenLightbox={setLightbox} />
       <WhyUsSection />
       <PengurusSection />
