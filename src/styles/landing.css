@@ -1376,6 +1376,7 @@ body.menu-open #mobileDrawer {
   will-change: clip-path, transform;
 }
 
+.is-photo-in-view .divisi-shutter-inner,
 .is-in-view .divisi-shutter-inner {
   clip-path: inset(0% 0 0 0);
   transform: translateY(0) scale(1);
@@ -1402,9 +1403,9 @@ body.menu-open #mobileDrawer {
   margin-top: 1.25rem;
   opacity: 0;
   transition: opacity 0.8s ease;
-  transition-delay: 0.25s;
 }
 
+.is-photo-in-view .divisi-content,
 .is-in-view .divisi-content {
   opacity: 1;
 }
@@ -1423,7 +1424,7 @@ body.menu-open #mobileDrawer {
   display: inline-block;
 }
 
-/* Only Division Title has the slow Blur Rise */
+/* Only Division Title has the slow Blur Rise (triggered at 2/3 viewport) */
 .divisi-card-title {
   font-size: 1.5rem;
   font-weight: 500;
@@ -1435,13 +1436,13 @@ body.menu-open #mobileDrawer {
   transform: translateY(36px);
   filter: blur(14px);
   transition:
-    opacity 1.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 1.8s cubic-bezier(0.16, 1, 0.3, 1),
-    filter 1.6s cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: 0.45s;
+    opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.6s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.5s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform, filter;
 }
 
+.is-title-in-view .divisi-card-title,
 .is-in-view .divisi-card-title {
   opacity: 1;
   transform: translateY(0);

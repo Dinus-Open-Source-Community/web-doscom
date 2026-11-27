@@ -63,32 +63,60 @@ const DIVISI_ITEMS: DivisiCardData[] = [
 
 export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
   const [headerVisible, setHeaderVisible] = useState(false);
-  const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
+  const [visiblePhotos, setVisiblePhotos] = useState<Record<string, boolean>>(
+    {},
+  );
+  const [visibleTitles, setVisibleTitles] = useState<Record<string, boolean>>(
+    {},
+  );
   const headerRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const cardObserver = new IntersectionObserver(
+    // 1. Photo observer: triggers earlier when card enters viewport
+    const photoObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const cardId = entry.target.getAttribute("data-card-id");
             if (cardId) {
-              setVisibleCards((prev) => ({ ...prev, [cardId]: true }));
+              setVisiblePhotos((prev) => ({ ...prev, [cardId]: true }));
             }
           }
         });
       },
       {
-        threshold: 0.25,
-        rootMargin: "0px 0px -30% 0px",
+        threshold: 0.1,
+        rootMargin: "0px 0px -40px 0px",
+      },
+    );
+
+    // 2. Title observer: triggers deeper when card reaches 2/3 of viewport
+    const titleObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const cardId = entry.target.getAttribute("data-card-id");
+            if (cardId) {
+              setVisibleTitles((prev) => ({ ...prev, [cardId]: true }));
+            }
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -33% 0px",
       },
     );
 
     cardRefs.current.forEach((el) => {
-      if (el) cardObserver.observe(el);
+      if (el) {
+        photoObserver.observe(el);
+        titleObserver.observe(el);
+      }
     });
 
+    // 3. Header observer
     const headerObserver = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -106,7 +134,8 @@ export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
     }
 
     return () => {
-      cardObserver.disconnect();
+      photoObserver.disconnect();
+      titleObserver.disconnect();
       headerObserver.disconnect();
     };
   }, []);
@@ -129,7 +158,8 @@ export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
         {/* Staggered Waterfall Grid */}
         <div className="divisi-waterfall-grid">
           {DIVISI_ITEMS.map((item, index) => {
-            const isVisible = !!visibleCards[item.id];
+            const isPhotoVisible = !!visiblePhotos[item.id];
+            const isTitleVisible = !!visibleTitles[item.id];
 
             return (
               <div
@@ -139,8 +169,8 @@ export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
                 }}
                 data-card-id={item.id}
                 className={`divisi-card-wrapper divisi-stagger-${index} ${
-                  isVisible ? "is-in-view" : ""
-                }`}
+                  isPhotoVisible ? "is-photo-in-view" : ""
+                } ${isTitleVisible ? "is-title-in-view" : ""}`}
               >
                 <button
                   type="button"
@@ -164,7 +194,7 @@ export function PortfolioSection({ onOpenLightbox }: PortfolioSectionProps) {
                     </div>
                   </div>
 
-                  {/* Card Content with Text Blur Rise */}
+                  {/* Card Content */}
                   <div className="divisi-content">
                     <div className="divisi-meta">
                       <span className="divisi-kicker">{item.kicker}</span>
